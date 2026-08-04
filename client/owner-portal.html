@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MyTurfy Partner — Manage Your Venues</title>
+<meta name="description" content="MyTurfy Partner Dashboard — list your turf, manage bookings, update photos, dimensions and pricing all in one place."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="icon" type="image/png" href="image/Hi.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/owner-portal.css"/>
+<style>
+/* ── Image uploader ── */
+.img-upload-zone{
+  border:2px dashed var(--border); border-radius:12px; padding:28px 20px;
+  text-align:center; cursor:pointer; transition:border-color .2s var(--ease);
+  background:var(--dark3); position:relative;
+}
+.img-upload-zone:hover,.img-upload-zone.drag-over{ border-color:var(--green) }
+.img-upload-zone input[type="file"]{ position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100% }
+.img-upload-zone i{ font-size:28px; color:var(--green); margin-bottom:8px; display:block }
+.img-upload-zone p{ color:var(--muted); font-size:13px; margin:0 }
+.img-upload-zone p strong{ color:var(--text) }
+.img-previews{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px }
+.img-preview-item{
+  position:relative; width:88px; height:70px; border-radius:8px; overflow:hidden;
+  border:2px solid var(--border);
+}
+.img-preview-item img{ width:100%; height:100%; object-fit:cover }
+.img-preview-item .remove-img{
+  position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
+  background:rgba(0,0,0,.75); border:none; color:#fff; font-size:10px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.img-preview-item.cover-img{ border-color:var(--green) }
+.img-preview-item .cover-badge{
+  position:absolute; bottom:0; left:0; right:0; background:var(--green);
+  color:#04140a; font-size:9px; font-weight:800; text-align:center; padding:2px;
+}
+.url-toggle{ font-size:12px; color:var(--green); background:none; border:none; cursor:pointer; margin-top:8px; padding:0 }
+.url-area{ margin-top:8px }
+
+/* ── Availability scheduler ── */
+.avail-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.avail-row select{ width:auto; min-width:110px }
+.hours-display{
+  font-family:'Bebas Neue',sans-serif; font-size:15px; color:var(--green);
+  background:var(--dark3); border-radius:8px; padding:8px 14px; letter-spacing:.5px;
+}
+.date-chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
+.date-chip{
+  background:var(--dark3); border:1px solid var(--border); border-radius:8px;
+  padding:6px 12px; font-size:12px; cursor:pointer; transition:all .15s;
+  display:flex; flex-direction:column; align-items:center; gap:2px; font-weight:600;
+  min-width:52px;
+}
+.date-chip .dc-day{ font-size:10px; color:var(--muted); font-weight:400 }
+.date-chip:hover{ border-color:var(--green) }
+.date-chip.closed{ background:rgba(239,83,80,.15); border-color:var(--red); color:var(--red) }
+.date-chip.closed .dc-day{ color:rgba(239,83,80,.7) }
+.avail-legend{ font-size:11px; color:var(--muted); margin-top:6px }
+.avail-legend span{ display:inline-flex; align-items:center; gap:4px; margin-right:12px }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ AUTH SCREEN ════════════════ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-side">
+    <div class="auth-side-inner">
+      <div class="brand"><i class="fas fa-circle-dot"></i> MyTurfy <span>Partner</span></div>
+      <h1>List your venue.<br>Fill your slots.</h1>
+      <p>Manage bookings, pricing and payouts for your turf, court or lane from one dashboard — no spreadsheets, no phone-tag.</p>
+      <ul class="auth-points">
+        <li><i class="fas fa-chart-line"></i> Track occupancy &amp; earnings in real time</li>
+        <li><i class="fas fa-calendar-check"></i> Accept or decline bookings instantly</li>
+        <li><i class="fas fa-camera"></i> Update turf photos &amp; dimensions easily</li>
+        <li><i class="fas fa-clock"></i> Set your open hours &amp; closed dates</li>
+        <li><i class="fas fa-star"></i> Reply to customer reviews directly</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Log In</button>
+        <button class="auth-tab" data-tab="signup">Sign Up</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active" novalidate>
+        <label for="loginEmail">Business email</label>
+        <input type="email" id="loginEmail" placeholder="you@business.com" autocomplete="email" required/>
+        <label for="loginPw">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password" required/>
+          <button type="button" class="pw-toggle" data-target="loginPw" aria-label="Toggle"><i class="fas fa-eye"></i></button>
+        </div>
+        <a href="#" id="forgotPwLink" style="font-size:12px; color:var(--muted); text-align:right; display:block; margin: -2px 0 6px;">Forgot password?</a>
+        <div class="auth-error" id="loginError" hidden></div>
+        <div id="loginOtpGroup" style="display:none;margin-top:8px">
+          <label for="loginOtpInput" style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--green);text-transform:uppercase;margin-bottom:6px">Verification Code</label>
+          <input type="text" id="loginOtpInput" placeholder="Enter 6-digit code from email" maxlength="6" autocomplete="one-time-code"
+            style="width:100%;padding:11px 14px;background:var(--dark3);border:1px solid var(--green);border-radius:10px;color:var(--text);font-size:16px;letter-spacing:3px;text-align:center;outline:none"/>
+          <p style="font-size:11px;color:var(--green);margin:4px 0 0"><i class="fas fa-info-circle"></i> Code sent to your email (valid 10 min)</p>
+        </div>
+        <button type="submit" class="btn-primary full" id="loginSubmitBtn">
+          <i class="fas fa-right-to-bracket"></i> Log In
+        </button>
+        <p class="auth-hint">New here? <a href="#" id="switchToSignup">Create a partner account</a></p>
+      </form>
+
+      <form id="signupForm" class="auth-form" novalidate>
+        <label for="suName">Owner / business name</label>
+        <input type="text" id="suName" placeholder="e.g. Arena Sports Hub" autocomplete="name" required/>
+        <label for="suEmail">Business email</label>
+        <input type="email" id="suEmail" placeholder="you@business.com" autocomplete="email" required/>
+        <label for="suPhone">Phone number</label>
+        <input type="tel" id="suPhone" placeholder="+91 98765 43210" autocomplete="tel" required/>
+        <label for="suCity">City</label>
+        <input type="text" id="suCity" placeholder="e.g. Surat" autocomplete="address-level2"/>
+        <label for="suPw">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="suPw" placeholder="Min 6 characters" autocomplete="new-password" required/>
+          <button type="button" class="pw-toggle" data-target="suPw" aria-label="Toggle"><i class="fas fa-eye"></i></button>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:8px; margin:6px 0">
+          <input type="checkbox" id="suPrivacy" style="width:auto; margin-top:2px; accent-color:var(--green)" required/>
+          <label for="suPrivacy" style="font-size:12px; color:var(--muted); font-weight:500; cursor:pointer; line-height:1.4; margin:0">
+            I agree to the <a href="privacy-policy.html" target="_blank" style="color:var(--green); text-decoration:underline">Privacy Policy</a> and <a href="terms.html" target="_blank" style="color:var(--green); text-decoration:underline">Terms &amp; Conditions</a>
+          </label>
+        </div>
+        <div class="auth-error" id="signupError" hidden></div>
+        <div id="signupOtpGroup" style="display:none;margin-top:8px">
+          <label for="suOtp" style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--green);text-transform:uppercase;margin-bottom:6px">Verification Code</label>
+          <input type="text" id="suOtp" placeholder="Enter 6-digit code from email" maxlength="6" autocomplete="one-time-code"
+            style="width:100%;padding:11px 14px;background:var(--dark3);border:1px solid var(--green);border-radius:10px;color:var(--text);font-size:16px;letter-spacing:3px;text-align:center;outline:none"/>
+          <p style="font-size:11px;color:var(--green);margin:4px 0 0"><i class="fas fa-info-circle"></i> Code sent to your email (valid 10 min)</p>
+        </div>
+        <button type="submit" class="btn-primary full" id="signupSubmitBtn">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+        <p class="auth-hint">Already a partner? <a href="#" id="switchToLogin">Log in</a></p>
+      </form>
+
+      <form id="forgotForm" class="auth-form" novalidate>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);margin-bottom:4px">Forgot Password</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Enter your business email address and we'll send you an OTP verification code.</p>
+        <label for="forgotEmail">Business email</label>
+        <input type="email" id="forgotEmail" placeholder="you@business.com" autocomplete="email" required/>
+        <div class="auth-error" id="forgotError" hidden></div>
+        <button type="submit" class="btn-primary full" id="forgotSubmitBtn" style="margin-top:8px">
+          Send Verification Code <i class="fas fa-arrow-right"></i>
+        </button>
+        <p class="auth-hint"><a href="#" id="forgotBackToLogin">Back to Log In</a></p>
+      </form>
+
+      <form id="resetForm" class="auth-form" novalidate>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);margin-bottom:4px">Reset Password</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Type the 6-digit OTP code sent to your email and choose a new password.</p>
+        <label for="resetOtp">Verification Code</label>
+        <input type="text" id="resetOtp" placeholder="6-digit code" maxlength="6" required/>
+        <label for="resetNewPw">New Password</label>
+        <input type="password" id="resetNewPw" placeholder="Min 6 characters" required/>
+        <div class="auth-error" id="resetError" hidden></div>
+        <div id="resetDevBannerOwner" style="display:none;margin-top:10px"></div>
+        <button type="submit" class="btn-primary full" id="resetSubmitBtn" style="margin-top:8px">
+          Reset Password <i class="fas fa-check"></i>
+        </button>
+        <p class="auth-hint"><a href="#" id="resetBackToForgot">Resend Code</a></p>
+      </form>
+
+      <div class="auth-divider" id="authDivider"><span>or continue with</span></div>
+      <div id="googleSignInBtnOwner" class="google-btn-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<div class="app" id="app" hidden>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand brand-sb"><i class="fas fa-circle-dot"></i> MyTurfy <span>Partner</span></div>
+    <nav class="sb-nav">
+      <button class="sb-link active" data-view="overview"><i class="fas fa-gauge-high"></i> Overview</button>
+      <button class="sb-link" data-view="venues"><i class="fas fa-warehouse"></i> My Venues</button>
+      <button class="sb-link" data-view="bookings"><i class="fas fa-calendar-days"></i> Bookings</button>
+      <button class="sb-link" data-view="earnings"><i class="fas fa-indian-rupee-sign"></i> Earnings</button>
+      <button class="sb-link" data-view="reviews"><i class="fas fa-star-half-stroke"></i> Reviews</button>
+      <button class="sb-link" data-view="offline-bookings"><i class="fas fa-calendar-plus"></i> Offline Booking</button>
+      <button class="sb-link" data-view="qr-scanner"><i class="fas fa-qrcode"></i> QR Scanner</button>
+      <button class="sb-link" data-view="settings"><i class="fas fa-gear"></i> Settings</button>
+    </nav>
+    <button class="sb-logout" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Log Out</button>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+      <h2 class="view-title" id="viewTitle">Overview</h2>
+      <div class="topbar-right">
+        <span class="owner-name" id="ownerNameTop">Partner</span>
+        <div class="avatar" id="ownerAvatar">P</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div id="payoutMissingAlert" style="display:none"></div>
+
+      <!-- OVERVIEW -->
+      <section class="view active" id="view-overview">
+        <p class="welcome-line">Welcome back, <strong id="welcomeOwnerName">Partner</strong> — here's how your venues are doing.</p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-gauge" id="gaugeVenues"><span id="statVenues">0</span></div>
+            <div class="stat-label">Active Venues</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-gauge" id="gaugeBookings"><span id="statBookings">0</span></div>
+            <div class="stat-label">Bookings This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-gauge" id="gaugeRating"><span id="statRating">0</span></div>
+            <div class="stat-label">Average Rating</div>
+          </div>
+          <div class="stat-card stat-card-money">
+            <div class="stat-money-icon"><i class="fas fa-sack-dollar"></i></div>
+            <div>
+              <div class="stat-money-val" id="statEarnings">₹0</div>
+              <div class="stat-label">Earnings This Month</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-row">
+          <div class="panel">
+            <div class="panel-head"><h3>Bookings — Last 7 Days</h3></div>
+            <div class="bar-chart" id="weekChart"></div>
+          </div>
+          <div class="panel panel-narrow">
+            <div class="panel-head"><h3>Top Venue</h3></div>
+            <div id="topVenueCard" class="top-venue-card"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Recent Bookings</h3>
+            <button class="link-btn" data-goto="bookings">View all <i class="fas fa-arrow-right"></i></button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="recentBookingsTable">
+              <thead><tr><th>Customer</th><th>Venue</th><th>Date</th><th>Time</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- MY VENUES -->
+      <section class="view" id="view-venues">
+        <div class="view-toolbar">
+          <p class="view-sub">Properties you've listed on MyTurfy</p>
+          <button class="btn-primary" id="addVenueBtn"><i class="fas fa-plus"></i> Add Venue</button>
+        </div>
+        <div class="venue-grid" id="ownerVenueGrid"></div>
+        <div class="empty-state" id="venuesEmpty" hidden>
+          <i class="fas fa-warehouse"></i>
+          <h3>No venues listed yet</h3>
+          <p>Add your first venue to start getting bookings.</p>
+          <button class="btn-primary" id="addVenueBtnEmpty"><i class="fas fa-plus"></i> Add Venue</button>
+        </div>
+      </section>
+
+      <!-- BOOKINGS -->
+      <section class="view" id="view-bookings">
+        <div class="view-toolbar">
+          <p class="view-sub">All bookings across your venues</p>
+          <div class="bk-filters">
+            <select id="bkVenueFilter"><option value="all">All venues</option></select>
+            <select id="bkStatusFilter">
+              <option value="all">All statuses</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="refund_requested">Refund Requests ⚠️</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap panel">
+          <table class="data-table" id="bookingsTable">
+            <thead><tr><th>Customer</th><th>Venue</th><th>Date</th><th>Time</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- EARNINGS -->
+      <section class="view" id="view-earnings">
+        <div class="stat-grid stat-grid-3">
+          <div class="stat-card stat-card-money">
+            <div class="stat-money-icon"><i class="fas fa-wallet"></i></div>
+            <div><div class="stat-money-val" id="earnTotal">₹0</div><div class="stat-label">Total Earnings (Net)</div></div>
+          </div>
+          <div class="stat-card stat-card-money">
+            <div class="stat-money-icon"><i class="fas fa-clock-rotate-left"></i></div>
+            <div><div class="stat-money-val" id="earnPending">₹0</div><div class="stat-label">Pending Payout</div></div>
+          </div>
+          <div class="stat-card stat-card-money">
+            <div class="stat-money-icon"><i class="fas fa-percent"></i></div>
+            <div><div class="stat-money-val" id="earnCommission">10%</div><div class="stat-label">Platform Commission</div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Monthly Earnings</h3></div>
+          <div class="bar-chart" id="monthChart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Payout History</h3></div>
+          <div class="table-wrap">
+            <table class="data-table" id="payoutTable">
+              <thead><tr><th>Payout ID</th><th>Period</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- REVIEWS -->
+      <section class="view" id="view-reviews">
+        <p class="view-sub">What customers are saying about your venues</p>
+        <div class="reviews-list" id="reviewsList"></div>
+      </section>
+
+      <!-- OFFLINE BOOKING -->
+      <section class="view" id="view-offline-bookings">
+        <div class="view-toolbar">
+          <p class="view-sub">Manually book offline walk-ins and directly control slots</p>
+        </div>
+        <div class="panel-row">
+          <!-- Quick Book Panel -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3><i class="fas fa-calendar-plus" style="color:var(--green)"></i> Create Offline Booking</h3>
+            </div>
+            <form id="offlineBookingForm" class="venue-form" style="padding:0; margin-top:15px; display:flex; flex-direction:column; gap:14px" novalidate>
+              <div class="field">
+                <label for="obVenue">Select Venue *</label>
+                <select id="obVenue" required></select>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="obDate">Select Date *</label>
+                  <input type="date" id="obDate" required/>
+                </div>
+                <div class="field">
+                  <label for="obDuration">Duration (Hours)</label>
+                  <input type="number" id="obDuration" min="1" value="1" required/>
+                </div>
+              </div>
+              
+              <div class="field">
+                <label style="font-weight:700">Available Slots</label>
+                <div class="date-chip-grid" id="obSlotsContainer" style="margin-top:5px"></div>
+                <p class="avail-legend" id="obSlotsMessage" style="color:var(--muted)"></p>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="obCustName">Customer Name (Optional)</label>
+                  <input type="text" id="obCustName" placeholder="e.g. John Doe"/>
+                </div>
+                <div class="field">
+                  <label for="obCustPhone">Customer Phone (Optional)</label>
+                  <input type="tel" id="obCustPhone" placeholder="e.g. 9876543210"/>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="obSubmitBtn" style="margin-top:10px" disabled>
+                <i class="fas fa-check"></i> Book Selected Slot
+              </button>
+            </form>
+          </div>
+
+          <!-- Manage/Cancel Slots Panel -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3><i class="fas fa-calendar-xmark" style="color:var(--red)"></i> Direct Slot Control</h3>
+            </div>
+            <div style="margin-top:15px; display:flex; flex-direction:column; gap:14px">
+              <div class="form-row">
+                <div class="field">
+                  <label for="mcVenue">Select Venue</label>
+                  <select id="mcVenue"></select>
+                </div>
+                <div class="field">
+                  <label for="mcDate">Select Date</label>
+                  <input type="date" id="mcDate"/>
+                </div>
+              </div>
+              <div class="table-wrap" style="margin-top:10px">
+                <table class="data-table" id="mcSlotsTable">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Booked User</th>
+                      <th>Phone</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">Select venue and date to view slots</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QR SCANNER -->
+      <section class="view" id="view-qr-scanner">
+        <div class="view-toolbar">
+          <p class="view-sub">Scan customer QR codes or verify via email to validate bookings and trigger payouts</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3><i class="fas fa-qrcode" style="color:var(--green)"></i> Booking Validation</h3>
+          </div>
+          <div style="padding:20px; display:flex; flex-direction:column; gap:20px">
+            <!-- Verification Method Tabs -->
+            <div style="display:flex; gap:10px; margin-bottom:10px">
+              <button class="btn-secondary" id="qrMethodBtn" style="flex:1; background:var(--green); color:#04140a; border-color:var(--green)">
+                <i class="fas fa-qrcode"></i> QR Code
+              </button>
+              <button class="btn-secondary" id="emailMethodBtn" style="flex:1">
+                <i class="fas fa-envelope"></i> Email Verification
+              </button>
+            </div>
+
+            <!-- QR Code Method -->
+            <div id="qrMethodPanel" style="text-align:center; padding:30px; background:var(--dark3); border-radius:12px; border:2px dashed var(--border)">
+              <i class="fas fa-qrcode" style="font-size:48px; color:var(--green); margin-bottom:12px"></i>
+              <h3 style="margin:0 0 8px">Enter QR Code</h3>
+              <p style="color:var(--muted); font-size:13px; margin:0 0 16px">Ask customer to show their QR code or enter the code manually</p>
+              <div style="display:flex; gap:10px; max-width:400px; margin:0 auto">
+                <input type="text" id="qrCodeInput" placeholder="Enter QR code or booking ID" style="flex:1; padding:12px 16px; border:1px solid var(--border); border-radius:8px; background:var(--dark2); color:var(--text); outline:none"/>
+                <button class="btn-primary" id="validateQrBtn"><i class="fas fa-check"></i> Validate</button>
+              </div>
+            </div>
+
+            <!-- Email Verification Method -->
+            <div id="emailMethodPanel" style="display:none; padding:30px; background:var(--dark3); border-radius:12px; border:2px dashed var(--border)">
+              <div style="text-align:center; margin-bottom:20px">
+                <i class="fas fa-envelope" style="font-size:48px; color:var(--green); margin-bottom:12px"></i>
+                <h3 style="margin:0 0 8px">Email Verification</h3>
+                <p style="color:var(--muted); font-size:13px; margin:0">Enter customer email to send verification code</p>
+              </div>
+
+              <div id="emailStep1">
+                <div style="display:flex; gap:10px; max-width:400px; margin:0 auto">
+                  <input type="email" id="customerEmailInput" placeholder="customer@email.com" style="flex:1; padding:12px 16px; border:1px solid var(--border); border-radius:8px; background:var(--dark2); color:var(--text); outline:none"/>
+                  <button class="btn-primary" id="sendOtpBtn"><i class="fas fa-paper-plane"></i> Send Code</button>
+                </div>
+              </div>
+
+              <div id="emailStep2" style="display:none; margin-top:20px">
+                <p style="color:var(--muted); font-size:13px; text-align:center; margin-bottom:12px">Enter the 6-digit code sent to customer's email</p>
+                <div style="display:flex; gap:10px; max-width:400px; margin:0 auto">
+                  <input type="text" id="otpInput" placeholder="123456" maxlength="6" style="flex:1; padding:12px 16px; border:1px solid var(--border); border-radius:8px; background:var(--dark2); color:var(--text); outline:none; text-align:center; letter-spacing:4px; font-size:18px"/>
+                  <button class="btn-primary" id="verifyOtpBtn"><i class="fas fa-check"></i> Verify</button>
+                </div>
+                <p style="text-align:center; margin-top:12px">
+                  <button id="resendOtpBtn" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:12px">Resend Code</button>
+                </p>
+              </div>
+            </div>
+
+            <!-- Result Display -->
+            <div id="qrResult" style="display:none; padding:20px; background:var(--dark3); border-radius:12px; border:1px solid var(--border)">
+              <div id="qrResultSuccess" style="display:none">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+                  <div style="width:48px; height:48px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                    <i class="fas fa-check" style="color:#04140a; font-size:24px"></i>
+                  </div>
+                  <div>
+                    <h3 style="margin:0; color:var(--green)">Booking Validated!</h3>
+                    <p style="margin:4px 0 0; color:var(--muted); font-size:13px">Booking marked as completed and payout eligible</p>
+                  </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px">
+                  <div style="background:var(--dark2); padding:12px; border-radius:8px">
+                    <div style="font-size:11px; color:var(--muted); margin-bottom:4px">Customer Name</div>
+                    <div id="qrCustomerName" style="font-weight:600">-</div>
+                  </div>
+                  <div style="background:var(--dark2); padding:12px; border-radius:8px">
+                    <div style="font-size:11px; color:var(--muted); margin-bottom:4px">Venue</div>
+                    <div id="qrVenueName" style="font-weight:600">-</div>
+                  </div>
+                  <div style="background:var(--dark2); padding:12px; border-radius:8px">
+                    <div style="font-size:11px; color:var(--muted); margin-bottom:4px">Amount</div>
+                    <div id="qrAmount" style="font-weight:600; color:var(--green)">-</div>
+                  </div>
+                  <div style="background:var(--dark2); padding:12px; border-radius:8px">
+                    <div style="font-size:11px; color:var(--muted); margin-bottom:4px">Validated At</div>
+                    <div id="qrValidatedAt" style="font-weight:600">-</div>
+                  </div>
+                </div>
+              </div>
+              <div id="qrResultError" style="display:none">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+                  <div style="width:48px; height:48px; background:var(--red); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                    <i class="fas fa-xmark" style="color:#fff; font-size:24px"></i>
+                  </div>
+                  <div>
+                    <h3 style="margin:0; color:var(--red)">Validation Failed</h3>
+                    <p id="qrErrorMessage" style="margin:4px 0 0; color:var(--muted); font-size:13px">-</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="panel settings-panel">
+          <div class="panel-head"><h3>Business Profile</h3></div>
+          <div class="settings-grid">
+            <div class="field"><label for="setName">Business / Owner Name</label><input type="text" id="setName"/></div>
+            <div class="field"><label for="setEmail">Email</label><input type="email" id="setEmail" disabled/></div>
+            <div class="field"><label for="setPhone">Phone</label><input type="tel" id="setPhone"/></div>
+            <div class="field"><label for="setCity">City</label><input type="text" id="setCity"/></div>
+          </div>
+          <button class="btn-primary" id="saveProfileBtn"><i class="fas fa-floppy-disk"></i> Save Changes</button>
+        </div>
+        <div class="panel settings-panel">
+          <div class="panel-head"><h3>Payout Details</h3></div>
+          <div class="settings-grid">
+            <div class="field"><label for="setBankName">Bank Account Holder</label><input type="text" id="setBankName"/></div>
+            <div class="field"><label for="setAccNo">Account Number</label><input type="text" id="setAccNo"/></div>
+            <div class="field"><label for="setIfsc">IFSC Code</label><input type="text" id="setIfsc"/></div>
+            <div class="field"><label for="setUpi">UPI ID</label><input type="text" id="setUpi" placeholder="name@bank"/></div>
+          </div>
+          <button class="btn-primary" id="savePayoutBtn"><i class="fas fa-floppy-disk"></i> Save Payout Info</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════ VENUE FORM MODAL ════════════════ -->
+<div class="modal-overlay" id="venueModal" role="dialog" aria-modal="true" aria-labelledby="venueModalTitle">
+  <div class="modal-box venue-modal-box">
+    <div class="modal-head">
+      <h3 id="venueModalTitle">Add Venue</h3>
+      <button class="modal-x" id="venueModalClose" aria-label="Close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form id="venueForm" class="venue-form" novalidate>
+      <input type="hidden" id="vfId"/>
+
+      <!-- Basic Info -->
+      <div class="form-row">
+        <div class="field">
+          <label for="vfName">Venue Name *</label>
+          <input type="text" id="vfName" required placeholder="e.g. Arena Sports Hub"/>
+        </div>
+        <div class="field">
+          <label for="vfSport">Sport *</label>
+          <select id="vfSport" required>
+            <option value="Football">Football</option>
+            <option value="Cricket">Cricket</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Badminton">Badminton</option>
+            <option value="Tennis">Tennis</option>
+            <option value="Pickleball">Pickleball</option>
+            <option value="Bowling">Bowling</option>
+            <option value="Pool">Pool</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="vfLocation">Location *</label>
+          <input type="text" id="vfLocation" required placeholder="Area, City"/>
+        </div>
+        <div class="field">
+          <label for="vfPrice">Price per hour (₹) *</label>
+          <input type="number" id="vfPrice" required min="0" placeholder="800"/>
+        </div>
+      </div>
+
+      <!-- Dimensions -->
+      <div class="form-row form-row-3">
+        <div class="field">
+          <label for="vfLength">Length (m) *</label>
+          <input type="number" id="vfLength" required min="0" placeholder="40"/>
+        </div>
+        <div class="field">
+          <label for="vfBreadth">Breadth (m) *</label>
+          <input type="number" id="vfBreadth" required min="0" placeholder="25"/>
+        </div>
+        <div class="field">
+          <label for="vfHeight">Height (m)</label>
+          <input type="number" id="vfHeight" min="0" placeholder="7"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="vfCondition">Surface / Condition</label>
+          <input type="text" id="vfCondition" placeholder="e.g. Premium FIFA-grade Artificial Grass"/>
+        </div>
+        <div class="field">
+          <label for="vfTurfs">No. of Courts / Turfs</label>
+          <input type="number" id="vfTurfs" min="1" value="1"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="vfTools">Equipment Provided</label>
+        <input type="text" id="vfTools" placeholder="e.g. Football, Cones, Bibs"/>
+      </div>
+
+      <!-- GPS -->
+      <div class="form-row">
+        <div class="field">
+          <label for="vfLat">Latitude <span class="field-hint">(optional)</span></label>
+          <input type="number" id="vfLat" step="any" placeholder="e.g. 21.1702"/>
+        </div>
+        <div class="field">
+          <label for="vfLng">Longitude <span class="field-hint">(optional)</span></label>
+          <input type="number" id="vfLng" step="any" placeholder="e.g. 72.8311"/>
+        </div>
+      </div>
+      <p class="field-hint">Tip: right-click your venue on <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer">Google Maps</a> → coordinates appear at the top.</p>
+
+      <!-- ── AVAILABILITY ─────────────────────── -->
+      <div class="field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <label style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:10px;display:block">
+          <i class="fas fa-clock" style="color:var(--green)"></i> Open Hours
+        </label>
+        <div class="avail-row">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">Opens at</span>
+            <select id="vfOpenHour" style="width:auto"></select>
+          </div>
+          <i class="fas fa-arrow-right" style="color:var(--muted);margin-top:14px"></i>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">Closes at</span>
+            <select id="vfCloseHour" style="width:auto"></select>
+          </div>
+          <div class="hours-display" id="hoursDisplay">6:00 AM – 10:00 PM</div>
+        </div>
+      </div>
+
+      <!-- Closed Dates (next 2 weeks) -->
+      <div class="field">
+        <label style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px;display:block">
+          <i class="fas fa-calendar-xmark" style="color:var(--red)"></i> Closed Dates
+          <span class="field-hint" style="font-weight:400">&nbsp;(tap a date to mark it closed / re-tap to reopen)</span>
+        </label>
+        <div class="date-chip-grid" id="vfClosedDatesGrid"></div>
+        <p class="avail-legend">
+          <span style="color:var(--text)">■ Open</span>
+          <span style="color:var(--red)">■ Closed</span>
+        </p>
+      </div>
+
+      <!-- Facilities -->
+      <div class="field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <label>Facilities</label>
+        <div class="checkbox-row" id="facilitiesRow">
+          <label class="chip-check"><input type="checkbox" value="floodlights"/> Floodlights</label>
+          <label class="chip-check"><input type="checkbox" value="parking"/> Parking</label>
+          <label class="chip-check"><input type="checkbox" value="changing"/> Changing Rooms</label>
+          <label class="chip-check"><input type="checkbox" value="cafeteria"/> Cafeteria</label>
+          <label class="chip-check"><input type="checkbox" value="ac"/> AC</label>
+          <label class="chip-check"><input type="checkbox" value="shower"/> Shower</label>
+          <label class="chip-check"><input type="checkbox" value="wifi"/> Wi-Fi</label>
+        </div>
+      </div>
+
+      <!-- Time Slot periods -->
+      <div class="field">
+        <label>Available Time Periods <span class="field-hint">(informational tags shown to customers)</span></label>
+        <div class="checkbox-row" id="slotsRow">
+          <label class="chip-check"><input type="checkbox" value="morning"/> Morning</label>
+          <label class="chip-check"><input type="checkbox" value="afternoon"/> Afternoon</label>
+          <label class="chip-check"><input type="checkbox" value="evening"/> Evening</label>
+          <label class="chip-check"><input type="checkbox" value="night"/> Night</label>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="field">
+        <label for="vfDescription">Venue Description <span class="field-hint">(shown to customers)</span></label>
+        <textarea id="vfDescription" rows="3" placeholder="e.g. Premium FIFA-grade turf in the heart of the city…"></textarea>
+      </div>
+
+      <!-- ── PHOTOS ─────────────────────────── -->
+      <div class="field" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <label style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:8px;display:block">
+          <i class="fas fa-images" style="color:var(--green)"></i> Venue Photos
+          <span class="field-hint" style="font-weight:400">&nbsp;(up to 10 — first is the cover)</span>
+        </label>
+
+        <!-- Drag-and-drop / click upload zone -->
+        <div class="img-upload-zone" id="imgUploadZone">
+          <input type="file" id="vfImageFiles" accept="image/*" multiple/>
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p><strong>Click to upload</strong> or drag &amp; drop photos here</p>
+          <p style="margin-top:4px;font-size:11px">JPG, PNG, WEBP · max 5 MB each · up to 10 photos</p>
+        </div>
+
+        <!-- Preview strip -->
+        <div class="img-previews" id="imgPreviews"></div>
+
+        <!-- URL fallback (collapsed by default) -->
+        <button type="button" class="url-toggle" id="urlToggleBtn">
+          <i class="fas fa-link"></i> Add photos by URL instead
+        </button>
+        <div class="url-area" id="urlArea" hidden>
+          <textarea id="vfImages" rows="4" placeholder="Paste one URL per line:&#10;https://...&#10;https://..."></textarea>
+          <p class="field-hint" style="margin-top:4px">These URLs are used when no file is uploaded above, or to add extra photos.</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" id="venueFormCancel">Cancel</button>
+        <button type="submit" class="btn-primary" id="venueFormSubmit">
+          <i class="fas fa-check"></i> <span id="venueFormSubmitLabel">Add Venue</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/owner-portal.js"></script>
+</body>
+</html>

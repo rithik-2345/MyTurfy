@@ -1,0 +1,54 @@
+# ─── Dependencies ──────────────────────────
+node_modules/
+
+# ─── Environment Variables (Critical!) ──
+.env
+.env.local
+.env.*.local        # catches .env.production.local, etc.
+
+# ─── Logs ──────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ─── OS Files ──────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ─── IDE / Editors ─────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.workspace
+
+# ─── Build / Output ────────────────────────
+dist/
+build/
+client/build/
+coverage/
+.nyc_output/
+
+# ─── Temp / Uploads (if you ever add local file storage) ──
+tmp/
+temp/
+uploads/
+*.tmp
+
+# ─── Database (if you run MongoDB locally with a data folder) ─
+data/
+mongodb-data/
+*.db
+*.sqlite
+
+# ─── Passwords ─
+zpassword.txt

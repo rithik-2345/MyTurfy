@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – My Wishlist</title>
+  <meta name="description" content="Your saved venues on MyTurfy — view and book your favourite sports spots instantly."/>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/wishlist.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="wl-page">
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="navSearch" placeholder="Search venues, sports…"/>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
+
+      <div class="dropdown city-dropdown">
+        <button class="btn-city dropdown-trigger" id="cityBtn">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="city-label">City</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </button>
+        <div class="dropdown-menu city-menu" id="cityMenu">
+          <div class="dropdown-header">Select Your City</div>
+          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
+          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
+          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
+          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
+          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
+          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
+          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
+          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
+        </div>
+      </div>
+
+      <button class="btn-signin" id="signinBtn">
+        <i class="fas fa-user"></i>
+        <span class="signin-label">Sign In</span>
+      </button>
+
+      <!-- Wishlist (active on this page) -->
+      <a href="wishlist.html" class="btn-wishlist-nav has-items" aria-label="Wishlist">
+        <i class="fas fa-heart"></i>
+        <span class="wishlist-nav-label">Wishlist</span>
+      </a>
+
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Search -->
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="wishlist-hero">
+    <div class="wishlist-hero-content">
+      <div class="wishlist-eyebrow">
+        <i class="fas fa-heart"></i> Your Collection
+      </div>
+      <h1 class="wishlist-title">My <span>Wishlist</span></h1>
+      <p class="wishlist-subtitle">All the venues you've saved — ready to book anytime.</p>
+      <div class="wishlist-count-badge" id="wlCountBadge" style="display:none">
+        <i class="fas fa-heart"></i>
+        <span id="wlCountText">0 saved venues</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ MAIN CONTENT ══════════ -->
+  <div id="wlMainContent">
+    <!-- Injected by JS based on login state -->
+  </div>
+
+  <!-- ══════════ SIGN IN MODAL ══════════ -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to view your wishlist</p>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;padding:20px 0;color:var(--muted)">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--green)"></i>
+          <p style="margin-top:10px;font-size:13px">Loading…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ BOTTOM NAV (mobile) ══════════ -->
+  <nav class="bottom-nav mobile-only">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </a>
+    <a href="venues.html" class="bottom-nav-item">
+      <i class="fas fa-search"></i><span>Venues</span>
+    </a>
+    <a href="wishlist.html" class="bottom-nav-item active">
+      <i class="fas fa-heart"></i><span>Wishlist</span>
+    </a>
+    <button class="bottom-nav-item" id="bottomAccount">
+      <i class="fas fa-user"></i><span>Account</span>
+    </button>
+  </nav>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html">Our Goal</a>
+        <a href="#" data-soon="Careers">Careers</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html#contact">Contact Us</a>
+        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+        <a href="#" data-soon="Terms">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <!-- COMING SOON OVERLAY -->
+  <div id="comingSoonOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:36px 40px;text-align:center;max-width:320px;animation:scaleIn .25s ease">
+      <div style="font-size:40px;margin-bottom:12px">🚀</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);margin:0 0 8px" id="comingSoonTitle">Coming Soon</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 20px" id="comingSoonMsg">We're working hard on this feature. Stay tuned!</p>
+      <button onclick="document.getElementById('comingSoonOverlay').style.display='none'" style="padding:10px 28px;background:var(--green);color:var(--dark);border:none;border-radius:50px;font-weight:700;cursor:pointer;font-size:14px">Got it!</button>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/wishlist.js"></script>
+</body>
+</html>

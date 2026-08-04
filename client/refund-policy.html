@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – Refund Policy</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/content-pages.css"/>
+  <link rel="stylesheet" href="css/legal.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text"><span class="logo-main">MY Turfy</span><span class="logo-sub">.com</span></div>
+    </a>
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports…"/>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="legal-hero">
+    <div class="legal-hero-inner">
+      <p class="cp-eyebrow">Refund & Cancellation</p>
+      <h1>Our Refund <span>Policy</span></h1>
+      <p class="cp-sub">We believe in fair treatment for both players and venue owners. Read how our refund process works.</p>
+      <p class="legal-updated">Last updated: July 2026</p>
+    </div>
+  </section>
+
+  <!-- CONTENT -->
+  <div class="legal-body">
+
+    <!-- HOW PAYMENTS WORK -->
+    <section class="legal-section">
+      <h2><i class="fas fa-indian-rupee-sign"></i> How Your Payment is Held</h2>
+      <p>When you complete a booking on MyTurfy, your payment is collected and held securely by MyTurfy — it does <strong>not</strong> go directly to the venue owner at the time of booking. This is intentional and works in your favour.</p>
+      <div class="legal-flow">
+        <div class="legal-flow-step">
+          <div class="lf-icon"><i class="fas fa-credit-card"></i></div>
+          <div><strong>You pay</strong><span>Payment collected securely via Razorpay and held by MyTurfy</span></div>
+        </div>
+        <div class="legal-flow-arrow"><i class="fas fa-arrow-down"></i></div>
+        <div class="legal-flow-step">
+          <div class="lf-icon"><i class="fas fa-clock"></i></div>
+          <div><strong>Slot time arrives</strong><span>Your booking runs as planned at the venue</span></div>
+        </div>
+        <div class="legal-flow-arrow"><i class="fas fa-arrow-down"></i></div>
+        <div class="legal-flow-step">
+          <div class="lf-icon lf-green"><i class="fas fa-check-circle"></i></div>
+          <div><strong>Payment released to owner</strong><span>Only after your slot has completed with no active refund request</span></div>
+        </div>
+      </div>
+      <p class="legal-note"><i class="fas fa-shield-halved"></i> This escrow-style flow means you have a real window to raise a dispute before any money reaches the venue owner.</p>
+    </section>
+
+    <!-- TIERED CANCELLATION SCHEDULE -->
+    <section class="legal-section">
+      <h2><i class="fas fa-clock-rotate-left"></i> Tiered Cancellation & Refund Schedule</h2>
+      <p>Time slots are perishable sports inventory. Our tiered refund schedule balances player flexibility with court owner protection:</p>
+      <div class="legal-table">
+        <div class="lt-row lt-head">
+          <span>Cancellation Time Window</span><span>Refund Percentage</span><span>Owner Compensation</span>
+        </div>
+        <div class="lt-row">
+          <span><strong>≥ 24 Hours</strong> before slot</span><span style="color:#00c853;font-weight:700">100% Cash Refund</span><span>Slot released for re-booking</span>
+        </div>
+        <div class="lt-row">
+          <span><strong>12 – 24 Hours</strong> before slot</span><span style="color:#ffb300;font-weight:700">75% Refund</span><span>50% of retained amount (12.5%)</span>
+        </div>
+        <div class="lt-row">
+          <span><strong>6 – 12 Hours</strong> before slot</span><span style="color:#ffb300;font-weight:700">50% Refund</span><span>50% of retained amount (25.0%)</span>
+        </div>
+        <div class="lt-row">
+          <span><strong>2 – 6 Hours</strong> before slot</span><span style="color:#ef5350;font-weight:700">25% Refund</span><span>50% of retained amount (37.5%)</span>
+        </div>
+        <div class="lt-row">
+          <span><strong>&lt; 2 Hours / Past Slot</strong></span><span style="color:#ef5350;font-weight:700">0% Refund</span><span>50% of booking amount (50.0%)</span>
+        </div>
+      </div>
+      <p class="legal-note"><i class="fas fa-handshake-angle"></i> <strong>Owner Cancellation Compensation:</strong> Whenever a booking is cancelled within 24 hours, 50% of the retained non-refunded amount is credited to the venue owner as fair compensation for holding the slot.</p>
+    </section>
+
+    <!-- WEATHER & UNPLAYABLE COURT POLICY -->
+    <section class="legal-section">
+      <h2><i class="fas fa-cloud-showers-heavy"></i> Weather & Unplayable Court Policy</h2>
+      <div class="legal-cards">
+        <div class="legal-card legal-card-green">
+          <h3>🌧️ Rain & Waterlogging</h3>
+          <p>If an outdoor turf becomes waterlogged or unplayable due to heavy rain, or if a severe power outage occurs, customers receive a <strong>100% Full Refund</strong> or a <strong>Free Slot Reschedule</strong> valid for 30 days once verified by venue support or MyTurfy Admin.</p>
+        </div>
+        <div class="legal-card legal-card-green">
+          <h3>⚡ Venue Maintenance / Double Booking</h3>
+          <p>If the venue owner cancels your booking due to emergency maintenance or court damage, you automatically receive an immediate <strong>100% Full Refund</strong> back to your payment method.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW TO REQUEST & APPROVAL PROCESS -->
+    <section class="legal-section">
+      <h2><i class="fas fa-paper-plane"></i> Refund Approval Process</h2>
+      <div class="legal-steps">
+        <div class="legal-step">
+          <div class="ls-num">1</div>
+          <div>
+            <strong>Submit Request via "My Bookings"</strong>
+            <p>Log into your MyTurfy account, go to My Bookings, and click <strong>Cancel &amp; Request Refund</strong>.</p>
+          </div>
+        </div>
+        <div class="legal-step">
+          <div class="ls-num">2</div>
+          <div>
+            <strong>Instant Tier Calculation &amp; Review</strong>
+            <p>Our system calculates your exact refund percentage tier based on the time remaining before your match slot starts.</p>
+          </div>
+        </div>
+        <div class="legal-step">
+          <div class="ls-num">3</div>
+          <div>
+            <strong>Admin Review &amp; Approval</strong>
+            <p>Your request is reviewed by MyTurfy Support Admin (<a href="mailto:myturfy@gmail.com" style="color:#00c853">myturfy@gmail.com</a>). Once approved, the Razorpay refund is triggered automatically.</p>
+          </div>
+        </div>
+        <div class="legal-step">
+          <div class="ls-num">4</div>
+          <div>
+            <strong>Payment Credit (5–7 Business Days)</strong>
+            <p>Refunds are credited directly back to your original payment method (UPI / Card / NetBanking) within <strong>5–7 business days</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OWNER PAYOUT & BANK DETAILS -->
+    <section class="legal-section">
+      <h2><i class="fas fa-building-columns"></i> Partner Payouts & Escrow Policy</h2>
+      <p>MyTurfy holds all customer booking payments securely in escrow until the match slot time completes. Money is only disbursed to venue owners after the slot finishes with no unresolved refund request.</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px;"><i class="fas fa-info-circle"></i> <strong>Partner Bank Details:</strong> Venue owners must register their Bank Account / UPI details in their Partner Dashboard to receive weekly automated payouts. If payout details are missing, earnings remain safely accumulated in escrow under their Partner Account balance.</p>
+    </section>
+
+    <!-- LIMITATION OF LIABILITY -->
+    <section class="legal-section legal-section-warning">
+      <h2><i class="fas fa-triangle-exclamation"></i> Limitation of Liability</h2>
+      <p>MyTurfy is a booking platform that connects customers with independently operated sports venues. We are an intermediary — <strong>we do not own, operate, manage, or inspect any of the venues listed on our platform.</strong></p>
+      <p>While we make every effort to ensure venue information is accurate and up to date, we cannot be held responsible for:</p>
+      <ul class="legal-list">
+        <li>Venue quality, maintenance, or safety standards</li>
+        <li>Disputes between customers and venue owners that arise from non-platform issues</li>
+        <li>Physical injury or property damage occurring at a venue</li>
+        <li>Weather-related or force majeure cancellations</li>
+        <li>Loss of personal property at a venue</li>
+        <li>Any indirect, consequential, or incidental loss arising from use of the platform</li>
+      </ul>
+      <p>By using MyTurfy, you acknowledge and agree that your use of any venue is entirely at your own risk and that MyTurfy's liability is limited to the booking amount paid through our platform.</p>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="legal-section">
+      <h2><i class="fas fa-headset"></i> Still have questions?</h2>
+      <p>Our support team is available Monday to Saturday, 9 AM – 8 PM IST.</p>
+      <div class="legal-contact-row">
+        <a href="mailto:myturfy@gmail.com" class="legal-contact-btn"><i class="fas fa-envelope"></i> myturfy@gmail.com</a>
+        <a href="support.html" class="legal-contact-btn legal-contact-btn-outline"><i class="fas fa-headset"></i> Help Center</a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="blog.html">Blog</a>
+        <a href="support.html">Support</a>
+      </div>
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <a href="refund-policy.html">Refund Policy</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2><p>Sign in to continue</p>
+      </div>
+      <div class="modal-body">
+        <div class="input-group"><i class="fas fa-envelope"></i><input type="email" placeholder="Email address" autocomplete="email"/></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Password"/><button class="toggle-pw" id="togglePw"><i class="fas fa-eye"></i></button></div>
+        <button class="btn-modal-signin">Sign In <i class="fas fa-arrow-right"></i></button>
+        <div class="modal-divider"><span>or continue with</span></div>
+        <div id="googleSignInBtn" class="google-btn-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+</body>
+</html>

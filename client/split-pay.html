@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – Team Split Payment</title>
+  <meta name="description" content="Pay your share for your team turf booking on MyTurfy."/>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .split-page-wrapper {
+      max-width: 800px;
+      margin: 30px auto 60px;
+      padding: 0 16px;
+    }
+    .split-card-main {
+      background: linear-gradient(145deg, #111a14 0%, #0d1610 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    }
+    .split-header-banner {
+      position: relative;
+      height: 180px;
+      background-size: cover;
+      background-position: center;
+      background-color: #04140a;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+    .split-header-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(4,20,10,0.95) 0%, rgba(4,20,10,0.3) 100%);
+    }
+    .split-header-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+    .split-sport-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--green);
+      background: rgba(0,200,83,0.15);
+      border: 1px solid rgba(0,200,83,0.3);
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+    .split-venue-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: var(--text);
+      line-height: 1;
+      margin: 0;
+    }
+    .split-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .split-meta-row i { color: var(--green); margin-right: 4px; }
+    
+    .split-body {
+      padding: 24px;
+    }
+    
+    /* Progress section */
+    .split-progress-block {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(0,200,83,0.2);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+    .split-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .split-progress-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .split-progress-amount {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--green);
+    }
+    .split-progress-track {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .split-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00c853, #64dd17);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.8s ease;
+    }
+    .split-progress-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Timer card */
+    .split-timer-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(255,179,0,0.1) 0%, rgba(4,20,10,0.8) 100%);
+      border: 1px solid rgba(255,179,0,0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .split-timer-card.urgent {
+      background: linear-gradient(135deg, rgba(239,83,80,0.15) 0%, rgba(4,20,10,0.8) 100%);
+      border-color: rgba(239,83,80,0.4);
+    }
+    .split-timer-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .split-timer-digits {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: #ffb300;
+      letter-spacing: 1px;
+    }
+    .split-timer-card.urgent .split-timer-digits {
+      color: #ef5350;
+    }
+
+    /* Contributor list */
+    .contributors-section {
+      margin-bottom: 28px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .contributor-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .ci-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ci-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #04140a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .ci-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .ci-role {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--green);
+      background: rgba(0,200,83,0.12);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
+    .ci-amount {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: var(--green);
+    }
+
+    /* Pay action card */
+    .pay-action-card {
+      background: rgba(0,200,83,0.06);
+      border: 1px solid var(--green);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .pay-form-group {
+      margin-bottom: 14px;
+    }
+    .pay-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .pay-input:focus {
+      border-color: var(--green);
+    }
+    .btn-pay-share {
+      width: 100%;
+      padding: 14px;
+      background: var(--green);
+      color: #04140a;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: filter 0.2s;
+    }
+    .btn-pay-share:hover {
+      filter: brightness(1.1);
+    }
+    .split-share-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn-split-wa {
+      flex: 1;
+      padding: 10px;
+      background: #25D366;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn-split-copy {
+      padding: 10px 16px;
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body class="split-page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <button class="btn-signin" id="signinBtn">
+        <i class="fas fa-user"></i> <span class="signin-label">Sign In</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- SPLIT PAGE CONTENT -->
+  <div class="split-page-wrapper">
+    <div id="loadingState" style="text-align:center; padding: 60px 0; color: var(--muted);">
+      <i class="fas fa-circle-notch fa-spin" style="font-size: 36px; color: var(--green); margin-bottom: 12px;"></i>
+      <p>Loading split booking details…</p>
+    </div>
+
+    <div id="splitContainer" class="split-card-main" style="display:none">
+      <!-- HEADER BANNER -->
+      <div class="split-header-banner" id="splitBanner">
+        <div class="split-header-overlay"></div>
+        <div class="split-header-content">
+          <span class="split-sport-badge" id="splitSportBadge">Sport</span>
+          <h1 class="split-venue-name" id="splitVenueName">Venue Name</h1>
+          <div class="split-meta-row">
+            <span><i class="fas fa-map-marker-alt"></i> <span id="splitLoc">Location</span></span>
+            <span><i class="far fa-calendar-alt"></i> <span id="splitDate">Date</span></span>
+            <span><i class="far fa-clock"></i> <span id="splitTime">Time</span> (Court <span id="splitCourt">1</span>)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="split-body">
+        <!-- TIMER -->
+        <div class="split-timer-card" id="splitTimerCard">
+          <div class="split-timer-label">
+            <i class="fas fa-hourglass-half" style="color:#ffb300"></i>
+            <span>Team Split Window Closes In</span>
+          </div>
+          <div class="split-timer-digits" id="splitTimerDigits">--:--</div>
+        </div>
+
+        <!-- PROGRESS BLOCK -->
+        <div class="split-progress-block">
+          <div class="split-progress-header">
+            <span class="split-progress-title">Team Amount Collected</span>
+            <span class="split-progress-amount" id="splitProgressAmount">₹0 / ₹0</span>
+          </div>
+          <div class="split-progress-track">
+            <div class="split-progress-fill" id="splitProgressFill"></div>
+          </div>
+          <div class="split-progress-footer">
+            <span id="splitPaidCount">0 of 0 paid</span>
+            <span id="splitPerPersonLabel">₹0 per person</span>
+          </div>
+        </div>
+
+        <!-- CONTRIBUTORS LIST -->
+        <div class="contributors-section">
+          <div class="section-title"><i class="fas fa-users" style="color:var(--green)"></i> Teammates Paid</div>
+          <div id="contributorsList"></div>
+        </div>
+
+        <!-- ACTION CARD -->
+        <div class="pay-action-card" id="payActionCard">
+          <h3 style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);margin:0 0 10px" id="actionCardTitle">
+            Pay Your Share (<span id="payShareAmount">₹0</span>)
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 14px" id="actionCardSub">
+            Enter your name to pay your share and confirm your spot in the match.
+          </p>
+
+          <div id="payFormArea">
+            <div class="pay-form-group">
+              <input type="text" id="payerNameInput" class="pay-input" placeholder="Your full name (e.g. Rahul Sharma)" />
+            </div>
+            <div class="pay-form-group">
+              <input type="tel" id="payerPhoneInput" class="pay-input" placeholder="Phone number (optional)" />
+            </div>
+            <button type="button" id="payShareBtn" class="btn-pay-share">
+              <i class="fas fa-credit-card"></i> Pay My Share <span id="payBtnVal">₹0</span>
+            </button>
+          </div>
+
+          <!-- COMPLETED STATE -->
+          <div id="completedArea" style="display:none; text-align:center; padding:10px 0;">
+            <i class="fas fa-check-circle" style="font-size:42px; color:var(--green); margin-bottom:10px"></i>
+            <h4 style="font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--text); margin:0 0 4px">100% Fully Paid &amp; Confirmed!</h4>
+            <p style="font-size:13px; color:var(--muted); margin:0 0 16px">All teammates have paid their shares. Get ready for game day!</p>
+            <button type="button" id="viewQrBtn" class="btn-pay-share" style="max-width:240px; margin:0 auto">
+              <i class="fas fa-qrcode"></i> View QR Entrance Pass
+            </button>
+          </div>
+
+          <!-- EXPIRED STATE -->
+          <div id="expiredArea" style="display:none; text-align:center; padding:10px 0;">
+            <i class="fas fa-exclamation-triangle" style="font-size:42px; color:var(--red); margin-bottom:10px"></i>
+            <h4 style="font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--text); margin:0 0 4px">Split Payment Window Expired</h4>
+            <p style="font-size:13px; color:var(--muted); margin:0">This split booking link has expired. Please create a new booking on the venue page.</p>
+          </div>
+
+          <div class="split-share-buttons">
+            <a href="#" id="waShareBtn" class="btn-split-wa" target="_blank" rel="noopener">
+              <i class="fab fa-whatsapp"></i> Share Link on WhatsApp
+            </a>
+            <button type="button" id="copyLinkBtn" class="btn-split-copy">
+              <i class="fas fa-copy"></i> Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR MODAL -->
+  <div class="modal-overlay" id="qrModal" style="display:none">
+    <div class="modal" style="max-width:340px; text-align:center">
+      <button class="modal-close" id="qrCloseBtn"><i class="fas fa-times"></i></button>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--text); margin:0 0 4px" id="qrVenueTitle">Venue</h3>
+      <p style="font-size:12px; color:var(--green); margin:0 0 16px" id="qrSlotMeta">Slot Details</p>
+      <img id="qrImg" src="" alt="QR Entry Pass" style="width:180px; height:180px; border-radius:12px; border:2px solid var(--green); padding:6px; background:#fff" />
+      <p style="font-size:11px; color:var(--muted); margin:14px 0 16px">Show this QR Pass at the venue entrance</p>
+    </div>
+  </div>
+
+  <!-- ══════════ SIGN IN MODAL ══════════ -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to pay your split share</p>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;padding:20px 0;color:var(--muted)">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--green)"></i>
+          <p style="margin-top:10px;font-size:13px">Loading…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/split-pay.js"></script>
+</body>
+</html>

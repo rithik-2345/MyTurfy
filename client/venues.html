@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – Venues</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/venues.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ══════════ NAVBAR (same as homepage) ══════════ -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+
+    <div class="search-bar desktop-search" style="position:relative">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="venueSearch" placeholder="Search venues, sports, location…" autocomplete="off"/>
+      <div class="search-autocomplete-dropdown" id="searchAutocompleteDesktop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--green);border-radius:12px;margin-top:6px;max-height:280px;overflow-y:auto;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.8);padding:8px 0"></div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
+
+      <div class="dropdown city-dropdown">
+        <button class="btn-city dropdown-trigger" id="cityBtn">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="city-label">City</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </button>
+        <div class="dropdown-menu city-menu" id="cityMenu">
+          <div class="dropdown-header">Select Your City</div>
+          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
+          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
+          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
+          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
+          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
+          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
+          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
+          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
+          <a class="use-location" href="#" id="useLocationBtn"><i class="fas fa-location-crosshairs"></i> Use My Location</a>
+        </div>
+      </div>
+
+      <button class="btn-signin" id="signinBtn">
+        <i class="fas fa-user"></i>
+        <span class="signin-label">Sign In</span>
+      </button>
+
+      <a href="wishlist.html" class="btn-wishlist-nav" id="wishlistNavBtn" aria-label="Wishlist">
+        <i class="far fa-heart"></i>
+        <span class="wishlist-nav-label">Wishlist</span>
+      </a>
+
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Search -->
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar" style="position:relative">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues…" autocomplete="off"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+      <div class="search-autocomplete-dropdown" id="searchAutocompleteMobile" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--green);border-radius:12px;margin-top:6px;max-height:240px;overflow-y:auto;z-index:1000;padding:8px 0"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ LIVE MATCH CARD (Swiggy Tracking Style) ══════════ -->
+  <div id="liveMatchContainer" style="max-width:1100px;margin:16px auto 0;padding:0 16px;display:none"></div>
+
+  <!-- ══════════ BREADCRUMB + HERO STRIP ══════════ -->
+  <div class="page-hero" id="pageHero">
+    <div class="page-hero-content">
+      <a href="index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+      <div class="page-hero-text">
+        <p class="page-eyebrow">Browse Venues</p>
+        <h1 class="page-title" id="pageTitle">Football <span>Venues</span></h1>
+        <p class="page-sub" id="pageSub">42 venues available near you</p>
+      </div>
+      <!-- Sport icon badge -->
+      <div class="sport-badge" id="sportBadge">
+        <i class="fas fa-futbol"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SORT + FILTER BAR ══════════ -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="result-count" id="resultCount">Showing <strong>6</strong> venues</span>
+    </div>
+    <div class="toolbar-right">
+      <!-- Map View toggle — needs a Google Maps API key in client/js/config.js -->
+      <button class="btn-filter-toggle" id="mapViewToggle">
+        <i class="fas fa-map"></i> Map View
+      </button>
+      <!-- Filter toggle (mobile) — opens the sidebar, which now also holds Sort -->
+      <button class="btn-filter-toggle mobile-only" id="venueFilterToggle">
+        <i class="fas fa-sliders"></i> Filter &amp; Sort
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ MAIN LAYOUT ══════════ -->
+  <div class="venues-layout">
+
+    <!-- SIDEBAR FILTERS -->
+    <aside class="sidebar" id="sidebar">
+      <div class="drawer-handle desktop-hide"></div>
+      <div class="sidebar-header">
+        <span><i class="fas fa-sliders"></i> Filters</span>
+        <button class="drawer-close desktop-hide" id="drawerClose"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label"><i class="fas fa-sort"></i> Sort By</div>
+        <div class="sort-scroll">
+          <label class="sort-chip"><input type="radio" name="sortOption" value="relevance" checked/><span>Relevance</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="price-low"/><span>Price: Low to High</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="price-high"/><span>Price: High to Low</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="rating"/><span>Highest Rated</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="distance"/><span>Nearest First</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="area-large"/><span>Area: Largest</span></label>
+          <label class="sort-chip"><input type="radio" name="sortOption" value="area-small"/><span>Area: Smallest</span></label>
+        </div>
+      </div>
+      <div class="filter-divider"></div>
+
+      <div class="filter-group">
+        <div class="filter-label">Time Slot</div>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="morning"/><span>Morning (6AM–12PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="afternoon" checked/><span>Afternoon (12PM–5PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="evening" checked/><span>Evening (5PM–10PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="night"/><span>Night (10PM–6AM)</span></label>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">Price Range</div>
+        <div class="price-range">
+          <span>₹500</span>
+          <input type="range" min="500" max="5000" value="5000" class="range-slider" id="priceRange"/>
+          <span>₹5000</span>
+        </div>
+        <div class="price-value">Up to: <strong id="priceDisplay">₹5,000</strong></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">Rating</div>
+        <label class="filter-check"><input type="radio" name="rating" value="any" checked/><span>Any Rating</span></label>
+        <label class="filter-check"><input type="radio" name="rating" value="4"/><span><i class="fas fa-star" style="color:#ffb300"></i> 4.0 & above</span></label>
+        <label class="filter-check"><input type="radio" name="rating" value="4.5"/><span><i class="fas fa-star" style="color:#ffb300"></i> 4.5 & above</span></label>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">Facilities</div>
+        <label class="filter-check"><input type="checkbox" data-filter="facility" value="floodlights"/><span><i class="fas fa-lightbulb"></i> Floodlights</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="facility" value="parking"/><span><i class="fas fa-car"></i> Parking</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="facility" value="changing"/><span><i class="fas fa-door-open"></i> Changing Rooms</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="facility" value="cafeteria"/><span><i class="fas fa-utensils"></i> Cafeteria</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="facility" value="ac"/><span><i class="fas fa-snowflake"></i> Air Conditioned</span></label>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">Availability</div>
+        <label class="filter-check"><input type="radio" name="avail" value="any" checked/><span>Any Day</span></label>
+        <label class="filter-check"><input type="radio" name="avail" value="today"/><span>Available Today</span></label>
+        <label class="filter-check"><input type="radio" name="avail" value="tomorrow"/><span>Available Tomorrow</span></label>
+        <label class="filter-check"><input type="radio" name="avail" value="weekend"/><span>This Weekend</span></label>
+      </div>
+
+      <p class="filter-live-note"><i class="fas fa-bolt"></i> Filters apply instantly as you select them</p>
+      <button class="btn-reset-filter" id="resetFiltersBtn">Reset</button>
+    </aside>
+
+    <!-- Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- VENUE CARDS -->
+    <main class="venues-grid">
+      <div class="venue-cards" id="venueCards">
+        <!-- Cards injected by JS -->
+      </div>
+
+      <!-- Map view — hidden by default, toggled by #mapViewToggle -->
+      <div class="map-container" id="mapContainer" style="display:none"></div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <i class="fas fa-search"></i>
+        <h3>No venues found</h3>
+        <p>Try adjusting your filters or search in a different city.</p>
+        <button class="btn-explore" onclick="document.getElementById('resetFiltersBtn').click()">
+          Reset Filters
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- SIGN IN MODAL (populated dynamically by Auth.initAuthModal) -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo">
+          <img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy
+        </div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to complete your booking</p>
+      </div>
+      <div class="modal-body">
+        <!-- Dynamically populated by Auth.initAuthModal(toast) -->
+        <div style="text-align:center;padding:20px 0;color:var(--muted)">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--green)"></i>
+          <p style="margin-top:10px;font-size:13px">Loading…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ BOTTOM NAV (mobile) ══════════ -->
+  <nav class="bottom-nav mobile-only">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </a>
+    <button class="bottom-nav-item active" data-tab="search">
+      <i class="fas fa-search"></i><span>Search</span>
+    </button>
+    <a href="wishlist.html" class="bottom-nav-item" id="bottomWishlist">
+      <i class="far fa-heart"></i><span>Wishlist</span>
+    </a>
+    <button class="bottom-nav-item" data-tab="account" id="bottomAccount">
+      <i class="fas fa-user"></i><span>Account</span>
+    </button>
+  </nav>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html">Our Goal</a>
+        <a href="blog.html">Blog</a>
+        <a href="tournaments.html">Tournaments</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html">Contact Us</a>
+        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+        <a href="#" data-soon="Terms">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 MyTurfy.com — All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- COMING SOON OVERLAY -->
+  <div id="comingSoonOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:36px 40px;text-align:center;max-width:320px;animation:scaleIn .25s ease">
+      <div style="font-size:40px;margin-bottom:12px">🚀</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);margin:0 0 8px" id="comingSoonTitle">Coming Soon</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 20px" id="comingSoonMsg">We're working hard on this feature. Stay tuned!</p>
+      <button onclick="document.getElementById('comingSoonOverlay').style.display='none'" style="padding:10px 28px;background:var(--green);color:var(--dark);border:none;border-radius:50px;font-weight:700;cursor:pointer;font-size:14px">Got it!</button>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/venues.js"></script>
+</body>
+</html>

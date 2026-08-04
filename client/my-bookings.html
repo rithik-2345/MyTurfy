@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – My Bookings</title>
+  <meta name="description" content="Manage your turf bookings, view slot history, check cancellation policies, and request refunds on MyTurfy."/>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/my-bookings.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="mb-page">
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="navSearch" placeholder="Search venues, sports…"/>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
+
+      <div class="dropdown city-dropdown">
+        <button class="btn-city dropdown-trigger" id="cityBtn">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="city-label">City</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </button>
+        <div class="dropdown-menu city-menu" id="cityMenu">
+          <div class="dropdown-header">Select Your City</div>
+          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
+          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
+          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
+          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
+          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
+          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
+          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
+          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
+        </div>
+      </div>
+
+      <button class="btn-signin" id="signinBtn">
+        <i class="fas fa-user"></i>
+        <span class="signin-label">Sign In</span>
+      </button>
+
+      <!-- Wishlist -->
+      <a href="wishlist.html" class="btn-wishlist-nav" aria-label="Wishlist">
+        <i class="far fa-heart"></i>
+        <span class="wishlist-nav-label">Wishlist</span>
+      </a>
+
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Search -->
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="bookings-hero">
+    <div class="bookings-hero-content">
+      <div class="bookings-eyebrow">
+        <i class="fas fa-calendar-check"></i> Reservation History
+      </div>
+      <h1 class="bookings-title">My <span>Bookings</span></h1>
+      <p class="bookings-subtitle">View your booked slots, cancel upcoming sessions, and track refund requests.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ LIVE MATCH CARD ══════════ -->
+  <div class="live-match-wrapper" id="liveMatchContainer" style="display:none"></div>
+
+  <!-- ══════════ MAIN CONTENT ══════════ -->
+  <div class="bookings-container" id="bookingsMainContent">
+    <!-- Injected dynamically by JS based on login state -->
+  </div>
+
+  <!-- ══════════ CANCEL & REFUND MODAL ══════════ -->
+  <div class="modal-overlay" id="cancelModal" style="display:none">
+    <div class="modal">
+      <button class="modal-close" id="cancelModalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2 style="margin-top: 10px; font-size: 24px; color: var(--red);">Cancel Booking &amp; Refund</h2>
+        <p>Cancelling will release your reserved slot and initiate your refund request.</p>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cancelBookingId"/>
+        <div id="refundTierPreview" style="background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;"><i class="fas fa-calculator"></i> Refund Policy Calculation</div>
+          <div id="tierEstimate" style="font-size: 15px; font-weight: 700; color: var(--green);">Calculating estimated refund…</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;" id="tierPolicyNote">Policy: ≥24h (100%) · 12-24h (75%) · 6-12h (50%) · 1-6h (25%) · &lt;1h (10%)</div>
+        </div>
+        <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <label for="cancelReason" style="font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px;">Reason for cancellation &amp; refund *</label>
+          <textarea id="cancelReason" rows="3" placeholder="e.g. Schedule conflict, rain, emergency, etc." style="width: 100%; min-height: 90px; padding: 10px 12px; background: var(--dark3); border: 1px solid var(--border); color: var(--text); border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;" required></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 18px;">
+          <button class="btn-modal-signin" id="confirmCancelBtn" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; flex: 1;">
+            <i class="fas fa-ban"></i> Cancel &amp; Request Refund
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SIGN IN MODAL ══════════ -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to view your bookings</p>
+      </div>
+      <div class="modal-body">
+        <!-- Re-populated by Auth.initAuthModal dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ BOTTOM NAV (mobile) ══════════ -->
+  <nav class="bottom-nav mobile-only">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </a>
+    <a href="venues.html" class="bottom-nav-item">
+      <i class="fas fa-search"></i><span>Venues</span>
+    </a>
+    <a href="wishlist.html" class="bottom-nav-item">
+      <i class="fas fa-heart"></i><span>Wishlist</span>
+    </a>
+    <a href="my-bookings.html" class="bottom-nav-item active">
+      <i class="fas fa-calendar-alt"></i><span>Bookings</span>
+    </a>
+  </nav>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html">Our Goal</a>
+        <a href="#" data-soon="Careers">Careers</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html#contact">Contact Us</a>
+        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+        <a href="#" data-soon="Terms">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/my-bookings.js"></script>
+</body>
+</html>

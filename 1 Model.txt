@@ -1,0 +1,61 @@
+myturfy/
+│
+├── server/                        ← Express backend (Node.js)
+│   ├── server.js                  ← Entry point, starts the server
+│   ├── config/
+│   │   ├── db.js                  ← MongoDB connection (Mongoose)
+│   │   └── config.js              ← Environment variables (JWT secret, etc.)
+│   │
+│   ├── models/                    ← MongoDB schemas (Mongoose)
+│   │   ├── User.js                ← Customers
+│   │   ├── Owner.js               ← Venue owners
+│   │   ├── Venue.js               ← Venues (replaces data.js)
+│   │   ├── Booking.js             ← Bookings
+│   │   └── Review.js              ← Reviews
+│   │
+│   ├── routes/                    ← API endpoints
+│   │   ├── auth.js                ← POST /api/auth/login, /register
+│   │   ├── venues.js              ← GET/POST/PUT/DELETE /api/venues
+│   │   ├── bookings.js            ← POST /api/bookings, GET by user/owner
+│   │   ├── reviews.js             ← POST /api/reviews, reply
+│   │   └── payments.js            ← Razorpay webhook + order creation
+│   │
+│   ├── middleware/
+│   │   ├── auth.js                ← JWT verification (protects routes)
+│   │   ├── isOwner.js             ← Only venue owners can edit venues
+│   │   └── errorHandler.js        ← Global error responses
+│   │
+│   └── utils/
+│       ├── sendEmail.js           ← Booking confirmation emails (Nodemailer)
+│       └── uploadImage.js         ← Cloudinary image uploads
+│
+├── client/                        ← Your existing frontend (plain HTML/CSS/JS)
+│   ├── index.html                 ← Homepage (your P1.html renamed)
+│   ├── venues.html
+│   ├── venue-detail.html
+│   ├── owner-portal.html
+│   ├── css/
+│   │   ├── styles.css
+│   │   ├── venues.css
+│   │   ├── venue-detail.css
+│   │   └── owner-portal.css
+│   ├── js/
+│   │   ├── api.js                 ← NEW: all fetch() calls to your backend
+│   │   ├── auth.js                ← NEW: login/logout/token storage
+│   │   ├── script.js
+│   │   ├── venues.js
+│   │   ├── venue-detail.js
+│   │   └── owner-portal.js
+│   └── images/
+│
+├── .env                           ← Secrets (never commit this to GitHub)
+├── .gitignore
+├── package.json
+└── README.md
+
+
+
+Part 1 — Server foundation: server.js, config/, models/, middleware/
+Part 2 — All routes: auth.js, venues.js, bookings.js, reviews.js, payments.js, utils/
+Part 3 — Frontend JS layer: api.js, auth.js, updated script.js, venues.js, venue-detail.js, owner-portal.js
+Part 4 — package.json, .env, .gitignore, README.md + wiring everything together with setup instructions

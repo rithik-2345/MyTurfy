@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – Privacy Policy</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/content-pages.css"/>
+  <link rel="stylesheet" href="css/legal.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text"><span class="logo-main">MY Turfy</span><span class="logo-sub">.com</span></div>
+    </a>
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports…"/>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <section class="legal-hero">
+    <div class="legal-hero-inner">
+      <p class="cp-eyebrow">Legal</p>
+      <h1>Privacy <span>Policy</span></h1>
+      <p class="cp-sub">We respect your privacy. Here is exactly what data we collect, why we collect it, and how we protect it.</p>
+      <p class="legal-updated">Last updated: July 2026</p>
+    </div>
+  </section>
+
+  <div class="legal-body">
+
+    <section class="legal-section">
+      <h2><i class="fas fa-building"></i> Who We Are</h2>
+      <p>MyTurfy ("we", "us", "our") is a sports venue booking platform operated in India. Our registered support contact is <a href="mailto:myturfy@gmail.com">myturfy@gmail.com</a>. This Privacy Policy explains how we handle personal information collected through our website and services.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-database"></i> What Data We Collect</h2>
+      <div class="legal-table">
+        <div class="lt-row lt-head"><span>Data</span><span>Why we collect it</span></div>
+        <div class="lt-row"><span>Name, email, phone number</span><span>Account creation, booking confirmation, OTP verification</span></div>
+        <div class="lt-row"><span>Google profile (name, email, photo)</span><span>When you use "Sign in with Google" — no password stored</span></div>
+        <div class="lt-row"><span>Booking history (dates, times, amounts)</span><span>To process your booking, send confirmations, handle refunds</span></div>
+        <div class="lt-row"><span>Payment info</span><span>Processed entirely by Razorpay — we never store card numbers or UPI PINs</span></div>
+        <div class="lt-row"><span>Wishlist items</span><span>To save your favourite venues across sessions</span></div>
+        <div class="lt-row"><span>Approximate location (city)</span><span>To show relevant nearby venues — never precise GPS unless you explicitly allow it</span></div>
+        <div class="lt-row"><span>Device / browser type</span><span>For debugging and improving site performance</span></div>
+      </div>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-share-nodes"></i> Who We Share Your Data With</h2>
+      <p>We do not sell your personal data. We share it only with:</p>
+      <ul class="legal-list">
+        <li><strong>Venue owners</strong> — your name and phone number are shared when you make a booking so they can prepare for your visit.</li>
+        <li><strong>Razorpay</strong> — our payment processor. They handle all payment data under their own Privacy Policy.</li>
+        <li><strong>Google</strong> — if you use "Sign in with Google", subject to Google's Privacy Policy.</li>
+        <li><strong>Email service providers</strong> — to send you booking confirmations and OTP codes.</li>
+        <li><strong>Law enforcement</strong> — only when required by applicable Indian law.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-lock"></i> How We Protect Your Data</h2>
+      <ul class="legal-list">
+        <li>Passwords are hashed using bcrypt — we cannot read your password.</li>
+        <li>All data is transmitted over HTTPS (SSL/TLS encryption).</li>
+        <li>Authentication tokens expire after 7 days.</li>
+        <li>Payment data never touches our servers — it goes directly to Razorpay's PCI-DSS compliant infrastructure.</li>
+        <li>Our MongoDB database is hosted on MongoDB Atlas with IP whitelisting and encrypted storage.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-user-shield"></i> Your Rights</h2>
+      <ul class="legal-list">
+        <li><strong>Access</strong> — you can view all your data by logging into your account.</li>
+        <li><strong>Correction</strong> — update your name, phone, and city in account settings.</li>
+        <li><strong>Deletion</strong> — email <a href="mailto:myturfy@gmail.com">myturfy@gmail.com</a> to request full account deletion. We will process it within 7 days and remove all personal data from our systems.</li>
+        <li><strong>Data portability</strong> — you can request a copy of your booking history by emailing us.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-cookie-bite"></i> Cookies</h2>
+      <p>We use a single session cookie to keep you logged in. We do not use advertising cookies or third-party tracking cookies. You can disable cookies in your browser settings, but this will log you out and prevent bookings from being saved.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-child"></i> Children's Privacy</h2>
+      <p>MyTurfy is not intended for children under 13. We do not knowingly collect personal data from children. If you believe a child has created an account, contact us immediately at <a href="mailto:myturfy@gmail.com">myturfy@gmail.com</a>.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-pen-to-square"></i> Changes to This Policy</h2>
+      <p>We may update this Privacy Policy periodically. We will notify you of material changes by email or by displaying a notice on our website. Continued use of MyTurfy after changes constitutes acceptance of the updated policy.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2><i class="fas fa-envelope"></i> Contact</h2>
+      <div class="legal-contact-row">
+        <a href="mailto:myturfy@gmail.com" class="legal-contact-btn"><i class="fas fa-envelope"></i> myturfy@gmail.com</a>
+        <a href="support.html" class="legal-contact-btn legal-contact-btn-outline"><i class="fas fa-headset"></i> Help Center</a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="blog.html">Blog</a>
+        <a href="support.html">Support</a>
+      </div>
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <a href="refund-policy.html">Refund Policy</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2><p>Sign in to continue</p>
+      </div>
+      <div class="modal-body">
+        <div class="input-group"><i class="fas fa-envelope"></i><input type="email" placeholder="Email address" autocomplete="email"/></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Password"/><button class="toggle-pw" id="togglePw"><i class="fas fa-eye"></i></button></div>
+        <button class="btn-modal-signin">Sign In <i class="fas fa-arrow-right"></i></button>
+        <div class="modal-divider"><span>or continue with</span></div>
+        <div id="googleSignInBtn" class="google-btn-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+</body>
+</html>

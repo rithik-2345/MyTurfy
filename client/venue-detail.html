@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – Venue Detail</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/venue-detail.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="navSearch" placeholder="Search venues, sports, locations…"/>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <div class="dropdown city-dropdown">
+        <button class="btn-city dropdown-trigger" id="cityBtn">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="city-label">City</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </button>
+        <div class="dropdown-menu city-menu" id="cityMenu">
+          <div class="dropdown-header">Select Your City</div>
+          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
+          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
+          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
+          <a href="#" data-city="Surat"><i class="fas fa-location-dot"></i> Surat</a>
+          <a href="#" data-city="Ahmedabad"><i class="fas fa-landmark"></i> Ahmedabad</a>
+          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
+          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
+          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
+          <a class="use-location" href="#" id="useLocationBtn"><i class="fas fa-location-crosshairs"></i> Use My Location</a>
+        </div>
+      </div>
+      <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
+
+      <a href="wishlist.html" class="btn-wishlist-nav" id="wishlistNavBtn" aria-label="Wishlist">
+        <i class="far fa-heart"></i>
+        <span class="wishlist-nav-label">Wishlist</span>
+      </a>
+
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Search -->
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="mobileNavSearch" placeholder="Search venues, sports, locations…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb" id="breadcrumb">
+    <a href="index.html"><i class="fas fa-house"></i> Home</a>
+    <i class="fas fa-chevron-right"></i>
+    <a href="#" id="breadSport">Football</a>
+    <i class="fas fa-chevron-right"></i>
+    <span id="breadVenue">Venue</span>
+  </div>
+
+  <!-- MAIN DETAIL LAYOUT -->
+  <div class="detail-wrapper">
+
+    <!-- LEFT: Carousel + Info -->
+    <div class="detail-main">
+
+      <!-- IMAGE CAROUSEL: auto-advances every 10s, has prev/next arrows,
+           dot indicators AND a thumbnail strip to jump to any photo -->
+      <div class="carousel-section">
+        <div class="carousel-container" id="carouselContainer">
+          <div class="carousel-track" id="carouselTrack">
+            <!-- slides injected by JS from venue.images -->
+          </div>
+
+          <!-- Arrows -->
+          <button class="carousel-arrow carousel-prev" id="carouselPrev" aria-label="Previous">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="carousel-arrow carousel-next" id="carouselNext" aria-label="Next">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+
+          <!-- Dot indicators -->
+          <div class="carousel-dots" id="carouselDots"></div>
+
+          <!-- Auto-play progress bar (fills over the 10s before auto-advance) -->
+          <div class="carousel-progress" id="carouselProgress"></div>
+        </div>
+
+        <!-- Thumbnail strip — click any thumb to jump straight to that photo -->
+        <div class="carousel-thumbs" id="carouselThumbs"></div>
+      </div>
+
+      <!-- VENUE INFO CARD -->
+      <div class="venue-detail-card">
+
+        <!-- Header -->
+        <div class="vd-header">
+          <div class="vd-title-block">
+            <h1 class="vd-name" id="vdName">Loading…</h1>
+            <div class="vd-location"><i class="fas fa-map-marker-alt"></i> <span id="vdLocation"></span></div>
+          </div>
+          <div class="vd-price-block">
+            <span class="vd-from">From</span>
+            <span class="vd-price" id="vdPrice">₹800</span>
+            <span class="vd-unit">/hr</span>
+          </div>
+        </div>
+
+        <!-- Rating row -->
+        <div class="vd-rating-row">
+          <div class="stars" id="vdStars"></div>
+          <span class="vd-rating-val" id="vdRatingVal"></span>
+          <span class="vd-reviews" id="vdReviews"></span>
+          <span class="vd-distance"><i class="fas fa-location-dot"></i> <span id="vdDistance"></span></span>
+        </div>
+
+        <!-- Facility tags -->
+        <div class="vd-tags" id="vdTags"></div>
+
+        <!-- Specs grid: length, breadth, height, area, volume, rating, turfs, condition, tools -->
+        <div class="vd-specs-title"><i class="fas fa-ruler-combined"></i> Venue Specifications</div>
+        <div class="vd-specs-grid" id="vdSpecsGrid"></div>
+
+        <!-- Action buttons -->
+        <div class="vd-actions">
+          <button class="btn-rate" id="rateBtn">
+            <i class="fas fa-star"></i> Rate Us
+          </button>
+          <button class="btn-wishlist" id="wishBtn">
+            <i class="far fa-heart"></i> Wishlist
+          </button>
+          <a class="btn-directions" id="getDirectionsBtn" href="#">
+            <i class="fas fa-diamond-turn-right"></i> Get Directions
+          </a>
+          <button class="btn-book-detail" id="bookDetailBtn">
+            <i class="fas fa-calendar-check"></i> Book Now
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Quick Booking Sidebar (desktop) — booking lives ONLY here and
+         in the mobile modal below; the venues listing page no longer books directly -->
+    <aside class="detail-sidebar desktop-only">
+      <div class="quick-book-card">
+        <div class="qb-title">Quick Book</div>
+        <div class="qb-venue" id="qbVenueName">Venue</div>
+
+        <label class="qb-label"><i class="fas fa-layer-group" style="color:var(--green)"></i> Select Court / Pitch</label>
+        <div class="court-picker-grid" id="qbCourtGrid" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>
+
+        <label class="qb-label">Date <span id="qbDateNote" style="color:var(--muted);font-size:11px;font-weight:400"></span></label>
+        <input type="date" class="form-input" id="qbDate"/>
+
+        <label class="qb-label">Time Slot</label>
+        <div class="time-slots" id="qbTimeSlots">
+          <p style="color:var(--muted);font-size:12px;padding:8px 0">Select a date to see available slots…</p>
+        </div>
+
+        <label class="qb-label">Duration</label>
+        <div class="duration-btns" id="qbDuration">
+          <button class="dur-btn active" data-hours="1">1 hr</button>
+          <button class="dur-btn" data-hours="2">2 hrs</button>
+          <button class="dur-btn" data-hours="3">3 hrs</button>
+          <button class="dur-btn" data-hours="4">4 hrs</button>
+        </div>
+
+        <div class="booking-summary">
+          <div class="summary-row"><span>Rate</span><span id="qbRate">₹800/hr</span></div>
+          <div class="summary-row"><span>Duration</span><span id="qbDur">1 hour</span></div>
+          <div class="summary-row summary-total"><span>Total</span><span id="qbTotal">₹800</span></div>
+        </div>
+
+        <!-- Premium Hold Banner -->
+        <div id="checkoutHoldBanner" class="hold-banner">
+          <div class="hold-banner-inner">
+            <div class="hold-banner-left">
+              <div class="hold-lock-icon"><i class="fas fa-lock"></i></div>
+              <div>
+                <div class="hold-banner-title">Slot Reserved for You!</div>
+                <div class="hold-banner-sub">Complete payment before timer expires</div>
+              </div>
+            </div>
+            <div class="hold-timer-wrap">
+              <span class="hold-timer-label">Expires in</span>
+              <span id="checkoutTimer" class="hold-timer-digits">05:00</span>
+            </div>
+          </div>
+          <div class="hold-progress-bar"><div class="hold-progress-fill" id="holdProgressFill"></div></div>
+        </div>
+
+        <!-- Premium Split Bill Card -->
+        <div class="split-bill-section">
+          <button type="button" class="split-bill-toggle-btn" id="splitBillToggle">
+            <span class="sbt-left">
+              <i class="fas fa-users-line" style="color:var(--green);font-size:16px"></i>
+              <span>
+                <span class="sbt-title">Split with Teammates</span>
+                <span class="sbt-sub">Share cost via WhatsApp</span>
+              </span>
+            </span>
+            <span class="sbt-arrow" id="splitArrow"><i class="fas fa-chevron-down"></i></span>
+          </button>
+          <div class="split-expanded" id="splitExpandedArea" style="display:none">
+            <div class="split-player-row">
+              <span class="split-label">Players splitting:</span>
+              <div class="split-stepper">
+                <button type="button" class="step-btn" id="stepDown">&minus;</button>
+                <span class="step-count" id="playerCount">2</span>
+                <button type="button" class="step-btn" id="stepUp">+</button>
+              </div>
+            </div>
+            <div class="split-cost-display">
+              <span class="split-cost-label">Your share</span>
+              <span class="split-cost-val" id="perPersonCost">&#8377;0</span>
+              <span class="split-cost-note" id="splitNote">of &#8377;0 total</span>
+            </div>
+            <div class="split-avatars" id="splitAvatars"></div>
+            <div class="split-actions">
+              <button type="button" id="shareSplitBtn" class="split-wa-btn"><i class="fab fa-whatsapp"></i> Invite via WhatsApp</button>
+              <button type="button" id="copySplitBtn" class="split-copy-btn"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-confirm-booking" id="qbConfirm">
+          <i class="fas fa-check-circle"></i> Confirm Booking
+        </button>
+        <p class="booking-note"><i class="fas fa-shield-halved"></i> Free cancellation up to 2 hrs before slot</p>
+      </div>
+    </aside>
+
+  </div><!-- /detail-wrapper -->
+
+  <!-- MOBILE BOOK BAR (fixed bottom) -->
+  <div class="mobile-book-bar mobile-only" id="mobileBookBar">
+    <div class="mbb-price">
+      <span class="mbb-from">From</span>
+      <span class="mbb-val" id="mbbPrice">₹800</span>
+      <span class="mbb-unit">/hr</span>
+    </div>
+    <button class="btn-book-detail" id="mobileBookBtn">
+      <i class="fas fa-calendar-check"></i> Book Now
+    </button>
+  </div>
+
+  <!-- MOBILE BOOKING MODAL -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal booking-modal">
+      <button class="modal-close" id="bookingClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo" id="modalVenueName">Book Venue</div>
+        <p id="modalVenueLoc" style="color:var(--muted);font-size:13px;margin-top:4px"></p>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label class="form-label"><i class="fas fa-layer-group" style="color:var(--green)"></i> Select Court / Pitch</label>
+          <div class="court-picker-grid" id="mCourtGrid" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>
+        </div>
+        <div class="form-row">
+          <label class="form-label"><i class="fas fa-calendar"></i> Date <span id="mDateNote" style="color:var(--muted);font-size:11px;font-weight:400"></span></label>
+          <input type="date" class="form-input" id="mBookDate"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label"><i class="fas fa-clock"></i> Time Slot</label>
+          <div class="time-slots" id="mBookSlots">
+            <p style="color:var(--muted);font-size:12px;padding:8px 0">Select a date to see available slots…</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label"><i class="fas fa-hourglass-half"></i> Duration</label>
+          <div class="duration-btns">
+            <button class="dur-btn active" data-hours="1">1 hr</button>
+            <button class="dur-btn" data-hours="2">2 hrs</button>
+            <button class="dur-btn" data-hours="3">3 hrs</button>
+            <button class="dur-btn" data-hours="4">4 hrs</button>
+          </div>
+        </div>
+        <div class="booking-summary">
+          <div class="summary-row"><span>Rate</span><span id="mSummaryRate">₹800/hr</span></div>
+          <div class="summary-row"><span>Duration</span><span id="mSummaryDur">1 hour</span></div>
+          <div class="summary-row summary-total"><span>Total</span><span id="mSummaryTotal">₹800</span></div>
+        </div>
+
+        <!-- Premium Mobile Hold Banner -->
+        <div id="mCheckoutHoldBanner" class="hold-banner">
+          <div class="hold-banner-inner">
+            <div class="hold-banner-left">
+              <div class="hold-lock-icon"><i class="fas fa-lock"></i></div>
+              <div>
+                <div class="hold-banner-title">Slot Held!</div>
+                <div class="hold-banner-sub">Pay before time runs out</div>
+              </div>
+            </div>
+            <div class="hold-timer-wrap">
+              <span class="hold-timer-label">Expires in</span>
+              <span id="mCheckoutTimer" class="hold-timer-digits">05:00</span>
+            </div>
+          </div>
+          <div class="hold-progress-bar"><div class="hold-progress-fill" id="mHoldProgressFill"></div></div>
+        </div>
+
+        <!-- Mobile Split Bill Card -->
+        <div class="split-bill-section">
+          <button type="button" class="split-bill-toggle-btn" id="mSplitBillToggle">
+            <span class="sbt-left">
+              <i class="fas fa-users-line" style="color:var(--green);font-size:16px"></i>
+              <span>
+                <span class="sbt-title">Split with Teammates</span>
+                <span class="sbt-sub">Share cost via WhatsApp</span>
+              </span>
+            </span>
+            <span class="sbt-arrow" id="mSplitArrow"><i class="fas fa-chevron-down"></i></span>
+          </button>
+          <div class="split-expanded" id="mSplitExpandedArea" style="display:none">
+            <div class="split-player-row">
+              <span class="split-label">Players splitting:</span>
+              <div class="split-stepper">
+                <button type="button" class="step-btn" id="mStepDown">&minus;</button>
+                <span class="step-count" id="mPlayerCount">2</span>
+                <button type="button" class="step-btn" id="mStepUp">+</button>
+              </div>
+            </div>
+            <div class="split-cost-display">
+              <span class="split-cost-label">Your share</span>
+              <span class="split-cost-val" id="mPerPersonCost">&#8377;0</span>
+              <span class="split-cost-note" id="mSplitNote">of &#8377;0 total</span>
+            </div>
+            <div class="split-avatars" id="mSplitAvatars"></div>
+            <div class="split-actions">
+              <button type="button" id="mShareSplitBtn" class="split-wa-btn"><i class="fab fa-whatsapp"></i> Invite via WhatsApp</button>
+              <button type="button" id="mCopySplitBtn" class="split-copy-btn"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-confirm-booking" id="mConfirmBook">
+          <i class="fas fa-check-circle"></i> Confirm Booking
+        </button>
+        <p class="booking-note"><i class="fas fa-shield-halved"></i> Free cancellation up to 2 hrs before slot</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATE US MODAL -->
+  <div class="modal-overlay" id="rateModal">
+    <div class="modal rate-modal">
+      <button class="modal-close" id="rateClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><i class="fas fa-star"></i> Rate This Venue</div>
+        <p id="rateVenueName" style="color:var(--muted);font-size:13px;margin-top:6px"></p>
+      </div>
+      <div class="modal-body">
+        <div class="star-picker" id="starPicker">
+          <i class="far fa-star" data-val="1"></i>
+          <i class="far fa-star" data-val="2"></i>
+          <i class="far fa-star" data-val="3"></i>
+          <i class="far fa-star" data-val="4"></i>
+          <i class="far fa-star" data-val="5"></i>
+        </div>
+        <p class="star-label" id="starLabel">Tap to rate</p>
+        <textarea class="form-input review-textarea" id="reviewText"
+          placeholder="Share your experience (optional)…" rows="4"></textarea>
+        <button class="btn-modal-signin" id="submitRate">
+          <i class="fas fa-paper-plane"></i> Submit Rating
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS SECTION -->
+  <section class="reviews-section" style="max-width:900px;margin:0 auto 48px;padding:0 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);margin:0">
+        <i class="fas fa-comments" style="color:var(--green)"></i> Customer Reviews
+      </h2>
+      <button class="btn-rate" id="rateBtnBottom" style="font-size:13px;padding:8px 16px">
+        <i class="fas fa-star"></i> Write a Review
+      </button>
+    </div>
+    <div id="reviewsSummary" class="reviews-summary"></div>
+    <div id="reviewsList" class="reviews-list">
+      <p style="color:var(--muted);font-size:13px;padding:8px 0">Loading reviews…</p>
+    </div>
+  </section>
+
+  <!-- SIGN IN MODAL (body is populated dynamically by Auth.initAuthModal) -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to book your venue</p>
+      </div>
+      <div class="modal-body">
+        <!-- Dynamically populated by Auth.initAuthModal(toast) in venue-detail.js -->
+        <div style="text-align:center;padding:20px 0;color:var(--muted)">
+          <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--green)"></i>
+          <p style="margin-top:10px;font-size:13px">Loading…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav mobile-only" id="bottomNavEl">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </a>
+    <button class="bottom-nav-item active">
+      <i class="fas fa-search"></i><span>Venues</span>
+    </button>
+    <a href="wishlist.html" class="bottom-nav-item" id="bottomWishlist">
+      <i class="far fa-heart"></i><span>Wishlist</span>
+    </a>
+    <button class="bottom-nav-item" id="bottomAccount">
+      <i class="fas fa-user"></i><span>Account</span>
+    </button>
+  </nav>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="blog.html">Blog</a>
+        <a href="tournaments.html">Tournaments</a>
+        <a href="owner-portal.html">Partner With Us</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html">Contact Us</a>
+        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+        <a href="#" data-soon="Terms of Service">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <!-- COMING SOON OVERLAY -->
+  <div id="comingSoonOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:36px 40px;text-align:center;max-width:320px;animation:scaleIn .25s ease">
+      <div style="font-size:40px;margin-bottom:12px">🚀</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);margin:0 0 8px" id="comingSoonTitle">Coming Soon</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 20px" id="comingSoonMsg">We're working hard on this feature. Stay tuned!</p>
+      <button onclick="document.getElementById('comingSoonOverlay').style.display='none'" style="padding:10px 28px;background:var(--green);color:var(--dark);border:none;border-radius:50px;font-weight:700;cursor:pointer;font-size:14px">Got it!</button>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/venue-detail.js"></script>
+</body>
+</html>

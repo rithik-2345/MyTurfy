@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>MyTurfy – About Us</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/content-pages.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+    <div class="search-bar desktop-search">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports…"/>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div class="dropdown city-dropdown">
+        <button class="btn-city dropdown-trigger" id="cityBtn">
+          <i class="fas fa-map-marker-alt"></i><span class="city-label">City</span><i class="fas fa-chevron-down chevron"></i>
+        </button>
+        <div class="dropdown-menu city-menu" id="cityMenu">
+          <div class="dropdown-header">Select Your City</div>
+          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
+          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
+          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
+          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
+          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
+          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
+          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
+          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
+        </div>
+      </div>
+      <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn" aria-label="Menu"><i class="fas fa-bars"></i></button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">Explore MyTurfy</div>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-search-bar" id="mobileSearchBar">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
+      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="cp-hero">
+    <div class="cp-hero-inner">
+      <p class="cp-eyebrow">Our Story</p>
+      <h1>Built by players, <span>for players</span></h1>
+      <p class="cp-sub">MyTurfy started with a simple frustration — booking a decent turf shouldn't take ten phone calls. So we built a better way.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ STORY ══════════ -->
+  <section class="cp-section">
+    <div class="cp-container cp-two-col">
+      <div>
+        <p class="cp-kicker">How it started</p>
+        <h2>A weekend match, ten phone calls, zero booked slots</h2>
+        <p>It began the way most good ideas do — with a bad Saturday. A group of friends trying to book a football turf for a weekend match spent an hour calling five different venues, only to find two were fully booked, one didn't pick up, and the "confirmed" slot at the fourth turned out to be double-booked when they showed up.</p>
+        <p>That's the moment MyTurfy was born — a single place to see real availability, real pricing, and real reviews, for every turf, court, and lane in the city.</p>
+      </div>
+      <div class="cp-stats-grid">
+        <div class="cp-stat"><span class="cp-stat-num">500+</span><span class="cp-stat-label">Venues Listed</span></div>
+        <div class="cp-stat"><span class="cp-stat-num">50K+</span><span class="cp-stat-label">Bookings Made</span></div>
+        <div class="cp-stat"><span class="cp-stat-num">12</span><span class="cp-stat-label">Cities Covered</span></div>
+        <div class="cp-stat"><span class="cp-stat-num">6</span><span class="cp-stat-label">Sports Supported</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ OUR GOAL ══════════ -->
+  <section class="cp-section cp-alt" id="goal">
+    <div class="cp-container">
+      <p class="cp-kicker cp-center">Our Goal</p>
+      <h2 class="cp-center">Make playing sports as easy as ordering food</h2>
+      <p class="cp-center cp-lead">We want booking a turf to take 30 seconds, not 30 minutes. And we want every venue owner — from a single neighborhood court to a multi-turf sports complex — to be able to fill their empty slots without needing a tech team.</p>
+
+      <div class="cp-values-grid">
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-bolt"></i></div>
+          <h3>Instant, honest availability</h3>
+          <p>What you see is what's actually free. No calling to "double-check."</p>
+        </div>
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+          <h3>Fair pricing, no surprises</h3>
+          <p>The price you see is the price you pay — no hidden convenience fees sprung on you at checkout.</p>
+        </div>
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-people-group"></i></div>
+          <h3>A platform venue owners actually like</h3>
+          <p>Simple tools, fast payouts, and a dashboard that doesn't need a manual to use.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ CTA ══════════ -->
+  <section class="cp-cta">
+    <div class="cp-container cp-cta-inner">
+      <h2>Ready to play?</h2>
+      <p>Find a venue near you in seconds, or list your own and start getting bookings today.</p>
+      <div class="cp-cta-btns">
+        <a href="venues.html?sport=all" class="btn-explore">Browse Venues <i class="fas fa-arrow-right"></i></a>
+        <a href="owner-portal.html" class="btn-explore btn-explore-outline">Partner With Us <i class="fas fa-handshake"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SIGN IN MODAL ══════════ -->
+  <div class="modal-overlay" id="signinModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to continue</p>
+      </div>
+      <div class="modal-body">
+        <div class="input-group"><i class="fas fa-envelope"></i><input type="email" placeholder="Email address" autocomplete="email"/></div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i><input type="password" placeholder="Password" autocomplete="current-password"/>
+          <button class="toggle-pw" id="togglePw"><i class="fas fa-eye"></i></button>
+        </div>
+        <a href="#" class="forgot-link">Forgot password?</a>
+        <button class="btn-modal-signin">Sign In <i class="fas fa-arrow-right"></i></button>
+        <div class="modal-divider"><span>or continue with</span></div>
+        <div id="googleSignInBtn" class="google-btn-wrap"></div>
+        <p class="modal-footer-text">Don't have an account? <a href="#">Register Free</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <span>MyTurfy.com</span>
+        <p>India's fastest-growing sports venue booking platform.</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html">Our Goal</a>
+        <a href="#" data-soon="Careers">Careers</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html#contact">Contact Us</a>
+        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+        <a href="#" data-soon="Terms">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 MyTurfy.com — All rights reserved.</p></div>
+  </footer>
+
+  <!-- COMING SOON OVERLAY -->
+  <div id="comingSoonOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:36px 40px;text-align:center;max-width:320px;animation:scaleIn .25s ease">
+      <div style="font-size:40px;margin-bottom:12px">🚀</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);margin:0 0 8px" id="comingSoonTitle">Coming Soon</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 20px" id="comingSoonMsg">We're working hard on this feature. Stay tuned!</p>
+      <button onclick="document.getElementById('comingSoonOverlay').style.display='none'" style="padding:10px 28px;background:var(--green);color:var(--dark);border:none;border-radius:50px;font-weight:700;cursor:pointer;font-size:14px">Got it!</button>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+</body>
+</html>
