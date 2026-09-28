@@ -12,6 +12,7 @@ const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 const Owner = require('../models/Owner');
 const Otp = require('../models/Otp');
+const TCoinsLedger = require('../models/TCoinsLedger');
 const { sendVerificationCode, isEmailConfigured, didLastSendFail } = require('../utils/sendEmail');
 
 const googleClient = config.googleClientId ? new OAuth2Client(config.googleClientId) : null;
@@ -46,30 +47,56 @@ function sendAuthResponse(res, statusCode, account, role) {
   });
 }
 
+function validateGmail(email) {
+  if (!email) return true;
+  return /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(email.trim());
+}
+
 /* ══════════════ OTP ══════════════ */
 router.post('/send-otp', async (req, res, next) => {
   try {
     const { email, action, name, role } = req.body;
     if (!email || !action || !role) {
-      return res.status(400).json({ success: false, message: 'Email, action and role are required' });
+      return res.status(400).json({ success: false, message: 'Please provide a Gmail address, action and role' });
     }
+
+    if (!validateGmail(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid Gmail address (e.g. user@gmail.com)' });
+    }
+
     const Model = role === 'owner' ? Owner : User;
     const existing = await Model.findOne({ email: email.toLowerCase() });
+
     if (action === 'signup' && existing) {
-      return res.status(409).json({ success: false, message: 'An account with this email already exists' });
+      return res.status(409).json({ success: false, message: 'An account with this Gmail already exists.' });
     }
+
     if (action === 'login' && !existing) {
-      return res.status(404).json({ success: false, message: 'No account found with this email' });
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: 'No account found with this Gmail. Redirecting to registration...',
+      });
     }
+
+    const key = email.toLowerCase();
     const code = String(Math.floor(100000 + Math.random() * 900000));
-    await Otp.deleteMany({ email: email.toLowerCase(), action });
-    await Otp.create({ email: email.toLowerCase(), code, action });
+    await Otp.deleteMany({ email: key, action });
+    await Otp.create({ email: key, code, action });
+
     await sendVerificationCode(email.toLowerCase(), name || existing?.name, code);
-    const emailOk = isEmailConfigured() && !didLastSendFail();
+    const emailSent = isEmailConfigured() && !didLastSendFail();
+
+    if (isEmailConfigured() && didLastSendFail()) {
+      return res.status(400).json({ success: false, message: 'Could not send email — please check your Gmail address is correct' });
+    }
+
+    const msg = 'Verification code sent to your Gmail! Please also check your Spam / Junk folder.';
+
     res.json({
       success: true,
-      message: emailOk ? 'Verification code sent' : 'Dev mode — check server console for code',
-      devCode: emailOk ? undefined : code,
+      message: !emailSent ? `${msg} (Dev mode — code output in server console)` : msg,
+      devCode: !emailSent ? code : undefined,
     });
   } catch (err) {
     next(err);
@@ -77,31 +104,69 @@ router.post('/send-otp', async (req, res, next) => {
 });
 
 /* ══════════════ CUSTOMER ══════════════ */
-router.post('/register', async (req, res, next) => {
-  try {
-    const { name, email, password, phone, code } = req.body;
-    if (!name || !email || !password || !code) {
-      return res.status(400).json({ success: false, message: 'Name, email, password and verification code are required' });
+  router.post('/register', async (req, res, next) => {
+    try {
+      const { name, email, password, phone, code } = req.body;
+      if (!name || !email || !password || !code) {
+        return res.status(400).json({ success: false, message: 'Name, Gmail, password, and verification code are required' });
+      }
+
+      if (!validateGmail(email)) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid Gmail address (e.g. user@gmail.com)' });
+      }
+
+      const key = email.toLowerCase();
+      const otp = await Otp.findOne({ email: key, code, action: 'signup' });
+      if (!otp) return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+
+      const existingEmail = await User.findOne({ email: key });
+      if (existingEmail) return res.status(409).json({ success: false, message: 'An account with this Gmail already exists.' });
+      
+      await Otp.deleteMany({ email: key, action: 'signup' });
+      const cleanPhone = (phone && String(phone).replace(/\D/g, '').length > 0) ? String(phone).replace(/\D/g, '') : undefined;
+      const user = await User.create({
+        name,
+        email: key,
+        password,
+        phone: cleanPhone,
+        tCoins: 500,
+        tCoinsLifetime: 500,
+      });
+
+      await TCoinsLedger.create({
+        user: user._id,
+        type: 'bonus',
+        amount: 500,
+        rupeesEquivalent: 50,
+        balanceAfter: 500,
+        description: '🎉 Welcome bonus! Start saving on your bookings',
+      });
+
+      sendAuthResponse(res, 201, user, 'user');
+    } catch (err) {
+      next(err);
     }
-    const otp = await Otp.findOne({ email: email.toLowerCase(), code, action: 'signup' });
-    if (!otp) return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
-    const existing = await User.findOne({ email: email.toLowerCase() });
-    if (existing) return res.status(409).json({ success: false, message: 'An account with this email already exists' });
-    await Otp.deleteMany({ email: email.toLowerCase(), action: 'signup' });
-    const user = await User.create({ name, email, password, phone });
-    sendAuthResponse(res, 201, user, 'user');
-  } catch (err) {
-    next(err);
-  }
-});
+  });
 
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required' });
+    if (!email || !password) return res.status(400).json({ success: false, message: 'Gmail and password are required' });
+
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: 'Incorrect email or password' });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: 'No account found with this Gmail. Please register first.',
+      });
+    }
+
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ success: false, message: 'Incorrect password' });
+    }
+    if (user.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at myturfy@gmail.com' });
     }
     sendAuthResponse(res, 200, user, 'user');
   } catch (err) {
@@ -116,9 +181,28 @@ router.post('/google', async (req, res, next) => {
     const profile = await verifyGoogleToken(credential);
     let user = await User.findOne({ $or: [{ googleId: profile.googleId }, { email: profile.email.toLowerCase() }] });
     if (user) {
+      if (user.isBlocked) {
+        return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at myturfy@gmail.com' });
+      }
       if (!user.googleId) { user.googleId = profile.googleId; user.picture = user.picture || profile.picture; await user.save(); }
     } else {
-      user = await User.create({ name: profile.name, email: profile.email, googleId: profile.googleId, picture: profile.picture });
+      user = await User.create({
+        name: profile.name,
+        email: profile.email,
+        googleId: profile.googleId,
+        picture: profile.picture,
+        tCoins: 500,
+        tCoinsLifetime: 500,
+      });
+
+      await TCoinsLedger.create({
+        user: user._id,
+        type: 'bonus',
+        amount: 500,
+        rupeesEquivalent: 50,
+        balanceAfter: 500,
+        description: '🎉 Welcome bonus! Start saving on your bookings',
+      });
     }
     sendAuthResponse(res, 200, user, 'user');
   } catch (err) {
@@ -131,7 +215,6 @@ router.post('/owner/register', async (req, res, next) => {
   try {
     const { name, email, password, phone, city, code, agreedToTerms } = req.body;
 
-    // ── TERMS CHECKBOX — must be checked ──────────────────────
     if (!agreedToTerms) {
       return res.status(400).json({
         success: false,
@@ -139,14 +222,23 @@ router.post('/owner/register', async (req, res, next) => {
       });
     }
     if (!name || !email || !password || !code) {
-      return res.status(400).json({ success: false, message: 'Name, email, password and verification code are required' });
+      return res.status(400).json({ success: false, message: 'Name, Gmail, password, and verification code are required' });
     }
-    const otp = await Otp.findOne({ email: email.toLowerCase(), code, action: 'signup' });
+
+    if (!validateGmail(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid Gmail address (e.g. user@gmail.com)' });
+    }
+
+    const key = email.toLowerCase();
+    const otp = await Otp.findOne({ email: key, code, action: 'signup' });
     if (!otp) return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
-    const existing = await Owner.findOne({ email: email.toLowerCase() });
-    if (existing) return res.status(409).json({ success: false, message: 'An account with this email already exists' });
-    await Otp.deleteMany({ email: email.toLowerCase(), action: 'signup' });
-    const owner = await Owner.create({ name, email, password, phone, city, agreedToTerms: true });
+
+    const existingEmail = await Owner.findOne({ email: key });
+    if (existingEmail) return res.status(409).json({ success: false, message: 'An account with this Gmail already exists.' });
+
+    await Otp.deleteMany({ email: key, action: 'signup' });
+    const cleanPhone = (phone && String(phone).replace(/\D/g, '').length > 0) ? String(phone).replace(/\D/g, '') : undefined;
+    const owner = await Owner.create({ name, email: key, password, phone: cleanPhone, city, agreedToTerms: true });
     sendAuthResponse(res, 201, owner, 'owner');
   } catch (err) {
     next(err);
@@ -156,10 +248,22 @@ router.post('/owner/register', async (req, res, next) => {
 router.post('/owner/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required' });
+    if (!email || !password) return res.status(400).json({ success: false, message: 'Gmail and password are required' });
+
     const owner = await Owner.findOne({ email: email.toLowerCase() }).select('+password');
-    if (!owner || !(await owner.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: 'Incorrect email or password' });
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: 'No account found with this Gmail. Redirecting to registration...',
+      });
+    }
+
+    if (!(await owner.comparePassword(password))) {
+      return res.status(401).json({ success: false, message: 'Incorrect password' });
+    }
+    if (owner.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at myturfy@gmail.com' });
     }
     sendAuthResponse(res, 200, owner, 'owner');
   } catch (err) {
@@ -174,6 +278,9 @@ router.post('/owner/google', async (req, res, next) => {
     const profile = await verifyGoogleToken(credential);
     let owner = await Owner.findOne({ $or: [{ googleId: profile.googleId }, { email: profile.email.toLowerCase() }] });
     if (owner) {
+      if (owner.isBlocked) {
+        return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at myturfy@gmail.com' });
+      }
       if (!owner.googleId) { owner.googleId = profile.googleId; owner.picture = profile.picture; await owner.save(); }
     } else {
       if (!agreedToTerms) {
@@ -214,7 +321,10 @@ router.put('/profile', protect, async (req, res, next) => {
     if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
 
     if (name) account.name = name.trim();
-    if (phone !== undefined) account.phone = phone.trim();
+    if (phone !== undefined) {
+      const cleaned = String(phone).replace(/\D/g, '');
+      account.phone = cleaned.length > 0 ? cleaned : undefined;
+    }
     if (city !== undefined && req.auth.role === 'owner') account.city = city.trim();
 
     await account.save();
@@ -279,21 +389,26 @@ router.post('/forgot-password', async (req, res, next) => {
   try {
     const { email, role } = req.body;
     if (!email || !role) {
-      return res.status(400).json({ success: false, message: 'Email and role are required' });
+      return res.status(400).json({ success: false, message: 'Gmail and role are required' });
     }
     const Model = role === 'owner' ? Owner : User;
     const account = await Model.findOne({ email: email.toLowerCase() });
     if (!account) {
-      return res.status(404).json({ success: false, message: 'No account found with this email' });
+      return res.status(404).json({ success: false, message: 'No account found with this Gmail' });
     }
     const code = String(Math.floor(100000 + Math.random() * 900000));
     await Otp.deleteMany({ email: email.toLowerCase(), action: 'forgot-password' });
     await Otp.create({ email: email.toLowerCase(), code, action: 'forgot-password' });
     await sendVerificationCode(email.toLowerCase(), account.name, code);
+
+    if (isEmailConfigured() && didLastSendFail()) {
+      return res.status(400).json({ success: false, message: 'Could not send email — please check your Gmail address is correct' });
+    }
+
     const emailOk = isEmailConfigured() && !didLastSendFail();
     res.json({
       success: true,
-      message: emailOk ? 'Reset code sent to email' : 'Dev mode — check server console for code',
+      message: emailOk ? 'Reset code sent to Gmail' : 'Dev mode — check server console for code',
       devCode: emailOk ? undefined : code,
     });
   } catch (err) {
@@ -331,6 +446,87 @@ router.post('/reset-password', async (req, res, next) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
   res.json({ success: true, message: 'Logged out' });
+});
+
+/* ══════════════ ADMIN AUTH ══════════════ */
+const ADMIN_CREDS = {
+  email: process.env.ADMIN_EMAIL || 'admin@myturfy.com',
+  name: process.env.ADMIN_NAME || 'admin',
+  password: process.env.ADMIN_PASS || 'change-me-in-production',
+  fatherName: process.env.ADMIN_FATHER || 'change-me',
+  motherName: process.env.ADMIN_MOTHER || 'change-me',
+};
+
+router.post('/admin/login', async (req, res, next) => {
+  try {
+    const { email, password, name, fatherName, motherName } = req.body;
+    if (!email || !password || !name || !fatherName || !motherName) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    const ok =
+      email.toLowerCase() === ADMIN_CREDS.email &&
+      password === ADMIN_CREDS.password &&
+      name.toLowerCase() === ADMIN_CREDS.name &&
+      fatherName.toLowerCase() === ADMIN_CREDS.fatherName &&
+      motherName.toLowerCase() === ADMIN_CREDS.motherName;
+
+    if (!ok) {
+      return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+    }
+
+    // Send OTP to admin email for 2FA
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    await Otp.deleteMany({ email: ADMIN_CREDS.email, action: 'login' });
+    await Otp.create({ email: ADMIN_CREDS.email, code, action: 'login' });
+
+    await sendVerificationCode(ADMIN_CREDS.email, 'RITurf Admin', code);
+    const emailSent = isEmailConfigured() && !didLastSendFail();
+
+    res.json({
+      success: true,
+      message: emailSent
+        ? 'OTP sent to admin Gmail. Check inbox/spam.'
+        : 'Dev mode — check server console for OTP',
+      devCode: emailSent ? undefined : code,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/admin/verify-otp', async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ success: false, message: 'Email and OTP code are required' });
+    }
+    if (email.toLowerCase() !== ADMIN_CREDS.email) {
+      return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+    }
+
+    const otp = await Otp.findOne({ email: ADMIN_CREDS.email, code, action: 'login' });
+    if (!otp) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+    }
+    await Otp.deleteMany({ email: ADMIN_CREDS.email, action: 'login' });
+
+    const token = generateToken('admin', 'admin');
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: config.nodeEnv === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24h for admin
+    });
+
+    res.json({
+      success: true,
+      token,
+      data: { name: 'RITurf Admin', email: ADMIN_CREDS.email, role: 'admin' },
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

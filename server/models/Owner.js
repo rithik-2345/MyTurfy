@@ -13,8 +13,8 @@ const ownerSchema = new mongoose.Schema(
     name: { type: String, required: [true, 'Business/owner name is required'], trim: true },
     email: {
       type: String,
-      required: [true, 'Email is required'],
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
@@ -27,7 +27,7 @@ const ownerSchema = new mongoose.Schema(
     },
     googleId: { type: String, default: null, index: true, sparse: true },
     picture:  { type: String, default: null },
-    phone:    { type: String, trim: true },
+    phone:    { type: String, trim: true, unique: true, sparse: true },
     city:     { type: String, trim: true },
 
     payout: {
@@ -51,6 +51,9 @@ const ownerSchema = new mongoose.Schema(
     agreedToTermsAt: { type: Date, default: null },
 
     isVerified: { type: Boolean, default: false },
+
+    // ── Admin blocklist ──
+    isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

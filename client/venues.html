@@ -3,8 +3,23 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Venues</title>
+  <meta name="theme-color" content="#00c853"/>
+  <title>Browse & Book Sports Venues Near You | MyTurfy</title>
+  <meta name="description" content="Browse and book sports venues near you. Filter by sport, price, rating. Football turfs, cricket boxes, basketball courts on MyTurfy."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/venues.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Browse & Book Sports Venues Near You | MyTurfy"/>
+  <meta property="og:description" content="Browse and book sports venues near you. Filter by sport, price, rating. Football turfs, cricket boxes, basketball courts on MyTurfy."/>
+  <meta property="og:url" content="https://myturfy.com/venues.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Browse & Book Sports Venues Near You | MyTurfy"/>
+  <meta name="twitter:description" content="Browse and book sports venues near you. Filter by sport, price, rating. Football turfs, cricket boxes, basketball courts on MyTurfy."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/venues.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
@@ -14,8 +29,8 @@
 
   <!-- ══════════ NAVBAR (same as homepage) ══════════ -->
   <nav class="navbar">
-    <a href="index.html" class="logo">
-      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+    <a href="index.html" class="logo" aria-label="MyTurfy Home">
+      <div class="logo-icon"><img src="image/Hi.webp" alt="MyTurfy Logo" width="40" height="40" fetchpriority="high"/></div>
       <div class="logo-text">
         <span class="logo-main">MY Turfy</span>
         <span class="logo-sub">.com</span>
@@ -24,7 +39,7 @@
 
     <div class="search-bar desktop-search" style="position:relative">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="venueSearch" placeholder="Search venues, sports, location…" autocomplete="off"/>
+      <input type="text" id="venueSearch" placeholder="Search venues, sports, location…" aria-label="Search venues, sports, or locations" autocomplete="off"/>
       <div class="search-autocomplete-dropdown" id="searchAutocompleteDesktop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--green);border-radius:12px;margin-top:6px;max-height:280px;overflow-y:auto;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.8);padding:8px 0"></div>
     </div>
 
@@ -33,24 +48,15 @@
         <i class="fas fa-search"></i>
       </button>
 
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="city-label">City</span>
-          <i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
-          <a class="use-location" href="#" id="useLocationBtn"><i class="fas fa-location-crosshairs"></i> Use My Location</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
 
       <button class="btn-signin" id="signinBtn">
@@ -71,10 +77,10 @@
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
           <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -114,12 +120,11 @@
   <!-- ══════════ SORT + FILTER BAR ══════════ -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <span class="result-count" id="resultCount">Showing <strong>6</strong> venues</span>
+      <span class="result-count" id="resultCount">Showing <strong>0</strong> venues</span>
     </div>
-    <div class="toolbar-right">
-      <!-- Map View toggle — needs a Google Maps API key in client/js/config.js -->
-      <button class="btn-filter-toggle" id="mapViewToggle">
-        <i class="fas fa-map"></i> Map View
+    <div class="toolbar-right" style="display:flex;align-items:center;gap:10px">
+      <button class="btn-nearest" id="quickNearestBtn" style="background:rgba(0,200,83,0.12);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s ease">
+        <i class="fas fa-location-crosshairs"></i> Nearest to Me
       </button>
       <!-- Filter toggle (mobile) — opens the sidebar, which now also holds Sort -->
       <button class="btn-filter-toggle mobile-only" id="venueFilterToggle">
@@ -139,6 +144,18 @@
         <button class="drawer-close desktop-hide" id="drawerClose"><i class="fas fa-times"></i></button>
       </div>
 
+      <div class="filter-group nearest-filter-group">
+        <div class="filter-label"><i class="fas fa-location-crosshairs"></i> Location Priority</div>
+        <label class="nearest-checkbox-item" id="nearestCheckboxLabel">
+          <input type="checkbox" id="nearestCheckbox"/>
+          <span class="nearest-custom-box"><i class="fas fa-check"></i></span>
+          <div class="nearest-text-wrap">
+            <span class="nearest-title"><i class="fas fa-location-arrow"></i> Nearest to Me</span>
+            <span class="nearest-sub">Prioritize 3 km radius rings</span>
+          </div>
+        </label>
+      </div>
+
       <div class="filter-group">
         <div class="filter-label"><i class="fas fa-sort"></i> Sort By</div>
         <div class="sort-scroll">
@@ -146,7 +163,6 @@
           <label class="sort-chip"><input type="radio" name="sortOption" value="price-low"/><span>Price: Low to High</span></label>
           <label class="sort-chip"><input type="radio" name="sortOption" value="price-high"/><span>Price: High to Low</span></label>
           <label class="sort-chip"><input type="radio" name="sortOption" value="rating"/><span>Highest Rated</span></label>
-          <label class="sort-chip"><input type="radio" name="sortOption" value="distance"/><span>Nearest First</span></label>
           <label class="sort-chip"><input type="radio" name="sortOption" value="area-large"/><span>Area: Largest</span></label>
           <label class="sort-chip"><input type="radio" name="sortOption" value="area-small"/><span>Area: Smallest</span></label>
         </div>
@@ -154,21 +170,21 @@
       <div class="filter-divider"></div>
 
       <div class="filter-group">
-        <div class="filter-label">Time Slot</div>
-        <label class="filter-check"><input type="checkbox" data-filter="time" value="morning"/><span>Morning (6AM–12PM)</span></label>
-        <label class="filter-check"><input type="checkbox" data-filter="time" value="afternoon" checked/><span>Afternoon (12PM–5PM)</span></label>
-        <label class="filter-check"><input type="checkbox" data-filter="time" value="evening" checked/><span>Evening (5PM–10PM)</span></label>
-        <label class="filter-check"><input type="checkbox" data-filter="time" value="night"/><span>Night (10PM–6AM)</span></label>
-      </div>
-
-      <div class="filter-group">
-        <div class="filter-label">Price Range</div>
+        <div class="filter-label"><i class="fas fa-indian-rupee-sign"></i> Price Range</div>
         <div class="price-range">
           <span>₹500</span>
           <input type="range" min="500" max="5000" value="5000" class="range-slider" id="priceRange"/>
           <span>₹5000</span>
         </div>
         <div class="price-value">Up to: <strong id="priceDisplay">₹5,000</strong></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label"><i class="fas fa-clock"></i> Time Slot</div>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="morning"/><span>Morning (6AM–12PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="afternoon"/><span>Afternoon (12PM–5PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="evening"/><span>Evening (5PM–10PM)</span></label>
+        <label class="filter-check"><input type="checkbox" data-filter="time" value="night"/><span>Night (10PM–6AM)</span></label>
       </div>
 
       <div class="filter-group">
@@ -208,8 +224,6 @@
         <!-- Cards injected by JS -->
       </div>
 
-      <!-- Map view — hidden by default, toggled by #mapViewToggle -->
-      <div class="map-container" id="mapContainer" style="display:none"></div>
       <div class="empty-state" id="emptyState" style="display:none">
         <i class="fas fa-search"></i>
         <h3>No venues found</h3>
@@ -262,21 +276,20 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-brand">
-        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <div class="logo-icon"><img src="image/Hi.webp" alt="MyTurfy Logo" width="36" height="36" loading="lazy"/></div>
         <span>MyTurfy.com</span>
         <p>India's fastest-growing sports venue booking platform.</p>
         <div style="display:flex;gap:12px;margin-top:12px">
-          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
-          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
-          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
+          <a href="#" data-soon="Instagram" class="footer-social" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
         </div>
       </div>
       <div class="footer-links">
         <h4>Company</h4>
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
-        <a href="blog.html">Blog</a>
-        <a href="tournaments.html">Tournaments</a>
+        <a href="tournament.html">Tournaments</a>
       </div>
       <div class="footer-links">
         <h4>Support</h4>

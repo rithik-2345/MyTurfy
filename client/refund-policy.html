@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Refund Policy</title>
+  <title>Booking Refund & Cancellation Policy | MyTurfy</title>
+  <meta name="description" content="MyTurfy Refund & Cancellation Policy. Understand our refund process and timelines."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/refund-policy.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Booking Refund & Cancellation Policy | MyTurfy"/>
+  <meta property="og:description" content="MyTurfy Refund & Cancellation Policy. Understand our refund process and timelines."/>
+  <meta property="og:url" content="https://myturfy.com/refund-policy.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Booking Refund & Cancellation Policy | MyTurfy"/>
+  <meta name="twitter:description" content="MyTurfy Refund & Cancellation Policy. Understand our refund process and timelines."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/content-pages.css"/>
@@ -24,16 +35,26 @@
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
+      </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
       <div class="dropdown profile-dropdown">
         <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
         <div class="dropdown-menu profile-menu" id="profileMenu">
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
           <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
-          <a href="owner-portal.html"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -86,28 +107,29 @@
     <!-- TIERED CANCELLATION SCHEDULE -->
     <section class="legal-section">
       <h2><i class="fas fa-clock-rotate-left"></i> Tiered Cancellation & Refund Schedule</h2>
-      <p>Time slots are perishable sports inventory. Our tiered refund schedule balances player flexibility with court owner protection:</p>
+      <p>Time slots are perishable sports inventory. Automatic cancellations are allowed strictly when requested <strong>at least 24 hours before the booked match time</strong>:</p>
       <div class="legal-table">
         <div class="lt-row lt-head">
-          <span>Cancellation Time Window</span><span>Refund Percentage</span><span>Owner Compensation</span>
+          <span>Cancellation Time Window</span><span>Refund Percentage</span><span>Deductions & Fee Share</span>
         </div>
         <div class="lt-row">
-          <span><strong>≥ 24 Hours</strong> before slot</span><span style="color:#00c853;font-weight:700">100% Cash Refund</span><span>Slot released for re-booking</span>
+          <span><strong>Within 2 Hours</strong> of booking</span><span style="color:#00c853;font-weight:700">95% Cash Refund</span><span>5% MyTurfy platform fee (Must be ≥ 24h before match)</span>
         </div>
         <div class="lt-row">
-          <span><strong>12 – 24 Hours</strong> before slot</span><span style="color:#ffb300;font-weight:700">75% Refund</span><span>50% of retained amount (12.5%)</span>
+          <span><strong>Between 2 to 12 Hours</strong> of booking</span><span style="color:#ffb300;font-weight:700">75% Cash Refund</span><span>15% MyTurfy fee + 10% Owner compensation (Must be ≥ 24h before match)</span>
         </div>
         <div class="lt-row">
-          <span><strong>6 – 12 Hours</strong> before slot</span><span style="color:#ffb300;font-weight:700">50% Refund</span><span>50% of retained amount (25.0%)</span>
+          <span><strong>Between 12 to 24 Hours</strong> of booking</span><span style="color:#ffb300;font-weight:700">50% Cash Refund</span><span>30% MyTurfy fee + 20% Owner compensation (Must be ≥ 24h before match)</span>
         </div>
         <div class="lt-row">
-          <span><strong>2 – 6 Hours</strong> before slot</span><span style="color:#ef5350;font-weight:700">25% Refund</span><span>50% of retained amount (37.5%)</span>
+          <span><strong>After 24 Hours</strong> of making booking</span><span style="color:#ef5350;font-weight:700">0% Refund</span><span>Non-refundable / Cancellation window passed</span>
         </div>
         <div class="lt-row">
-          <span><strong>&lt; 2 Hours / Past Slot</strong></span><span style="color:#ef5350;font-weight:700">0% Refund</span><span>50% of booking amount (50.0%)</span>
+          <span><strong>&lt; 24 Hours before match slot</strong></span><span style="color:#ef5350;font-weight:700">0% Refund</span><span>Strictly non-refundable (Perishable slot policy)</span>
         </div>
       </div>
-      <p class="legal-note"><i class="fas fa-handshake-angle"></i> <strong>Owner Cancellation Compensation:</strong> Whenever a booking is cancelled within 24 hours, 50% of the retained non-refunded amount is credited to the venue owner as fair compensation for holding the slot.</p>
+      <p class="legal-note"><i class="fas fa-hand-holding-dollar"></i> <strong>Owner Compensation:</strong> For cancellations made between 2 to 24 hours after booking, turf merchants receive up to 20% direct compensation fee to offset reserved inventory.</p>
+      <p class="legal-note" style="margin-top:8px"><i class="fas fa-robot"></i> <strong>Bot Protection & Anti-Abuse:</strong> To prevent slot hoarding and bot attacks, solo booking slots are held for <strong>3 minutes</strong> and split booking slots for <strong>10 minutes</strong>. Any user account that makes <strong>10 consecutive cancellations</strong> will be automatically blocked from making further cancellations for 24 hours.</p>
     </section>
 
     <!-- WEATHER & UNPLAYABLE COURT POLICY -->
@@ -206,7 +228,6 @@
       <div class="footer-links">
         <h4>Company</h4>
         <a href="about.html">About Us</a>
-        <a href="blog.html">Blog</a>
         <a href="support.html">Support</a>
       </div>
       <div class="footer-links">

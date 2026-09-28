@@ -14,7 +14,7 @@ const config = {
 
   mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/myturfy',
 
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: process.env.JWT_SECRET,  
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   googleClientId: process.env.GOOGLE_CLIENT_ID,
 
@@ -48,3 +48,6 @@ if (config.nodeEnv === 'production') {
 }
 
 module.exports = config;
+
+
+  

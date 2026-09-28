@@ -25,52 +25,38 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Sync navbar to logged-in state ── */
   Auth.syncNavbar();
 
+  /* ── T-COINS GLOBAL WALLET ── */
+  let _tcoinsData = null;
+  async function _loadGlobalTcoinsBalance() {
+    if (!Auth.isLoggedIn() || !window.API?.tcoins) return;
+    try {
+      const res = await API.tcoins.balance();
+      _tcoinsData = res.data;
+      const btn = document.querySelector('#tcoinBtn');
+      if (btn) btn.innerHTML = `<i class="fas fa-coins" style="color:#ffd700;font-size:14px"></i><span>${res.data.balance.toLocaleString('en-IN')} T-Coins</span>`;
+    } catch (_) {}
+  }
+  _loadGlobalTcoinsBalance();
+
   /* ─────────────────────────────────────
-     1. DROPDOWNS
+     1. DROPDOWNS & T COIN
   ───────────────────────────────────── */
-  const cityBtn    = $('#cityBtn');
-  const cityMenu   = $('#cityMenu');
   const menuBtn    = $('#menuBtn');
   const profileMenu= $('#profileMenu');
+  const tcoinBtn   = $('#tcoinBtn');
 
   function toggleMenu(menu) {
+    if (!menu) return;
     const open = menu.classList.contains('open');
     $$('.dropdown-menu.open').forEach(m=>m.classList.remove('open'));
     if (!open) menu.classList.add('open');
   }
-  cityBtn?.addEventListener('click', e=>{ e.stopPropagation(); toggleMenu(cityMenu) });
   menuBtn?.addEventListener('click', e=>{ e.stopPropagation(); toggleMenu(profileMenu) });
   document.addEventListener('click', ()=>$$('.dropdown-menu.open').forEach(m=>m.classList.remove('open')));
 
-  /* ─────────────────────────────────────
-     2. CITY SELECTION
-  ───────────────────────────────────── */
-  $$('.city-menu a[data-city]').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const city = link.dataset.city;
-      cityBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> <span class="city-label">${city}</span> <i class="fas fa-chevron-down chevron"></i>`;
-      cityMenu.classList.remove('open');
-      toast(`📍 Location set to ${city}`);
-    });
-  });
-
-  $('#useLocationBtn')?.addEventListener('click', e => {
-    e.preventDefault();
-    if (!navigator.geolocation) { toast('❌ Geolocation not supported.', true); return; }
-    $('#useLocationBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting…';
-    navigator.geolocation.getCurrentPosition(
-      () => {
-        cityBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> <span class="city-label">Near Me</span> <i class="fas fa-chevron-down chevron"></i>`;
-        $('#useLocationBtn').innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
-        cityMenu.classList.remove('open');
-        toast('📍 Location detected!');
-      },
-      () => {
-        $('#useLocationBtn').innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
-        toast('❌ Location access denied.', true);
-      }
-    );
+  tcoinBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = 'wallet.html';
   });
 
   /* ─────────────────────────────────────
@@ -122,10 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdown.innerHTML = list.slice(0, 5).map(v => `
               <a href="venue-detail.html?id=${v._id}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;color:var(--text);text-decoration:none;border-bottom:1px solid var(--border)">
                 <div>
-                  <div style="font-weight:700;font-size:13px">${v.name}</div>
-                  <div style="font-size:11px;color:var(--muted)"><i class="fas fa-map-marker-alt" style="color:var(--green)"></i> ${v.location} · <span style="color:var(--green)">${v.sport}</span></div>
+                  <div style="font-weight:700;font-size:13px">${escapeHTML(v.name)}</div>
+                  <div style="font-size:11px;color:var(--muted)"><i class="fas fa-map-marker-alt" style="color:var(--green)"></i> ${escapeHTML(v.location)} · <span style="color:var(--green)">${escapeHTML(v.sport)}</span></div>
                 </div>
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--green)">₹${v.price}/hr</span>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--green)">₹${escapeHTML(v.price)}/hr</span>
               </a>
             `).join('');
           }
@@ -166,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div>
               <div style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase">Upcoming Live Match Ticket</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);margin-top:2px">${venue.name} <span style="font-size:14px;color:var(--muted)">(${b.date} at ${b.time})</span></div>
-              <div style="font-size:12px;color:var(--muted)"><i class="fas fa-map-marker-alt"></i> ${venue.location} · Court ${b.courtNumber || 1}</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);margin-top:2px">${escapeHTML(venue.name)} <span style="font-size:14px;color:var(--muted)">(${escapeHTML(b.date)} at ${escapeHTML(b.time)})</span></div>
+              <div style="font-size:12px;color:var(--muted)"><i class="fas fa-map-marker-alt"></i> ${escapeHTML(venue.location)} · Court ${escapeHTML(b.courtNumber || 1)}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
@@ -187,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         qrModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
         qrModal.innerHTML = `
           <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:24px;text-align:center;max-width:320px">
-            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);margin:0 0 4px">${venue.name}</h3>
-            <p style="font-size:12px;color:var(--green);margin:0 0 16px">Court ${b.courtNumber || 1} · ${b.date} @ ${b.time}</p>
+            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);margin:0 0 4px">${escapeHTML(venue.name)}</h3>
+            <p style="font-size:12px;color:var(--green);margin:0 0 16px">Court ${escapeHTML(b.courtNumber || 1)} · ${escapeHTML(b.date)} @ ${escapeHTML(b.time)}</p>
             <img src="${qrUrl}" alt="QR Ticket" style="width:180px;height:180px;border-radius:12px;border:2px solid var(--green);padding:6px;background:#fff"/>
             <p style="font-size:11px;color:var(--muted);margin:14px 0 16px">Show this QR Pass to the venue manager upon arrival</p>
             <button id="closeQrBtn" style="padding:8px 24px;background:var(--green);color:#04140a;border:none;border-radius:50px;font-weight:700;cursor:pointer">Close Pass</button>
@@ -224,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
      5. NAVIGATE TO VENUES PAGE
   ───────────────────────────────────── */
   function goToVenues(sport) {
-    window.location.href = `venues.html?sport=${encodeURIComponent(sport)}`;
+    window.location.href = `venues.html?sport=${encodeURIComponent(sport || 'all')}`;
   }
 
   $$('.btn-book').forEach(btn => {
@@ -240,116 +226,49 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ─────────────────────────────────────
-     6. FILTER DRAWER (mobile)
-  ───────────────────────────────────── */
-  const sidebar         = $('#sidebar');
-  const sidebarBackdrop = $('#sidebarBackdrop');
-  const drawerClose     = $('#drawerClose');
-  const filterToggle    = $('#filterToggleMobile');
-  const bottomFilter    = $('#bottomFilter');
-
-  function openDrawer() {
-    sidebar?.classList.add('drawer-open');
-    sidebarBackdrop?.classList.add('active');
-    document.body.style.overflow='hidden';
-  }
-  function closeDrawer() {
-    sidebar?.classList.remove('drawer-open');
-    sidebarBackdrop?.classList.remove('active');
-    document.body.style.overflow='';
-  }
-  filterToggle?.addEventListener('click', openDrawer);
-  bottomFilter?.addEventListener('click', ()=>{ setBottomTab('filter'); openDrawer() });
-  drawerClose?.addEventListener('click', closeDrawer);
-  sidebarBackdrop?.addEventListener('click', closeDrawer);
-
-  let touchStartY=0;
-  sidebar?.addEventListener('touchstart', e=>{ touchStartY=e.touches[0].clientY },{ passive:true });
-  sidebar?.addEventListener('touchend', e=>{
-    if(e.changedTouches[0].clientY-touchStartY>80 && sidebar.scrollTop===0) closeDrawer();
-  },{ passive:true });
-
-  /* ─────────────────────────────────────
-     7. PRICE RANGE
-  ───────────────────────────────────── */
-  const rangeSlider  = $('#priceRange');
-  const priceDisplay = $('#priceDisplay');
-  rangeSlider?.addEventListener('input', ()=>{
-    const v = +rangeSlider.value;
-    priceDisplay.textContent = `₹${v.toLocaleString('en-IN')}`;
-    const pct = ((v-500)/4500)*100;
-    rangeSlider.style.background =
-      `linear-gradient(to right,var(--green) ${pct}%,var(--dark3) ${pct}%)`;
-  });
-
-  /* ─────────────────────────────────────
-     8. SPORT FILTER PILLS + CHECKBOXES
+     6. SPORT PILLS FILTER ON HOMEPAGE
   ───────────────────────────────────── */
   const cards = $$('.sport-card');
 
   function filterCardsBySearch(query) {
     const q = query.toLowerCase().trim();
-    cards.forEach(card=>{
-      const sport = card.dataset.sport.toLowerCase();
-      const desc  = card.querySelector('p')?.textContent.toLowerCase()||'';
+    cards.forEach(card => {
+      const sport = (card.dataset.sport || '').toLowerCase();
+      const desc  = card.querySelector('p')?.textContent.toLowerCase() || '';
       card.style.display = (!q || sport.includes(q) || desc.includes(q)) ? '' : 'none';
     });
   }
 
   function filterCardsBySport(f) {
-    cards.forEach(card=>{
-      card.style.display = (f==='all' || card.dataset.sport===f) ? '' : 'none';
+    cards.forEach(card => {
+      card.style.display = (f === 'all' || card.dataset.sport === f) ? '' : 'none';
     });
   }
 
-  $$('.pill').forEach(pill=>{
-    pill.addEventListener('click', ()=>{
-      $$('.pill').forEach(p=>p.classList.remove('active'));
+  $$('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      $$('.pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       filterCardsBySport(pill.dataset.filter);
-      $$('.filter-check input[data-sport]').forEach(cb=>{
-        cb.checked = pill.dataset.filter==='all' || cb.dataset.sport===pill.dataset.filter;
-      });
     });
   });
 
-  function applySportCheckboxFilter() {
-    const checked = $$('.filter-check input[data-sport]:checked').map(cb=>cb.dataset.sport);
-    if (!checked.length) {
-      filterCardsBySport('all');
-      $$('.pill').forEach(p=>p.classList.remove('active'));
-      $('.pill[data-filter="all"]')?.classList.add('active');
-    } else {
-      cards.forEach(card=>{
-        card.style.display = checked.includes(card.dataset.sport) ? '' : 'none';
-      });
-      $$('.pill').forEach(p=>p.classList.remove('active'));
-      if (checked.length===1) $(`.pill[data-filter="${checked[0]}"]`)?.classList.add('active');
-      else $('.pill[data-filter="all"]')?.classList.add('active');
-    }
-    toast('✅ Filters applied!');
-  }
-  $$('.filter-check input[data-sport]').forEach(cb=>{
-    cb.addEventListener('change', applySportCheckboxFilter);
-  });
-
   /* ─────────────────────────────────────
-     9. BOTTOM NAV
+     7. BOTTOM NAV & EXPLORE BUTTON
   ───────────────────────────────────── */
   function setBottomTab(tab) {
-    $$('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    $$('.bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   }
-  $$('.bottom-nav-item').forEach(btn=>{
-    btn.addEventListener('click', ()=>setBottomTab(btn.dataset.tab));
+  $$('.bottom-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => setBottomTab(btn.dataset.tab));
   });
 
-  $('#exploreBtn')?.addEventListener('click', ()=>{
-    $('.sports-grid')?.scrollIntoView({ behavior:'smooth', block:'start' });
-    setBottomTab('home');
+  $('#exploreBtn')?.addEventListener('click', () => {
+    goToVenues('all');
   });
 
   /* ─────────────────────────────────────
-     10. CARD ANIMATIONS
+     8. CARD ANIMATIONS
   ───────────────────────────────────── */
   const observer = new IntersectionObserver((entries)=>{
     entries.forEach((entry,i)=>{
@@ -420,6 +339,105 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
   }
   initComingSoon();
+
+  /* ── T-COINS WALLET MODAL HELPERS ── */
+  function _injectTcoinsModal() {
+    const div = document.createElement('div');
+    div.innerHTML = `
+    <div class="modal-overlay" id="tcoinsModal">
+      <div class="modal tcoins-modal">
+        <button class="modal-close" id="tcoinsModalClose"><i class="fas fa-times"></i></button>
+        <div class="modal-header" style="text-align:center">
+          <div class="tcoins-wallet-icon"><i class="fas fa-coins"></i></div>
+          <div class="modal-logo">T-Coins Wallet</div>
+        </div>
+        <div class="modal-body">
+          <div class="tcw-balance-card">
+            <div class="tcw-balance-big" id="tcwBalance">0</div>
+            <div class="tcw-balance-sub">T-Coins <span id="tcwBalanceRupee">(= ₹0)</span></div>
+            <div class="tcw-tier-row">
+              <span class="tcw-tier-badge" id="tcwTier">🥉 ROOKIE</span>
+              <span class="tcw-streak" id="tcwStreak">🔥 0-week streak</span>
+            </div>
+            <div class="tcw-tier-progress-wrap">
+              <div class="tcw-tier-progress" id="tcwTierProgress" style="width:0%"></div>
+            </div>
+            <div class="tcw-tier-next" id="tcwTierNext">100,000 more coins to Regular!</div>
+          </div>
+          <div class="tcw-how-it-works">
+            <h4><i class="fas fa-info-circle"></i> How T-Coins Work</h4>
+            <div class="tcw-rule"><i class="fas fa-arrow-up" style="color:#00c853"></i> Earn 3% T-Coins on every booking</div>
+            <div class="tcw-rule"><i class="fas fa-arrow-down" style="color:#ffd700"></i> 10 T-Coins = ₹1 discount</div>
+            <div class="tcw-rule"><i class="fas fa-wallet" style="color:#42a5f5"></i> Use up to 50% of your coins per booking</div>
+            <div class="tcw-rule"><i class="fas fa-percent" style="color:#ef5350"></i> Max 10% of booking amount as discount</div>
+          </div>
+          <div class="tcw-history-title"><i class="fas fa-history"></i> Recent Activity</div>
+          <div class="tcw-history-list" id="tcwHistoryList">
+            <p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">
+              <i class="fas fa-spinner fa-spin"></i> Loading...
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(div.firstElementChild);
+    document.getElementById('tcoinsModalClose')?.addEventListener('click', _closeTcoinsModal);
+    document.getElementById('tcoinsModal')?.addEventListener('click', e => { if (e.target.id === 'tcoinsModal') _closeTcoinsModal(); });
+  }
+
+  function _closeTcoinsModal() {
+    const m = document.getElementById('tcoinsModal');
+    if (m) { m.classList.remove('active'); document.body.style.overflow = ''; }
+  }
+
+  function _renderGlobalWalletModal(data) {
+    const q = (s) => document.querySelector(s);
+    if (q('#tcwBalance')) q('#tcwBalance').textContent = data.balance.toLocaleString('en-IN');
+    if (q('#tcwBalanceRupee')) q('#tcwBalanceRupee').textContent = `(= ₹${data.balanceInRupees})`;
+    const tierEmojis = { rookie: '🥉', regular: '🥈', champion: '🥇', legend: '💎' };
+    if (q('#tcwTier')) q('#tcwTier').textContent = `${tierEmojis[data.tier] || '🥉'} ${data.tier.toUpperCase()}`;
+    if (q('#tcwStreak')) q('#tcwStreak').textContent = `🔥 ${data.streak}-week streak`;
+    if (q('#tcwTierProgress')) q('#tcwTierProgress').style.width = `${data.tierProgress}%`;
+    if (q('#tcwTierNext')) {
+      if (data.nextTier) {
+        q('#tcwTierNext').textContent = `${data.coinsNeededForNextTier.toLocaleString('en-IN')} more coins to ${data.nextTier.toUpperCase()}!`;
+      } else {
+        q('#tcwTierNext').textContent = `🎉 You are at the top Legend tier!`;
+      }
+    }
+    const list = q('#tcwHistoryList');
+    if (list) {
+      if (!data.recentTransactions || data.recentTransactions.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No activity yet. Book a venue to start earning T-Coins!</p>';
+        return;
+      }
+      list.innerHTML = data.recentTransactions.map(tx => {
+        const isPositive = tx.amount > 0;
+        const iconMap = { earn: 'fa-arrow-up', redeem: 'fa-arrow-down', bonus: 'fa-gift', reverse_earn: 'fa-undo', reverse_redeem: 'fa-undo', expire: 'fa-clock' };
+        const icon = iconMap[tx.type] || 'fa-coins';
+        const color = isPositive ? '#00c853' : '#ef5350';
+        const ago = _timeAgo(new Date(tx.createdAt));
+        return `
+          <div class="tcw-tx-item">
+            <div class="tcw-tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div>
+            <div class="tcw-tx-detail">
+              <div class="tcw-tx-desc">${tx.description}</div>
+              <div class="tcw-tx-time">${ago}</div>
+            </div>
+            <div class="tcw-tx-amount" style="color:${color}">${isPositive ? '+' : ''}${tx.amount}</div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  function _timeAgo(date) {
+    const s = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (s < 60) return 'Just now';
+    if (s < 3600) return `${Math.floor(s/60)}m ago`;
+    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+    if (s < 604800) return `${Math.floor(s/86400)}d ago`;
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
 
   console.log('🏟️ MyTurfy Homepage — Play hard!');
 });

@@ -17,7 +17,10 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000/api' : '/api'; // relative — works on localhost AND in production, fallback for file:// protocol
+const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.');
+const API_BASE = (window.location.protocol === 'file:' || (isLocalHost && window.location.port !== '5000'))
+  ? `http://${window.location.hostname || 'localhost'}:5000/api`
+  : '/api';
 
 /* ─────────────────────────────────────
    CORE FETCH WRAPPER
@@ -33,13 +36,23 @@ async function request(method, path, body = null, requiresAuth = false) {
   const options = { method, headers };
   if (body) options.body = JSON.stringify(body);
 
-  const res = await fetch(`${API_BASE}${path}`, options);
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, options);
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error('Network error — please check your internet connection and try again.');
+    }
+    throw err;
+  }
   const data = await res.json().catch(() => ({ success: false, message: res.statusText }));
 
   if (!data.success) {
     // Token expired → clear it so the user is asked to log in again
     if (res.status === 401) Auth.clearToken();
-    throw new Error(data.message || 'Something went wrong');
+    const err = new Error(data.message || 'Something went wrong');
+    if (data.notFound) err.notFound = true;
+    throw err;
   }
   return data;
 }
@@ -48,14 +61,14 @@ async function request(method, path, body = null, requiresAuth = false) {
    AUTH — customers + owners
 ───────────────────────────────────── */
 const authAPI = {
-  sendOtp: (email, action, name = '', role = 'user') =>
-    request('POST', '/auth/send-otp', { email, action, name, role }),
+  sendOtp: (email, action, name = '', role = 'user', phone = undefined) =>
+    request('POST', '/auth/send-otp', { email, phone, action, name, role }),
 
   registerCustomer: (name, email, password, phone, code) =>
     request('POST', '/auth/register', { name, email, password, phone, code }),
 
-  loginCustomer: (email, password, code) =>
-    request('POST', '/auth/login', { email, password, code }),
+  loginCustomer: (email, password, code, phone = undefined) =>
+    request('POST', '/auth/login', { email, phone, password, code }),
 
   googleLoginCustomer: (credential) =>
     request('POST', '/auth/google', { credential }),
@@ -105,6 +118,8 @@ const venuesAPI = {
 
   get: (id) => request('GET', `/venues/${id}`),
 
+  publicStats: () => request('GET', '/venues/public-stats'),
+
   mine: () => request('GET', '/venues/owner/mine', null, true),
 
   create: (venueData) => request('POST', '/venues', venueData, true),
@@ -112,6 +127,9 @@ const venuesAPI = {
   update: (id, venueData) => request('PUT', `/venues/${id}`, venueData, true),
 
   delete: (id) => request('DELETE', `/venues/${id}`, null, true),
+
+  /** Owner-only: set which hours are blocked on a specific date */
+  blockSlots: (id, date, hours) => request('PATCH', `/venues/${id}/block-slots`, { date, hours }, true),
 
   /** Upload a single photo — returns { url } with the Cloudinary URL */
   uploadImage: async (file) => {
@@ -180,20 +198,20 @@ const bookingsAPI = {
    PAYMENTS (Razorpay)
 ───────────────────────────────────── */
 const paymentsAPI = {
-  createOrder: (venueId, date, time, durationHours = 1, courtNumber = 1, bookingId = null) =>
-    request('POST', '/payments/create-order', { venueId, date, time, durationHours, courtNumber, bookingId }, true),
+  createOrder: (venueId, date, time, durationHours = 1, courtNumber = 1, bookingId = null, tCoinsToUse = 0) =>
+    request('POST', '/payments/create-order', { venueId, date, time, durationHours, courtNumber, bookingId, tCoinsToUse }, true),
 
   verify: (payload) =>
     request('POST', '/payments/verify', payload, true),
 
-  createSplitOrder: (venueId, date, time, durationHours = 1, courtNumber = 1, targetPlayers = 2, payerName = '', payerPhone = '') =>
-    request('POST', '/payments/create-split-order', { venueId, date, time, durationHours, courtNumber, targetPlayers, payerName, payerPhone }, true),
+  createSplitOrder: (venueId, date, time, durationHours = 1, courtNumber = 1, targetPlayers = 2, payerName = '', payerPhone = '', tCoinsToUse = 0) =>
+    request('POST', '/payments/create-split-order', { venueId, date, time, durationHours, courtNumber, targetPlayers, payerName, payerPhone, tCoinsToUse }, true),
 
   getSplitDetails: (splitCode) =>
     request('GET', `/payments/split-details/${splitCode}`),
 
-  createSplitShareOrder: (splitCode) =>
-    request('POST', '/payments/create-split-share-order', { splitCode }),
+  createSplitShareOrder: (splitCode, customAmount = null, tCoinsToUse = 0) =>
+    request('POST', '/payments/create-split-share-order', { splitCode, customAmount, tCoinsToUse }),
 
   paySplitShare: (payload) =>
     request('POST', '/payments/pay-split-share', payload),
@@ -224,6 +242,15 @@ const reviewsAPI = {
 };
 
 /* ─────────────────────────────────────
+   T-COINS LOYALTY
+───────────────────────────────────── */
+const tcoinsAPI = {
+  balance: () => request('GET', '/tcoins/balance', null, true),
+  calculate: (bookingAmount, isGroup = false, splitCode = null, totalBookingAmount = null) =>
+    request('POST', '/tcoins/calculate', { bookingAmount, isGroup, splitCode, totalBookingAmount }, true),
+};
+
+/* ─────────────────────────────────────
    EXPORT as a single global object
    (no ES module bundler needed — just a plain script tag)
 ───────────────────────────────────── */
@@ -233,4 +260,5 @@ window.API = {
   bookings: bookingsAPI,
   payments: paymentsAPI,
   reviews: reviewsAPI,
+  tcoins: tcoinsAPI,
 };

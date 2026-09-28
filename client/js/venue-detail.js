@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 3000);
   }
 
-  Auth.syncNavbar();
-
   /* ── READ VENUE ID FROM URL ── */
   const params = new URLSearchParams(location.search);
   const venueId = params.get('id');
@@ -39,6 +37,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const res = await API.venues.get(venueId);
     venue = res.data;
+    // Set meta description safely after data is fetched
+    const metaDesc = document.getElementById('venueMetaDesc');
+    if (metaDesc) {
+      metaDesc.setAttribute('content',
+        `Book ${venue.name} in ${venue.location} instantly. ${venue.sport} venue from ₹${venue.price}/hr with real-time slots, verified reviews and secure payment on MyTurfy.`
+      );
+    }
   } catch (err) {
     toast(`❌ ${err.message}`, true);
     setTimeout(() => location.href = 'index.html', 2000);
@@ -359,6 +364,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btn.disabled) return;
         $$('.time-slot', container).forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
+        const selectedH = parseInt(btn.dataset.hour, 10);
+        const maxDurationAllowed = Math.max(1, closeH - selectedH);
+
+        // Update duration buttons in both desktop and mobile views
+        ['#qbDuration', '#bookingModal'].forEach(scopeId => {
+          const durBtns = $$(scopeId ? `${scopeId} .dur-btn` : '.dur-btn');
+          let activeBtnDisabled = false;
+          durBtns.forEach(durBtn => {
+            const hrs = +durBtn.dataset.hours;
+            const disabled = hrs > maxDurationAllowed;
+            durBtn.disabled = disabled;
+            durBtn.style.opacity = disabled ? '0.35' : '1';
+            durBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+            if (disabled && durBtn.classList.contains('active')) {
+              durBtn.classList.remove('active');
+              activeBtnDisabled = true;
+            }
+          });
+          if (activeBtnDisabled) {
+            const firstValid = durBtns.find(b => !b.disabled);
+            if (firstValid) {
+              firstValid.classList.add('active');
+              if (scopeId === '#bookingModal') selDurMob = +firstValid.dataset.hours;
+              else selDur = +firstValid.dataset.hours;
+            }
+          }
+        });
+
         onSelect(btn.dataset.time);
       });
     });
@@ -513,6 +546,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (rateEl)  rateEl.textContent  = `₹${venue.price}/hr`;
     if (durEl)   durEl.textContent   = `${selDur} hour${selDur > 1 ? 's' : ''}`;
     if (totalEl) totalEl.textContent = `₹${(venue.price * selDur).toLocaleString('en-IN')}`;
+    updateTcoinsCalculation();
   }
   updateQBSummary();
 
@@ -539,28 +573,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     selDateMob = todayStr;
     selTimeMob = '';
+    renderCourtGrid('mCourtGrid', onCourtSelect);
     loadSlots(todayStr, 'mBookSlots', t => { selTimeMob = t; updateMSummary(); }, 'mDateNote');
     updateMSummary();
     bookingModal.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
-  function closeBooking() { bookingModal.classList.remove('active'); document.body.style.overflow = ''; }
+  function closeBooking() {
+    removeTcoins();
+    bookingModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
 
   $('#bookDetailBtn')?.addEventListener('click', () => {
     if (window.innerWidth < 900) openBooking();
     else $('.quick-book-card')?.scrollIntoView({ behavior: 'smooth' });
   });
-  $('#mobileBookBtn')?.addEventListener('click', openBooking);
   bookingClose?.addEventListener('click', closeBooking);
   bookingModal?.addEventListener('click', e => { if (e.target === bookingModal) closeBooking(); });
 
   if ($('#modalVenueName')) $('#modalVenueName').textContent = venue.name;
-  if ($('#modalVenueLoc')) $('#modalVenueLoc').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${venue.location}`;
+  if ($('#modalVenueLoc')) $('#modalVenueLoc').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${escapeHTML(venue.location)}`;
 
   function updateMSummary() {
     if ($('#mSummaryRate'))  $('#mSummaryRate').textContent  = `₹${venue.price}/hr`;
     if ($('#mSummaryDur'))   $('#mSummaryDur').textContent   = `${selDurMob} hour${selDurMob > 1 ? 's' : ''}`;
     if ($('#mSummaryTotal')) $('#mSummaryTotal').textContent = `₹${(venue.price * selDurMob).toLocaleString('en-IN')}`;
+    updateTcoinsCalculation();
   }
 
   $('#mBookDate')?.addEventListener('change', () => {
@@ -586,10 +625,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initiatePayment(d, selTimeMob, selDurMob);
   });
 
-  /* ── 5-MINUTE COUNTDOWN TIMER & SLOT HOLD ENGINE ── */
+  /* ── 3-MINUTE COUNTDOWN TIMER & SLOT HOLD ENGINE ── */
   let holdInterval = null;
   let currentHoldBookingId = null;
-  const HOLD_TOTAL_SECS = 5 * 60;
+  const HOLD_TOTAL_SECS = 3 * 60; // 3 minutes hold for solo bookings
+  let holdExpired = false;    // Set to true when hold timer runs out
+  let activeRzpInstance = null; // Reference to open Razorpay modal so timer can close it
 
   function stopHoldCountdown() {
     clearInterval(holdInterval);
@@ -647,16 +688,81 @@ document.addEventListener('DOMContentLoaded', async () => {
       bannerEls.forEach(b => b.classList.toggle('hold-urgent', diff <= 60));
 
       if (diff <= 0) {
-        toast('⚠️ 5-minute slot hold expired. Slot released.', true);
-        await cancelCurrentHold();
+        holdExpired = true;
+        // Force-close Razorpay payment modal if it's still open
+        if (activeRzpInstance) {
+          try { activeRzpInstance.close(); } catch (_) {}
+          activeRzpInstance = null;
+        }
+        toast('⚠️ 3-minute slot hold expired. Slot is now released.', true);
+        stopHoldCountdown();
+        cancelCurrentHold();
       }
     }, 1000);
+  }
+
+  /* ── LATE PAYMENT REFUND NOTIFICATION MODAL ── */
+  function showLatePaymentRefundNotice(message) {
+    $('#latePaymentRefundModal')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'latePaymentRefundModal';
+    overlay.className = 'qr-modal-overlay active';
+    overlay.style.cssText = 'z-index: 10000; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;';
+
+    overlay.innerHTML = `
+      <div style="background: #111a14; border: 1px solid rgba(239,83,80,0.4); border-radius: 18px; max-width: 480px; width: 100%; padding: 28px 24px; text-align: center; color: #e8f5e9; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; animation: slideUp 0.3s ease;">
+        <div style="width: 64px; height: 64px; background: rgba(239,83,80,0.15); border: 1px solid rgba(239,83,80,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; color: #ef5350; font-size: 28px;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin: 0 0 8px 0;">Booking Not Confirmed</h3>
+        <div style="display: inline-block; background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.3); color: #00c853; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px;">
+          <i class="fas fa-check-circle"></i> 100% Real Money Refund Initiated
+        </div>
+        <p style="font-size: 14px; line-height: 1.5; color: #b0bec5; margin: 0 0 18px 0;">
+          ${escapeHTML(message || 'Your reservation hold expired and this slot was booked by another customer. 100% of your payment has been automatically refunded back to your bank account / payment method.')}
+        </p>
+        <div style="background: #0a0f0d; border-radius: 12px; padding: 14px; margin-bottom: 20px; text-align: left; font-size: 12px; color: #7aad82; border: 1px solid rgba(0,200,83,0.1);">
+          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <i class="fas fa-university" style="color: #00c853; margin-top: 2px;"></i>
+            <span><strong>Refund Destination:</strong> Original payment source (Bank / UPI / Card)</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <i class="fas fa-clock" style="color: #00c853; margin-top: 2px;"></i>
+            <span><strong>Expected Timeline:</strong> 3 to 7 business days per standard banking timelines</span>
+          </div>
+        </div>
+        <button id="closeLateRefundBtn" style="background: #00c853; color: #04140a; border: none; font-weight: 700; font-size: 15px; padding: 12px 28px; border-radius: 30px; cursor: pointer; width: 100%; transition: all 0.2s ease;">
+          OK, Got It &middot; Choose Another Slot
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeNotice = () => {
+      overlay.classList.remove('active');
+      setTimeout(() => overlay.remove(), 250);
+    };
+
+    overlay.querySelector('#closeLateRefundBtn')?.addEventListener('click', closeNotice);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeNotice();
+    });
   }
 
   /* ── PAYMENT FLOW ── */
   async function initiatePayment(date, time, durationHours) {
     if (!date) { toast('❌ Select a date', true);      return; }
     if (!time) { toast('❌ Select a time slot', true); return; }
+
+    const isDesktop = window.innerWidth >= 900;
+    const policyCheckbox = isDesktop ? $('#qbRefundPolicyCheck') : $('#mRefundPolicyCheck');
+    if (policyCheckbox && !policyCheckbox.checked) {
+      toast('⚠️ Please review and accept the Refund & Cancellation Policy checkbox to proceed.', true);
+      policyCheckbox.focus();
+      return;
+    }
 
     if (!Auth.isLoggedIn()) {
       toast('❌ Please sign in to book a venue', true);
@@ -673,18 +779,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     confirmBtns.forEach(b => { if (b) { b.textContent = 'Holding Slot…'; b.disabled = true; } });
 
     let isPaymentCompleted = false;
+    holdExpired = false;
 
     try {
-      // Step 1: Hold slot for 5 minutes
+      // Step 1: Hold slot for 3 minutes
       const holdRes = await API.bookings.holdSlot(venue._id, date, time, durationHours, selectedCourt);
       currentHoldBookingId = holdRes.data.bookingId;
       startHoldCountdown(holdRes.data.holdExpiresAt);
-      toast('⏱️ Slot held for 5 minutes! Complete payment to confirm.');
+      toast('⏱️ Slot held for 3 minutes! Complete payment to confirm.');
 
       confirmBtns.forEach(b => { if (b) { b.textContent = 'Processing Payment…'; } });
 
       // Step 2: Create Razorpay Order with a 15-second timeout
-      const createOrderPromise = API.payments.createOrder(venue._id, date, time, durationHours, selectedCourt, holdRes.data.bookingId);
+      const coinsToRedeem = tcoinsApplied ? tcoinsToUse : 0;
+      const createOrderPromise = API.payments.createOrder(
+        venue._id, date, time, durationHours, selectedCourt, holdRes.data.bookingId, coinsToRedeem
+      );
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Payment server did not respond within 15 seconds. Please try again.')), 15000)
       );
@@ -700,29 +810,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         description: `Booking: Court ${selectedCourt} at ${venue.name}`,
         handler: async (response) => {
           isPaymentCompleted = true;
+          activeRzpInstance = null;
+          // Block payment verification if hold timer already expired
+          if (holdExpired) {
+            toast('⚠️ Your 3-minute slot hold expired before payment completed. Any charge will be automatically refunded.', true);
+            await cancelCurrentHold();
+            removeTcoins();
+            reloadSlots();
+            return;
+          }
           try {
-            await API.payments.verify({
+            const verifyRes = await API.payments.verify({
               razorpay_order_id:   response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature:  response.razorpay_signature,
               venueId: venue._id, date, time, durationHours, courtNumber: selectedCourt, bookingId: currentHoldBookingId,
+              tCoinsUsed: coinsToRedeem,
+              tCoinsDiscount: orderRes.tCoinsDiscount || 0,
             });
             currentHoldBookingId = null;
             closeBooking();
             stopHoldCountdown();
+            removeTcoins();
             toast(`🎉 Payment confirmed! Court ${selectedCourt} at ${venue.name} booked for ${date} at ${time}`);
             reloadSlots();
-            selTime = ''; selTimeMob = '';          
+            selTime = ''; selTimeMob = '';
+            if (verifyRes.coinsEarned) {
+              showTcoinsEarnedCelebration(verifyRes.coinsEarned);
+            }
+            loadTcoinsBalance();
           } catch (err) {
-            toast(`❌ Payment verification failed: ${err.message}`, true);
-            await cancelCurrentHold();
+            currentHoldBookingId = null;
+            closeBooking();
+            stopHoldCountdown();
+            removeTcoins();
+            reloadSlots();
+            const msg = err.message || '';
+            const isRefundNotice = msg.includes('refund') || msg.includes('expired') || msg.includes('booked by another') || msg.includes('slot was booked');
+            if (isRefundNotice) {
+              showLatePaymentRefundNotice(msg);
+            } else {
+              toast(`❌ Payment verification failed: ${msg}`, true);
+            }
           }
         },
         modal: {
           ondismiss: async function () {
+            activeRzpInstance = null;
             if (!isPaymentCompleted) {
               toast('⚠️ Payment cancelled. Your slot reservation has been released.', true);
               await cancelCurrentHold();
+              removeTcoins();
             }
           },
         },
@@ -730,16 +868,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       rzp.on('payment.failed', async function (response) {
+        activeRzpInstance = null;
         isPaymentCompleted = false;
         const reason = response.error?.description || response.error?.reason || 'Payment failed or declined by bank';
         toast(`❌ Payment Failed: ${reason}`, true);
         await cancelCurrentHold();
+        removeTcoins();
       });
 
+      activeRzpInstance = rzp;
       rzp.open();
     } catch (err) {
       toast(`❌ ${err.message}`, true);
       await cancelCurrentHold();
+      removeTcoins();
     } finally {
       confirmBtns.forEach(b => { 
         if (b) { 
@@ -749,6 +891,213 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   }
+
+  /* ══════════════════════════════════════
+     T-COINS LOYALTY ENGINE
+  ══════════════════════════════════════ */
+  let tcoinsBalance = 0;
+  let tcoinsApplied = false;
+  let tcoinsToUse = 0;
+  let tcoinsDiscount = 0;
+  let tcoinsData = null;
+
+  async function loadTcoinsBalance() {
+    if (!Auth.isLoggedIn()) return;
+    try {
+      const res = await API.tcoins.balance();
+      tcoinsData = res.data;
+      tcoinsBalance = res.data.balance;
+      updateTcoinsHeaderBtn();
+      
+      ['tcoinsSection', 'mTcoinsSection'].forEach(id => {
+        const el = $('#' + id);
+        if (el) el.style.display = 'block';
+      });
+      updateTcoinsCalculation();
+    } catch (_) {}
+  }
+
+  function updateTcoinsHeaderBtn() {
+    const btn = $('#tcoinBtn');
+    if (!btn) return;
+    if (tcoinsData) {
+      btn.innerHTML = `<i class="fas fa-coins" style="color:#ffd700;font-size:14px"></i><span>${tcoinsBalance} T-Coins</span>`;
+    }
+  }
+
+  async function updateTcoinsCalculation() {
+    if (!Auth.isLoggedIn()) return;
+    const dur = selDur || selDurMob || 1;
+    const bookingAmount = venue.price * dur;
+
+    try {
+      const res = await API.tcoins.calculate(bookingAmount);
+      const d = res.data;
+
+      ['qb', 'm'].forEach(prefix => {
+        const balEl = $('#' + prefix + 'TcoinsBalance');
+        const rupEl = $('#' + prefix + 'TcoinsRupee');
+        const maxUseEl = $('#' + prefix + 'TcoinsMaxUse');
+        const maxSaveEl = $('#' + prefix + 'TcoinsMaxSave');
+        const earnEl = $('#' + prefix + 'TcoinsEarn');
+        const tierEl = $('#' + prefix + 'TcoinsTier');
+
+        if (balEl) balEl.textContent = d.userBalance.toLocaleString('en-IN');
+        if (rupEl) rupEl.textContent = `(= ₹${Math.floor(d.userBalance / 10)})`;
+        if (maxUseEl) maxUseEl.textContent = d.maxCoinsUsable.toLocaleString('en-IN');
+        if (maxSaveEl) maxSaveEl.textContent = `₹${d.maxDiscount}`;
+        if (earnEl) earnEl.textContent = d.coinsToEarn.toLocaleString('en-IN');
+        if (tierEl && tcoinsData) tierEl.textContent = tcoinsData.tier.toUpperCase();
+      });
+
+      tcoinsToUse = d.maxCoinsUsable;
+      tcoinsDiscount = d.maxDiscount;
+
+      if (tcoinsApplied) {
+        if (tcoinsToUse <= 0) {
+          removeTcoins();
+        } else {
+          applyTcoins();
+        }
+      }
+    } catch (_) {}
+  }
+
+  function applyTcoins() {
+    if (tcoinsToUse <= 0) {
+      toast('⚠️ You need more T-Coins to redeem on this booking', true);
+      return;
+    }
+    tcoinsApplied = true;
+
+    const dur = selDur || selDurMob || 1;
+    const total = venue.price * dur;
+    const finalAmount = Math.max(0, total - tcoinsDiscount);
+
+    ['qb', 'm'].forEach(prefix => {
+      const applyRow = $('#' + prefix + 'TcoinsApplyRow');
+      const appliedBanner = $('#' + prefix + 'TcoinsApplied');
+      const savingEl = $('#' + prefix + 'TcoinsSaving');
+      const discountRow = $('#' + prefix + 'TcoinsDiscountRow');
+      const discountVal = $('#' + prefix + 'TcoinsDiscountVal');
+      const finalRow = $('#' + prefix + 'FinalRow');
+      const finalTotal = $('#' + prefix + 'FinalTotal');
+
+      if (applyRow) applyRow.style.display = 'none';
+      if (appliedBanner) appliedBanner.style.display = 'flex';
+      if (savingEl) savingEl.textContent = `₹${tcoinsDiscount}`;
+      if (discountRow) discountRow.style.display = 'flex';
+      if (discountVal) discountVal.textContent = `-₹${tcoinsDiscount}`;
+      if (finalRow) finalRow.style.display = 'flex';
+      if (finalTotal) finalTotal.textContent = `₹${finalAmount.toLocaleString('en-IN')}`;
+    });
+
+    toast(`⚡ T-Coins applied! Saving ₹${tcoinsDiscount}`);
+  }
+
+  function removeTcoins() {
+    tcoinsApplied = false;
+
+    ['qb', 'm'].forEach(prefix => {
+      const applyRow = $('#' + prefix + 'TcoinsApplyRow');
+      const appliedBanner = $('#' + prefix + 'TcoinsApplied');
+      const discountRow = $('#' + prefix + 'TcoinsDiscountRow');
+      const finalRow = $('#' + prefix + 'FinalRow');
+
+      if (applyRow) applyRow.style.display = 'flex';
+      if (appliedBanner) appliedBanner.style.display = 'none';
+      if (discountRow) discountRow.style.display = 'none';
+      if (finalRow) finalRow.style.display = 'none';
+    });
+  }
+
+  // Attach event handlers for apply & remove
+  ['qbApplyTcoins', 'mApplyTcoins'].forEach(id => {
+    $('#' + id)?.addEventListener('click', applyTcoins);
+  });
+  ['qbRemoveTcoins', 'mRemoveTcoins'].forEach(id => {
+    $('#' + id)?.addEventListener('click', removeTcoins);
+  });
+
+  // T-Coins Wallet Modal Handlers
+  const tcoinsModal = $('#tcoinsModal'), tcoinsModalClose = $('#tcoinsModalClose');
+
+  $('#tcoinBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = 'wallet.html';
+  });
+
+  function closeTcoinsModal() {
+    tcoinsModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  tcoinsModalClose?.addEventListener('click', closeTcoinsModal);
+  tcoinsModal?.addEventListener('click', e => { if (e.target === tcoinsModal) closeTcoinsModal(); });
+
+  function renderWalletModal(data) {
+    if ($('#tcwBalance')) $('#tcwBalance').textContent = data.balance.toLocaleString('en-IN');
+    if ($('#tcwBalanceRupee')) $('#tcwBalanceRupee').textContent = `(= ₹${data.balanceInRupees})`;
+
+    const tierEmojis = { rookie: '🥉', regular: '🥈', champion: '🥇', legend: '💎' };
+    if ($('#tcwTier')) $('#tcwTier').textContent = `${tierEmojis[data.tier] || '🥉'} ${data.tier.toUpperCase()}`;
+    if ($('#tcwStreak')) $('#tcwStreak').textContent = `🔥 ${data.streak}-week streak`;
+    if ($('#tcwTierProgress')) $('#tcwTierProgress').style.width = `${data.tierProgress}%`;
+
+    if ($('#tcwTierNext')) {
+      if (data.nextTier) {
+        $('#tcwTierNext').textContent = `${data.coinsNeededForNextTier.toLocaleString('en-IN')} more coins to ${data.nextTier.toUpperCase()}!`;
+      } else {
+        $('#tcwTierNext').textContent = `🎉 You are at the top Legend tier!`;
+      }
+    }
+
+    const list = $('#tcwHistoryList');
+    if (list) {
+      if (!data.recentTransactions || data.recentTransactions.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No activity yet. Book a venue to start earning T-Coins!</p>';
+        return;
+      }
+      list.innerHTML = data.recentTransactions.map(tx => {
+        const isPositive = tx.amount > 0;
+        const iconMap = { earn: 'fa-arrow-up', redeem: 'fa-arrow-down', bonus: 'fa-gift', reverse_earn: 'fa-undo', reverse_redeem: 'fa-undo', expire: 'fa-clock' };
+        const icon = iconMap[tx.type] || 'fa-coins';
+        const color = isPositive ? '#00c853' : '#ef5350';
+        const ago = timeAgo(new Date(tx.createdAt));
+
+        return `
+          <div class="tcw-tx-item">
+            <div class="tcw-tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div>
+            <div class="tcw-tx-detail">
+              <div class="tcw-tx-desc">${tx.description}</div>
+              <div class="tcw-tx-time">${ago}</div>
+            </div>
+            <div class="tcw-tx-amount" style="color:${color}">${isPositive ? '+' : ''}${tx.amount}</div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  function showTcoinsEarnedCelebration(coins) {
+    if (!coins || coins <= 0) return;
+    const cashbackLabel = tcoinsData?.cashbackPct ? `${tcoinsData.cashbackPct}%` : 'Tier';
+    const cel = document.createElement('div');
+    cel.className = 'tcoins-celebration';
+    cel.innerHTML = `
+      <div class="tcoins-celebration-inner">
+        <div class="tcoins-celebration-coins"><i class="fas fa-coins"></i></div>
+        <div class="tcoins-celebration-text">+${coins} T-Coins Earned!</div>
+        <div class="tcoins-celebration-sub">${cashbackLabel} Cashback credited to your wallet</div>
+      </div>
+    `;
+    document.body.appendChild(cel);
+    setTimeout(() => {
+      cel.style.opacity = '0';
+      cel.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => cel.remove(), 500);
+    }, 2500);
+  }
+
+  loadTcoinsBalance();
 
   /* ══════════════════════════════════════
      RATE US MODAL (FIXED: Added finally block for button reset)
@@ -1003,49 +1352,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) { toast(`❌ ${err.message}`, true); }
   });
 
-  /* ══════════════════════════════════════
-     NAVBAR
-  ══════════════════════════════════════ */
-  const cityBtn = $('#cityBtn'), cityMenu = $('#cityMenu'), menuBtn = $('#menuBtn'), profileMenu = $('#profileMenu');
-  function toggleDrop(menu) { const open = menu.classList.contains('open'); $$('.dropdown-menu.open').forEach(m => m.classList.remove('open')); if (!open) menu.classList.add('open'); }
-  cityBtn?.addEventListener('click', e => { e.stopPropagation(); toggleDrop(cityMenu); });
-  menuBtn?.addEventListener('click', e => { e.stopPropagation(); toggleDrop(profileMenu); });
-  document.addEventListener('click', () => $$('.dropdown-menu.open').forEach(m => m.classList.remove('open')));
-  $$('.city-menu a[data-city]').forEach(link => {
-    link.addEventListener('click', e => { e.preventDefault(); cityBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> <span class="city-label">${link.dataset.city}</span> <i class="fas fa-chevron-down chevron"></i>`; cityMenu.classList.remove('open'); });
-  });
-
-  function doSearch(q) { if (q.trim()) window.location.href = `venues.html?sport=all&q=${encodeURIComponent(q.trim())}`; }
-  $('#navSearch')?.addEventListener('keydown',       e => { if (e.key === 'Enter') doSearch(e.target.value); });
-  $('#mobileNavSearch')?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(e.target.value); });
-
-  const mSearchBar = $('#mobileSearchBar');
-  $('#mobileSearchToggle')?.addEventListener('click', () => { mSearchBar.classList.add('open'); $('#mobileNavSearch')?.focus(); });
-  $('#mobileSearchClose')?.addEventListener('click',  () => mSearchBar.classList.remove('open'));
-
-  /* ─── SIGN IN MODAL (Centralized) ─── */
-  Auth.initAuthModal(toast);
-
-  window.addEventListener('scroll', () => {
-    document.querySelector('.navbar').style.boxShadow = window.scrollY > 20 ? '0 4px 28px rgba(0,0,0,.7)' : '0 2px 16px rgba(0,0,0,.4)';
-  }, { passive: true });
-
   console.log(`🏟️ Venue detail loaded: ${venue.name} | Open: ${openH}:00–${closeH}:00`);
-
-  /* ── COMING SOON handler for data-soon links ── */
-  const csOverlay = document.getElementById('comingSoonOverlay');
-  const csTitleEl = document.getElementById('comingSoonTitle');
-  const csMsgEl   = document.getElementById('comingSoonMsg');
-  if (csOverlay) {
-    document.querySelectorAll('[data-soon]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.preventDefault(); e.stopPropagation();
-        const name = el.dataset.soon || 'This feature';
-        if (csTitleEl) csTitleEl.textContent = `${name} — Coming Soon!`;
-        if (csMsgEl)   csMsgEl.textContent   = `We're working hard on ${name}. Stay tuned!`;
-        csOverlay.style.display = 'flex';
-      });
-    });
-    csOverlay.addEventListener('click', e => { if (e.target === csOverlay) csOverlay.style.display = 'none'; });
-  }
 });

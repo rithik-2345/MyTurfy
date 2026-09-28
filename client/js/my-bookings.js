@@ -20,6 +20,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const getSportImg = (s) => SPORT_IMG[s] || SPORT_IMG.default;
 
+  /* ── TIME FORMATTER ── */
+  function formatHour(timeStr) {
+    if (!timeStr) return '';
+    const match = String(timeStr).match(/(\d+):?(\d+)?\s*(AM|PM)?/i);
+    if (!match) return timeStr;
+    let h = parseInt(match[1], 10);
+    const min = match[2] || '00';
+    const ampm = match[3];
+    if (ampm) return timeStr;
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    return `${displayH}:${min.padStart(2, '0')} ${suffix}`;
+  }
+
   /* ── TOAST ── */
   function toast(msg, isError = false) {
     const host = $('#toastHost');
@@ -81,9 +95,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="live-card-body">
             <div class="live-venue-info">
-              <div class="live-venue-name">${venue.name}</div>
-              <div class="live-venue-loc"><i class="fas fa-map-marker-alt"></i> ${venue.location} &middot; Court ${b.courtNumber || 1}</div>
-              <div class="live-venue-dt"><i class="far fa-calendar-alt"></i> ${b.date} &nbsp;&middot;&nbsp; <i class="far fa-clock"></i> ${b.time}</div>
+              <div class="live-venue-name">${escapeHTML(venue.name)}</div>
+              <div class="live-venue-loc"><i class="fas fa-map-marker-alt"></i> ${escapeHTML(venue.location)} &middot; Court ${escapeHTML(b.courtNumber || 1)}</div>
+              <div class="live-venue-dt"><i class="far fa-calendar-alt"></i> ${escapeHTML(b.date)} &nbsp;&middot;&nbsp; <i class="far fa-clock"></i> ${escapeHTML(b.time)}</div>
             </div>
             <div class="live-countdown-block">
               <div class="live-countdown-label">Game starts in</div>
@@ -124,8 +138,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         ov.className = 'qr-modal-overlay';
         ov.innerHTML = `
           <div class="qr-modal-box">
-            <div class="qr-venue-name">${venue.name}</div>
-            <div class="qr-meta">Court ${b.courtNumber || 1} &middot; ${b.date} &middot; ${b.time}</div>
+            <div class="qr-venue-name">${escapeHTML(venue.name)}</div>
+            <div class="qr-meta">Court ${escapeHTML(b.courtNumber || 1)} &middot; ${escapeHTML(b.date)} &middot; ${escapeHTML(b.time)}</div>
             <img src="${qrUrl}" alt="QR Entry Pass" class="qr-img" />
             <p class="qr-hint">Show this QR code at the venue entrance</p>
             <div class="qr-booking-id">Booking #${b._id.slice(-8).toUpperCase()}</div>
@@ -156,12 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // Navbar dropdown & search triggers
-  const cityBtn = $('#cityBtn'), cityMenu = $('#cityMenu'), menuBtn = $('#menuBtn'), profileMenu = $('#profileMenu');
-  function toggleDrop(menu) { if (!menu) return; const open = menu.classList.contains('open'); $$('.dropdown-menu.open').forEach(m => m.classList.remove('open')); if (!open) menu.classList.add('open'); }
-  cityBtn?.addEventListener('click', e => { e.stopPropagation(); toggleDrop(cityMenu); });
-  menuBtn?.addEventListener('click', e => { e.stopPropagation(); toggleDrop(profileMenu); });
-  document.addEventListener('click', () => $$('.dropdown-menu.open').forEach(m => m.classList.remove('open')));
+
 
   /* ── INITIALIZE ── */
   async function initBookings() {
@@ -213,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.innerHTML = `
       <div class="signin-prompt">
         <div class="signin-prompt-icon" style="background: rgba(0, 200, 83, 0.15); color: var(--green);"><i class="fas fa-warehouse"></i></div>
-        <h2>Signed in as Partner (${user.name})</h2>
+        <h2>Signed in as Partner (${escapeHTML(user.name)})</h2>
         <p>This reservation history page is for customer slot bookings. As a venue partner, you can manage your venue bookings, walk-ins, earnings, and customer refund requests in your Partner Dashboard.</p>
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 18px;">
           <a href="owner-portal.html" class="btn-signin-prompt" style="text-decoration: none;">Go to Partner Dashboard <i class="fas fa-arrow-right"></i></a>
@@ -289,16 +298,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Helper: format hour labels
-    const formatHour = (hStr) => {
-      const h = parseInt(hStr.split(':')[0], 10);
-      if (h === 0) return '12:00 AM';
-      if (h < 12) return `${h}:00 AM`;
-      if (h === 12) return '12:00 PM';
-      return `${h - 12}:00 PM`;
+    const currentUser = Auth.getUser();
+    const currentUserId = currentUser ? (currentUser._id || currentUser.id)?.toString() : null;
+
+    // Helper: parse slot start timestamp for chronological sorting
+    const getSlotMs = (item) => {
+      try {
+        const [y, m, d] = (item.date || '').split('-').map(Number);
+        let h = 0, min = 0;
+        if (item.time) {
+          const match = item.time.match(/(\d+):?(\d+)?\s*(AM|PM)?/i);
+          if (match) {
+            h = parseInt(match[1], 10);
+            min = parseInt(match[2] || '0', 10);
+            const isPM = match[3] && match[3].toUpperCase() === 'PM';
+            const isAM = match[3] && match[3].toUpperCase() === 'AM';
+            if (isPM && h < 12) h += 12;
+            if (isAM && h === 12) h = 0;
+          }
+        }
+        return new Date(y, m - 1, d, h, min, 0).getTime() || 0;
+      } catch (_) {
+        return 0;
+      }
     };
 
-    const cardsHtml = bookings.map((b) => {
+    // Sort in increasing time order (earliest upcoming match slot first)
+    const sortedBookings = [...bookings].sort((a, b) => getSlotMs(a) - getSlotMs(b));
+
+    const cardsHtml = sortedBookings.map((b) => {
       const venue = b.venue || {};
       const img = (venue.images && venue.images[0]) || getSportImg(venue.sport);
       
@@ -307,12 +335,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? splitPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
         : (b.paymentStatus === 'paid' ? b.amount : 0);
 
+      const bookingCustomerId = (b.customer?._id || b.customer)?.toString();
+      const isTheCustomer = !bookingCustomerId || (currentUserId && bookingCustomerId === currentUserId);
+
       // Determine Display Status and Color
       let statusText = b.status;
       let statusClass = 'status-upcoming-mb';
       
       const pct = b.refundPct !== undefined ? b.refundPct : 100;
       const refAmt = b.refundAmount !== undefined ? b.refundAmount : Math.round(((b.amount || 0) * pct) / 100);
+      const isLatePaymentRefund = b.refundReason && (b.refundReason.toLowerCase().includes('late payment') || b.refundReason.toLowerCase().includes('hold expired'));
 
       if (b.isSplit && b.splitStatus === 'active') {
         statusText = `⏳ Split Pending (₹${paidAmount} / ₹${b.amount || 0})`;
@@ -320,8 +352,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (b.isSplit && b.splitStatus === 'expired') {
         statusText = 'Split Expired / Cancelled';
         statusClass = 'status-cancelled-mb';
-      } else if (b.refundStatus === 'approved') {
-        statusText = `${pct}% Refunded (₹${refAmt.toLocaleString('en-IN')})`;
+      } else if (b.paymentStatus === 'refunded' || b.refundStatus === 'approved') {
+        if (isLatePaymentRefund) {
+          statusText = `100% Refunded (Late Payment - Slot Taken)`;
+        } else if (b.refundInTCoins === false) {
+          statusText = `100% Real Money Refunded (₹${refAmt.toLocaleString('en-IN')})`;
+        } else {
+          statusText = `${pct}% Refunded (₹${refAmt.toLocaleString('en-IN')})`;
+        }
         statusClass = 'status-refunded-mb';
       } else if (b.refundStatus === 'requested') {
         statusText = `Process Ongoing (Pending Admin Review - ${pct}% ₹${refAmt.toLocaleString('en-IN')})`;
@@ -330,7 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         statusText = 'Refund Declined by Admin (Slot Retained)';
         statusClass = 'status-upcoming-mb';
       } else if (b.status === 'hold' && !b.isSplit) {
-        statusText = '⏱️ Payment Pending (5-min Hold)';
+        statusText = '⏱️ Payment Pending (3-min Hold)';
         statusClass = 'status-refund-req-mb';
       } else if (b.status === 'cancelled') {
         statusText = 'Cancelled / Expired';
@@ -360,14 +398,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="mb-body">
             <div class="mb-main-info">
-              <h3 class="mb-name">${venue.name || 'Venue Name'}</h3>
-              <div class="mb-location"><i class="fas fa-map-marker-alt"></i> ${venue.location || 'Location'}</div>
+              <h3 class="mb-name">${escapeHTML(venue.name || 'Venue Name')}</h3>
+              <div class="mb-location"><i class="fas fa-map-marker-alt"></i> ${escapeHTML(venue.location || 'Location')}</div>
               <div class="mb-details-row">
                 <div class="mb-detail"><i class="far fa-calendar-alt"></i> ${b.date}</div>
                 <div class="mb-detail"><i class="far fa-clock"></i> ${formatHour(b.time)}</div>
                 <div class="mb-detail"><i class="fas fa-hourglass-half"></i> ${b.durationHours || 1} hr(s)</div>
                 <div class="mb-detail"><i class="fas fa-receipt"></i> ID: ...${b._id.slice(-6).toUpperCase()}</div>
               </div>
+              ${isLatePaymentRefund ? `
+                <div style="margin-top: 10px; padding: 10px 12px; background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.25); border-radius: 8px; font-size: 12px; color: #c8e6c9; line-height: 1.4;">
+                  <div style="font-weight: 700; color: #00c853; margin-bottom: 3px;">
+                    <i class="fas fa-info-circle"></i> Late Payment Auto-Refund
+                  </div>
+                  Hold expired before payment completed and slot was booked by another user. Full refund of <strong>₹${(b.refundAmount || b.amount).toLocaleString('en-IN')}</strong> initiated back to your bank account / original payment method (3–7 business days).
+                </div>
+              ` : ''}
             </div>
             <div class="mb-footer">
               <div class="mb-price">
@@ -377,8 +423,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                 <span class="status-pill-mb ${statusClass}">${statusText}</span>
                 ${isUpcoming ? `
-                  <div class="mb-actions">
-                    <button class="btn-mb-action btn-mb-cancel" data-id="${b._id}">Cancel &amp; Request Refund</button>
+                  <div class="mb-actions" style="display:flex;gap:8px;align-items:center;">
+                    <button class="btn-mb-action btn-mb-qr" data-id="${b._id}" data-venue="${venue.name || ''}" data-court="${b.courtNumber || 1}" data-date="${b.date}" data-time="${formatHour(b.time)}" data-qr="${b.qrCodeData || b._id}" style="background:rgba(0,200,83,0.15);color:#00c853;border:1px solid rgba(0,200,83,0.3);font-weight:700;"><i class="fas fa-qrcode"></i> QR Pass</button>
+                    ${(!b.isSplit || isTheCustomer) ? `
+                      <button class="btn-mb-action btn-mb-cancel" data-id="${b._id}">Cancel &amp; Request Refund</button>
+                    ` : `
+                      <span style="font-size:11px;color:var(--muted);font-weight:600;"><i class="fas fa-users"></i> Team Match (Booker Managed)</span>
+                    `}
                   </div>
                 ` : ''}
                 ${isPendingSplit ? `
@@ -386,9 +437,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <a href="split-pay.html?code=${b.splitCode}" class="btn-mb-action" style="background:#00c853;color:#04140a;font-weight:700;text-decoration:none;">
                       <i class="fas fa-users"></i> Pay Share / Invite Friends
                     </a>
-                    <button class="btn-mb-action btn-mb-cancel-split" data-code="${b.splitCode}" data-id="${b._id}" style="background:#ef5350;color:#fff;">
-                      Cancel Split
-                    </button>
+                    ${isTheCustomer ? `
+                      <button class="btn-mb-action btn-mb-cancel-split" data-code="${b.splitCode}" data-id="${b._id}" style="background:#ef5350;color:#fff;">
+                        Cancel Split
+                      </button>
+                    ` : ''}
                   </div>
                 ` : ''}
               </div>
@@ -415,6 +468,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 50);
 
     // Attach Event Listeners for actions
+    $$('.btn-mb-qr').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const { id, venue, court, date, time, qr } = btn.dataset;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr || id)}`;
+        const ov = document.createElement('div');
+        ov.className = 'qr-modal-overlay';
+        ov.innerHTML = `
+          <div class="qr-modal-box">
+            <div class="qr-venue-name">${escapeHTML(venue || 'Venue')}</div>
+            <div class="qr-meta">Court ${escapeHTML(court || 1)} &middot; ${escapeHTML(date)} &middot; ${escapeHTML(time)}</div>
+            <img src="${qrUrl}" alt="QR Entry Pass" class="qr-img" />
+            <p class="qr-hint">Show this QR code at the venue entrance</p>
+            <div class="qr-booking-id">Booking #${id.slice(-8).toUpperCase()}</div>
+            <button class="qr-close-btn" id="qrCloseBtn">Close Pass</button>
+          </div>`;
+        document.body.appendChild(ov);
+        requestAnimationFrame(() => ov.classList.add('active'));
+        const close = () => { ov.classList.remove('active'); setTimeout(() => ov.remove(), 300); };
+        ov.querySelector('#qrCloseBtn')?.addEventListener('click', close);
+        ov.addEventListener('click', ev => { if (ev.target === ov) close(); });
+      });
+    });
+
     $$('.btn-mb-cancel, .btn-mb-refund').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -459,6 +536,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tierEstimate = $('#tierEstimate');
     if (tierEstimate) tierEstimate.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating estimated refund policy tier…';
 
+    if (confirmCancelBtn) {
+      confirmCancelBtn.disabled = true;
+      confirmCancelBtn.style.opacity = '0.6';
+    }
+
     cancelModal.classList.add('active');
     cancelModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -467,15 +549,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await API.bookings.refundPreview(bookingId);
       if (res.data && tierEstimate) {
-        const { refundPct, refundAmount, bookingAmount } = res.data;
-        if (refundPct > 0) {
-          tierEstimate.innerHTML = `<span style="color:#00c853;">${refundPct}% Refund Eligible (₹${refundAmount.toLocaleString('en-IN')} of ₹${bookingAmount.toLocaleString('en-IN')})</span>`;
+        const { refundPct, refundAmount, refundCoins, bookingAmount, canCancel, message, isSplit } = res.data;
+        const totalCoins = refundCoins || Math.round(refundAmount * 10);
+        if (canCancel && refundPct > 0) {
+          tierEstimate.innerHTML = `
+            <span style="color:#00c853;">${refundPct}% Refund in T-Coins: <strong>${totalCoins.toLocaleString('en-IN')} T-Coins</strong> (= ₹${refundAmount.toLocaleString('en-IN')})</span>
+            <div style="font-size:12px;color:#ffd700;margin-top:4px;"><i class="fas fa-coins"></i> 100% credited instantly to your MyTurfy wallet ${isSplit ? '(shared with team)' : ''}</div>
+          `;
+          if (confirmCancelBtn) {
+            confirmCancelBtn.disabled = false;
+            confirmCancelBtn.style.opacity = '1';
+            confirmCancelBtn.style.cursor = 'pointer';
+          }
         } else {
-          tierEstimate.innerHTML = `<span style="color:var(--red);">0% Refund (Slot starts in &lt;1h or has passed)</span>`;
+          tierEstimate.innerHTML = `<span style="color:var(--red);">${message || 'Cancellations cannot be processed for this booking (Match starts in <24h or window passed).'}</span>`;
+          if (confirmCancelBtn) {
+            confirmCancelBtn.disabled = true;
+            confirmCancelBtn.style.opacity = '0.4';
+            confirmCancelBtn.style.cursor = 'not-allowed';
+          }
         }
       }
-    } catch (_) {
-      if (tierEstimate) tierEstimate.textContent = 'Estimated refund calculated upon cancellation request.';
+    } catch (err) {
+      if (tierEstimate) tierEstimate.innerHTML = `<span style="color:var(--red);">${err.message || 'Estimated refund calculated upon cancellation request.'}</span>`;
+      if (confirmCancelBtn) {
+        confirmCancelBtn.disabled = false;
+        confirmCancelBtn.style.opacity = '1';
+        confirmCancelBtn.style.cursor = 'pointer';
+      }
     }
   }
 
@@ -492,16 +593,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   confirmCancelBtn?.addEventListener('click', async () => {
     const id = $('#cancelBookingId').value;
-    const reason = $('#cancelReason').value.trim() || 'Customer requested slot cancellation';
-
     confirmCancelBtn.disabled = true;
-    confirmCancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+    confirmCancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Refund…';
 
     try {
-      const res = await API.bookings.requestRefund(id, reason);
-      toast(`🎉 ${res.message || 'Booking cancelled & refund request submitted!'}`);
+      const res = await API.bookings.cancel(id);
+      toast(`🎉 ${res.message || 'Booking cancelled and refund processed!'}`);
       closeCancelModal();
       initBookings(); // refresh list
+      if (window.API?.tcoins?.balance) {
+        API.tcoins.balance().then(bRes => {
+          const btn = document.querySelector('#tcoinBtn');
+          if (btn && bRes?.data) {
+            btn.innerHTML = `<i class="fas fa-coins" style="color:#ffd700;font-size:14px"></i><span>${bRes.data.balance.toLocaleString('en-IN')} T-Coins</span>`;
+          }
+        }).catch(() => {});
+      }
     } catch (err) {
       toast(`❌ Cancellation failed: ${err.message}`, true);
     } finally {

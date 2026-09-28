@@ -296,6 +296,43 @@
       align-items: center;
       gap: 6px;
     }
+    /* Light Mode Overrides */
+    [data-theme="light"] .split-card-main {
+      background: #ffffff;
+      border-color: rgba(0,200,83,0.25);
+      box-shadow: 0 12px 40px rgba(0,60,20,0.08);
+    }
+    [data-theme="light"] .split-header-overlay {
+      background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 100%);
+    }
+    [data-theme="light"] .split-venue-name {
+      color: #081d10;
+    }
+    [data-theme="light"] .split-progress-block {
+      background: #f4fbf6;
+      border-color: rgba(0,200,83,0.22);
+    }
+    [data-theme="light"] .contrib-item {
+      background: #ffffff;
+      border-color: rgba(0,200,83,0.18);
+    }
+    [data-theme="light"] .ci-name {
+      color: #081d10;
+    }
+    [data-theme="light"] .pay-action-card {
+      background: #f0fdf4;
+      border-color: rgba(0,200,83,0.35);
+    }
+    [data-theme="light"] .pay-input {
+      background: #ffffff;
+      border-color: rgba(0,200,83,0.25);
+      color: #081d10;
+    }
+    [data-theme="light"] .btn-split-copy {
+      background: #eaf4ed;
+      border-color: rgba(0,200,83,0.25);
+      color: #081d10;
+    }
   </style>
 </head>
 <body class="split-page">
@@ -310,6 +347,15 @@
       </div>
     </a>
     <div class="nav-actions">
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
+      </div>
       <button class="btn-signin" id="signinBtn">
         <i class="fas fa-user"></i> <span class="signin-label">Sign In</span>
       </button>
@@ -386,7 +432,52 @@
             <div class="pay-form-group">
               <input type="tel" id="payerPhoneInput" class="pay-input" placeholder="Phone number (optional)" />
             </div>
-            <button type="button" id="payShareBtn" class="btn-pay-share">
+            <div class="pay-form-group" style="margin-top:10px">
+              <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block">Amount to Pay (₹)</label>
+              <input type="number" id="customAmountInput" class="pay-input" placeholder="Enter custom amount" min="1" style="font-size:18px;font-weight:800;text-align:center;letter-spacing:1px" />
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button type="button" id="presetDesignated" style="flex:1;padding:8px;background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer">Designated Share: ₹0</button>
+                <button type="button" id="presetRemaining" style="flex:1;padding:8px;background:rgba(255,179,0,0.1);border:1px solid rgba(255,179,0,0.3);border-radius:8px;color:#ffb300;font-size:11px;font-weight:700;cursor:pointer">Full Remaining: ₹0</button>
+              </div>
+            </div>
+
+            <!-- T-COINS LOYALTY CARD ON SPLIT PAY -->
+            <div class="tcoins-apply-section" id="splitTcoinsSection" style="display:none">
+              <div class="tcoins-apply-card">
+                <div class="tcoins-header">
+                  <div class="tcoins-icon-wrap">
+                    <i class="fas fa-coins"></i>
+                    <div class="tcoins-pulse"></div>
+                  </div>
+                  <div class="tcoins-info">
+                    <span class="tcoins-balance-label">Your T-Coins</span>
+                    <span class="tcoins-balance-val" id="splitTcoinsBal">0</span>
+                    <span class="tcoins-rupee-val" id="splitTcoinsRupee">(= ₹0)</span>
+                  </div>
+                  <span class="tcoins-tier-badge" id="splitTcoinsTier">ROOKIE</span>
+                </div>
+                <div class="tcoins-savings-preview" id="splitTcoinsPreview">
+                  <i class="fas fa-sparkles"></i> Use up to <strong id="splitTcoinsMaxUse">0</strong> coins to save <strong id="splitTcoinsMaxSave">₹0</strong> on your share (50% your coins &amp; max 10% match cap)
+                </div>
+                <div class="tcoins-apply-row" id="splitTcoinsApplyRow">
+                  <button type="button" class="tcoins-apply-btn" id="splitTcoinsApplyBtn">
+                    <i class="fas fa-tags"></i> Apply T-Coins (<span id="splitTcoinsBtnDiscount">₹0</span> OFF)
+                  </button>
+                </div>
+                <div class="tcoins-applied-banner" id="splitTcoinsApplied" style="display:none">
+                  <div class="tcoins-applied-left">
+                    <i class="fas fa-check-circle"></i>
+                    <span>T-Coins Applied: <strong id="splitTcoinsAppliedText">0 Coins (₹0 off)</strong></span>
+                  </div>
+                  <button type="button" class="tcoins-remove-btn" id="splitTcoinsRemoveBtn">Remove</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="split-tcoins-earn-preview" id="splitTcoinsEarnPreview" style="margin-top:10px;text-align:center;font-size:12px;color:#ffd700;font-weight:700">
+              <i class="fas fa-gift"></i> You'll earn <strong id="splitCoinsEarnVal">0</strong> T-Coins (3% cashback) on your share!
+            </div>
+            <button type="button" id="payShareBtn" class="btn-pay-share" style="margin-top:12px">
               <i class="fas fa-credit-card"></i> Pay My Share <span id="payBtnVal">₹0</span>
             </button>
           </div>

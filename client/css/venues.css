@@ -12,7 +12,7 @@
   background:
     linear-gradient(135deg, rgba(0,200,83,.10) 0%, transparent 60%),
     linear-gradient(to right, var(--dark) 20%, transparent),
-    url('https://images.https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1400&q=80.com/photo-1551698618-1dfe5d97d256?w=1400&q=80') center/cover no-repeat;
+    url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1400&q=80') center/cover no-repeat;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
@@ -98,6 +98,87 @@
 }
 .map-unavailable i { font-size: 40px; color: var(--green) }
 .map-unavailable p { max-width: 320px; font-size: 13px; line-height: 1.6 }
+
+.btn-nearest.active {
+  background: var(--green) !important;
+  color: var(--dark) !important;
+  border-color: var(--green) !important;
+  box-shadow: 0 0 16px var(--green-glow);
+}
+
+/* Nearest To Me Checkbox Card */
+.nearest-filter-group {
+  margin-bottom: 12px;
+}
+.nearest-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 200, 83, 0.06);
+  border: 1px solid rgba(0, 200, 83, 0.28);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  user-select: none;
+}
+.nearest-checkbox-item:hover {
+  background: rgba(0, 200, 83, 0.12);
+  border-color: var(--green);
+}
+.nearest-checkbox-item input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.nearest-custom-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--dark3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  font-size: 11px;
+  transition: all 0.2s var(--ease);
+  flex-shrink: 0;
+}
+.nearest-checkbox-item input:checked + .nearest-custom-box {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--dark);
+}
+.nearest-checkbox-item:has(input:checked) {
+  background: rgba(0, 200, 83, 0.16);
+  border-color: var(--green);
+  box-shadow: 0 0 16px rgba(0, 200, 83, 0.18);
+}
+.nearest-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nearest-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nearest-title i {
+  color: var(--green);
+}
+.nearest-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
 
 /* Divider between Sort By and the rest of the Filters in the sidebar */
 .filter-divider {
@@ -570,3 +651,175 @@
 .ac-view-all:hover { background: rgba(0,200,83,0.06); }
 .ac-empty, .ac-loading { color: var(--muted); font-size: 12px; }
 .ac-venue-row .ac-thumb { border: 1px solid var(--border); }
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Venues Page
+════════════════════════════════════ */
+[data-theme="light"] .page-hero {
+  background:
+    linear-gradient(135deg, rgba(0,200,83,0.18) 0%, rgba(21,101,192,0.10) 100%),
+    url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1400&q=80') center/cover no-repeat;
+  border-bottom: 2px solid rgba(0, 200, 83, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 60, 25, 0.10);
+}
+[data-theme="light"] .page-hero::before {
+  background: linear-gradient(to right, rgba(220,245,232,0.94) 15%, rgba(220,245,232,0.75) 50%, rgba(220,245,232,0.20) 100%);
+}
+@media(max-width: 767px) {
+  [data-theme="light"] .page-hero::before {
+    background: linear-gradient(to bottom, rgba(220,245,232,0.95) 0%, rgba(220,245,232,0.80) 55%, rgba(220,245,232,0.30) 100%);
+  }
+}
+[data-theme="light"] .page-eyebrow {
+  color: #007b1b;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .page-title {
+  color: #0a1f12;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .page-title span {
+  color: #00a844;
+  text-shadow: 0 2px 12px rgba(0, 200, 83, 0.30);
+}
+[data-theme="light"] .page-sub {
+  color: #2d4a35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .back-btn {
+  background: #ffffff;
+  border: 1.5px solid rgba(0, 200, 83, 0.3);
+  color: #0c2014;
+  box-shadow: 0 2px 8px rgba(0, 60, 20, 0.06);
+}
+[data-theme="light"] .back-btn:hover {
+  background: #eaf4ed;
+  border-color: #00a844;
+  color: #008720;
+}
+[data-theme="light"] .sport-badge {
+  background: linear-gradient(135deg, #00c853, #009624);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 200, 83, 0.3);
+}
+[data-theme="light"] .toolbar {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .result-count {
+  color: #3b5e43;
+}
+[data-theme="light"] .result-count strong {
+  color: #008720;
+}
+[data-theme="light"] .btn-filter-toggle {
+  background: #00c853;
+  color: #04140a;
+}
+[data-theme="light"] .venue-card-horiz,
+[data-theme="light"] .venue-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.18);
+  box-shadow: 0 4px 18px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .venue-card-horiz:hover,
+[data-theme="light"] .venue-card:hover {
+  border-color: var(--green);
+  box-shadow: 0 12px 32px rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .venue-title {
+  color: #081d10;
+}
+[data-theme="light"] .venue-location,
+[data-theme="light"] .venue-meta {
+  color: #3b5e43;
+}
+[data-theme="light"] .venue-amenity {
+  background: #eaf4ed;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  color: #0c2014;
+}
+[data-theme="light"] .ac-row {
+  color: #0c2014;
+  border-bottom-color: rgba(0, 200, 83, 0.08);
+}
+[data-theme="light"] .ac-row:hover,
+[data-theme="light"] .ac-row.ac-active {
+  background: rgba(0, 200, 83, 0.08);
+}
+[data-theme="light"] .ac-row-title {
+  color: #081d10;
+}
+[data-theme="light"] .ac-row-sub {
+  color: #3b5e43;
+}
+[data-theme="light"] .ac-thumb {
+  background-color: #eaf4ed;
+  border-color: rgba(0, 200, 83, 0.25);
+}
+[data-theme="light"] .map-container {
+  background: #f0f7f2;
+  border-color: rgba(0, 200, 83, 0.2);
+}
+[data-theme="light"] .map-unavailable {
+  color: #3b5e43;
+}
+
+/* ════════════════════════════════════
+   MOBILE POLISH — Venues Page
+════════════════════════════════════ */
+
+/* Venues booking modal — scrollable on small phones */
+@media(max-width:539px){
+  .booking-modal{
+    max-height:90vh;
+    max-height:90dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+}
+
+/* Filter chip bar — horizontal scroll on mobile */
+@media(max-width:767px){
+  .sort-chips{
+    display:flex;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:4px;
+    gap:8px;
+  }
+  .sort-chips::-webkit-scrollbar{display:none}
+  .sort-chip{
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+
+  /* Better tap targets for time slots */
+  .time-slot{
+    min-height:40px;
+    font-size:12px;
+  }
+
+  /* Venue card image bigger on mobile */
+  .venue-img-wrap{height:180px}
+
+  /* Book now button — full width on phones */
+  .btn-book-now{
+    width:100%;
+    justify-content:center;
+    padding:13px;
+    font-size:14px;
+    border-radius:10px;
+  }
+}
+
+/* Venue card hover lift — disable on touch devices */
+@media(hover:none){
+  .venue-card:hover{
+    transform:none;
+    border-color:var(--border);
+  }
+}

@@ -578,3 +578,139 @@ a {
   transition: filter 0.2s; font-family: 'Barlow', sans-serif;
 }
 .qr-close-btn:hover { filter: brightness(1.1); }
+
+/* ════════════════════════════════════
+   MOBILE POLISH — My Bookings Page
+════════════════════════════════════ */
+
+@media(max-width:539px){
+
+  /* Stack booking card action buttons vertically */
+  .mb-actions{
+    flex-direction:column;
+    gap:8px;
+  }
+  .mb-actions .mb-action-btn{
+    width:100%;
+    justify-content:center;
+    padding:11px 14px;
+    font-size:13px;
+  }
+
+  /* Better booking info layout */
+  .mb-info{
+    padding:14px 14px 10px;
+  }
+
+  /* Hero text size */
+  .bookings-title{
+    font-size:clamp(32px,10vw,60px);
+  }
+
+  /* Live ticket card — stack vertically */
+  .live-ticket-actions{
+    flex-direction:column;
+    gap:8px;
+  }
+  .live-nav-btn,
+  .live-qr-btn,
+  .live-view-btn{
+    width:100%;
+    justify-content:center;
+    padding:11px;
+  }
+
+  /* QR image bigger */
+  .qr-img{
+    width:200px;
+    height:200px;
+  }
+
+  /* Filter toolbar — scrollable */
+  .filter-chips{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .filter-chips::-webkit-scrollbar{display:none}
+  .filter-chip{flex-shrink:0;white-space:nowrap}
+}
+
+/* Hover effects off on touch */
+@media(hover:none){
+  .mb-card:hover{
+    transform:none;
+    box-shadow:none;
+    border-color:var(--border);
+  }
+}
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — My Bookings
+════════════════════════════════════ */
+[data-theme="light"] .bookings-hero {
+  background:
+    linear-gradient(135deg, rgba(0,200,83,0.18) 0%, rgba(21,101,192,0.10) 100%),
+    url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&q=80') center/cover no-repeat;
+  border-bottom: 2px solid rgba(0, 200, 83, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 60, 25, 0.10);
+}
+[data-theme="light"] .bookings-hero::before {
+  background: linear-gradient(to right, rgba(220,245,232,0.94) 15%, rgba(220,245,232,0.75) 50%, rgba(220,245,232,0.20) 100%);
+}
+@media(max-width: 767px) {
+  [data-theme="light"] .bookings-hero::before {
+    background: linear-gradient(to bottom, rgba(220,245,232,0.95) 0%, rgba(220,245,232,0.80) 55%, rgba(220,245,232,0.30) 100%);
+  }
+}
+[data-theme="light"] .bookings-eyebrow {
+  color: #007b1b;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .bookings-title {
+  color: #0a1f12;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .bookings-title span {
+  color: #00a844;
+  text-shadow: 0 2px 12px rgba(0, 200, 83, 0.30);
+}
+[data-theme="light"] .bookings-subtitle {
+  color: #2d4a35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .mb-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 18px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .mb-venue-name {
+  color: #081d10;
+}
+[data-theme="light"] .mb-meta-item {
+  color: #3b5e43;
+}
+[data-theme="light"] .mb-action-btn {
+  background: #f4fbf6;
+  border-color: rgba(0, 200, 83, 0.25);
+  color: #0c2014;
+}
+[data-theme="light"] .mb-action-btn:hover {
+  background: #eaf4ed;
+  border-color: var(--green);
+  color: #008720;
+}
+[data-theme="light"] .qr-modal-inner {
+  background: #ffffff;
+  border-color: rgba(0, 200, 83, 0.3);
+  color: #081d10;
+}
+[data-theme="light"] .qr-modal-title {
+  color: #081d10;
+}
+[data-theme="light"] .qr-modal-sub {
+  color: #3b5e43;
+}
+

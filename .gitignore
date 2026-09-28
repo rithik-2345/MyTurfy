@@ -1,6 +1,8 @@
 # ─── Dependencies ──────────────────────────
 node_modules/
 
+pitch/
+
 # ─── Environment Variables (Critical!) ──
 .env
 .env.local

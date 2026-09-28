@@ -15,34 +15,26 @@
 ### Commercial-Grade Features (v2)
 | Feature | Description |
 |---|---|
-| ⏱️ **Slot Hold Timer** | 5-min countdown (green→amber→red) with animated progress bar |
-| 👥 **Split Bill** | Player-count stepper, per-person cost calc, WhatsApp + clipboard share |
+| ⏱️ **Updated Slot Hold Timers** | 3-min countdown for solo bookings, 10-min countdown for team split bookings |
+| 👥 **Flexible Custom Split Bill** | Teammates can pay equal designated share, custom amount, or full remaining balance |
+| 📱 **Flexible Gmail / Mobile Auth** | Sign up and sign in using Gmail (@gmail.com), 10-digit Mobile number, or both |
+| 📩 **Email OTP Verification** | Automatic OTP delivery via Gmail (with Spam notice) |
+| 🔄 **Smart Auto-Redirect** | If Gmail or Mobile is not found on login, automatically switches to Registration |
+| 🚫 **Past Date & Closing Time Blocking** | Past dates strictly blocked; bookings at 9 PM capped at 1 hour (venue closes at 10 PM) |
+| 🛡️ **Bot & Anti-Abuse Protection** | 10 consecutive cancellations block account for 24 hours; `express-rate-limit` active |
 | 🏟️ **Visual Court Map** | BookMyShow-style pitch diagrams (Football, Cricket, Basketball etc.) |
 | 🔍 **Smart Autocomplete** | Swiggy-style search: sport tag suggestions + venue thumbnails + keyboard nav |
 | 🎫 **Live Match Ticket** | Real-time countdown on My Bookings + QR code entry pass |
 
-### Refund & Cancellation Engine
-- Time-based refund tiers: ≥24h (100%) · 12-24h (75%) · 6-12h (50%) · 1-6h (25%) · <1h (10%)
-- All refund requests routed to Admin (`myturfy@gmail.com`) — owner cannot approve
-- Email notifications to customer + admin on every state change
-- Slot remains locked during admin review (prevents double-booking)
-
-### User Features
-- 🔍 Smart search with autocomplete dropdown
-- ❤️ Wishlist (save favourite venues)
-- ⭐ Reviews & ratings with star filter + owner replies
-- 📍 Google Maps directions from venue detail page
-- 📱 Full mobile-responsive design with bottom navigation
-
-### Owner Portal
-- Dashboard with booking analytics (today / this week / this month)
-- View bookings, mark slots as closed
-- Reply to customer reviews
-- Venue management (add/edit/photos)
-
-### Admin (MyTurfy team)
-- Full refund approval authority
-- Receives email alerts for every refund request
+### Tiered Cancellation & Refund Policy
+- **Cancellation Eligibility**: Allowed for all upcoming match slots before match start time.
+- **Refund Schedule (based on hours since booking creation)**:
+  - Cancel within **2 hours** of booking: **95% Cash Refund** (5% retained cancellation fee)
+  - Cancel within **12 hours** of booking: **75% Cash Refund** (25% retained cancellation fee, 10% owner compensation)
+  - Cancel between **12 to 24 hours** of booking: **50% Cash Refund** (50% retained cancellation fee, 20% owner compensation)
+  - Cancel **after 24 hours** of booking or **after match slot start/passed**: **0% Refund / Not allowed**
+- **Merchant Compensation**: Retained cancellation fees compensate venue owners for slot holding.
+- **Bot Anti-Abuse Lock**: Accounts making 10 consecutive cancellations are automatically blocked from cancelling for 24 hours.
 
 ---
 
@@ -54,10 +46,37 @@
 | **Backend** | Node.js · Express.js |
 | **Database** | MongoDB (Mongoose ODM) |
 | **Payments** | Razorpay (Orders API + Webhooks) |
-| **Auth** | JWT (Access Tokens) · Google OAuth (GSI) |
+| **Auth** | JWT (Access Tokens) · Google OAuth (GSI) · Gmail OTP |
 | **Email** | Nodemailer (SMTP / Gmail) |
+| **Security** | Express Rate Limit (`express-rate-limit`) · Account Auto-Lock |
 | **Storage** | Cloudinary (venue images) |
 | **Fonts** | Google Fonts — Bebas Neue · Barlow · Barlow Condensed |
+
+---
+
+## 📁 Environment Variables Setup
+
+Create `server/.env`:
+
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+
+# MongoDB
+MONGO_URI=mongodb://localhost:27017/myturfy
+
+# JWT
+JWT_SECRET=your_super_secret_jwt_key_here
+
+# Razorpay
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+
+# Email (Gmail SMTP)
+EMAIL_USER=myturfy@gmail.com
+EMAIL_PASS=your_gmail_app_password
+```
 
 ---
 
@@ -239,9 +258,8 @@ All CSS variables in `styles.css`:
 |---|---|
 | ≥ 24 hours | **100%** |
 | 12 – 24 hours | **75%** |
-| 6 – 12 hours | **50%** |
-| 1 – 6 hours | **25%** |
-| < 1 hour | **10%** |
+| 1 – 12 hours | **25%** |
+| < 1 hour | **5%** |
 | After slot | **0%** (no refund) |
 
 All refund decisions are made by the **MyTurfy Admin** only. Owners cannot approve or reject refunds.
@@ -264,8 +282,12 @@ All refund decisions are made by the **MyTurfy Admin** only. Owners cannot appro
 
 ---
 
-© 2026 MyTurfy.com — All rights reserved.#   M y T u r f y - W e b s i t e  
- #   M y T u r f y - W e b s i t e  
- #   M y T u r f y - W e b s i t e  
- #   M y T u r f y - W e b s i t e  
+© 2026 MyTurfy.com — All rights reserved.#   M y T u r f y - W e b s i t e 
+ 
+ #   M y T u r f y - W e b s i t e 
+ 
+ #   M y T u r f y - W e b s i t e 
+ 
+ #   M y T u r f y - W e b s i t e 
+ 
  

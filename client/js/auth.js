@@ -85,6 +85,23 @@ const Auth = (() => {
 
     const user = getUser();
 
+    // Universal T-Coin button click handler across all pages -> open wallet.html
+    const tcoinBtn = document.getElementById('tcoinBtn');
+    if (tcoinBtn) {
+      tcoinBtn.style.cursor = 'pointer';
+      tcoinBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = 'wallet.html';
+      };
+      if (isLoggedIn() && user) {
+        const span = tcoinBtn.querySelector('span');
+        if (span && user.tCoins !== undefined) {
+          span.textContent = `${Number(user.tCoins).toLocaleString('en-IN')} T-Coins`;
+        }
+      }
+    }
+
     if (signinBtn) {
       if (isLoggedIn() && user) {
         const displayName = user.name || 'User';
@@ -129,17 +146,28 @@ const Auth = (() => {
           <div class="dropdown-header">Partner Account</div>
           <a href="owner-portal.html"><i class="fas fa-gauge-high"></i> Dashboard</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
           <a href="#" id="menuLogoutBtn"><i class="fas fa-right-from-bracket"></i> Log Out</a>
         `;
       } else {
         profileMenu.innerHTML = `
           <div class="dropdown-header">My Account</div>
+          <a href="wallet.html"><i class="fas fa-wallet" style="color:var(--green)"></i> T-Coins Wallet</a>
           <a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> My Bookings</a>
           <a href="wishlist.html"><i class="fas fa-heart"></i> My Wishlist</a>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
           <a href="#" id="menuLogoutBtn"><i class="fas fa-right-from-bracket"></i> Log Out</a>
         `;
+      }
+      if (window.ThemeManager) {
+        window.ThemeManager.updateUI(window.ThemeManager.getTheme());
+        document.getElementById('menuThemeToggle')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.ThemeManager.toggle();
+        });
       }
       document.getElementById('menuLogoutBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
@@ -251,11 +279,90 @@ const Auth = (() => {
     // Wire buttons
     const signinBtns = document.querySelectorAll('#signinBtn, #bottomAccount');
     signinBtns.forEach(btn => {
-      btn.removeEventListener('click', Auth.openSignin); // clear any placeholder
+      btn.removeEventListener('click', Auth.openSignin);
       btn.addEventListener('click', Auth.openSignin);
     });
 
-    function showLoginForm() {
+    /* ── OTP SQUARE BOX HELPERS ── */
+    function createOtpBoxesHTML(wrapperId) {
+      return `
+        <div style="margin-top:10px">
+          <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;text-align:center;margin-bottom:4px">Verification Code (OTP)</label>
+          <div class="otp-boxes-wrapper" id="${wrapperId}">
+            <input type="text" maxlength="1" class="otp-box" data-idx="0" inputmode="numeric" autocomplete="one-time-code"/>
+            <input type="text" maxlength="1" class="otp-box" data-idx="1" inputmode="numeric"/>
+            <input type="text" maxlength="1" class="otp-box" data-idx="2" inputmode="numeric"/>
+            <input type="text" maxlength="1" class="otp-box" data-idx="3" inputmode="numeric"/>
+            <input type="text" maxlength="1" class="otp-box" data-idx="4" inputmode="numeric"/>
+            <input type="text" maxlength="1" class="otp-box" data-idx="5" inputmode="numeric"/>
+          </div>
+        </div>
+      `;
+    }
+
+    function initOtpBoxes(wrapperId) {
+      const container = document.getElementById(wrapperId);
+      if (!container) return;
+      const inputs = container.querySelectorAll('.otp-box');
+      inputs.forEach((input, i) => {
+        input.oninput = () => {
+          const val = input.value;
+          if (val.length > 1) {
+            const digits = val.replace(/\D/g, '').split('');
+            digits.forEach((d, idx) => { if (inputs[i + idx]) inputs[i + idx].value = d; });
+            inputs[Math.min(i + digits.length, inputs.length - 1)]?.focus();
+            return;
+          }
+          if (val && i < inputs.length - 1) inputs[i + 1].focus();
+        };
+        input.onkeydown = (e) => { if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus(); };
+        input.onpaste = (e) => {
+          e.preventDefault();
+          const digits = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6).split('');
+          digits.forEach((d, idx) => { if (inputs[idx]) inputs[idx].value = d; });
+          if (digits.length > 0) inputs[Math.min(digits.length, inputs.length - 1)]?.focus();
+        };
+      });
+    }
+
+    function getOtpBoxesValue(wrapperId) {
+      const container = document.getElementById(wrapperId);
+      if (!container) return '';
+      return Array.from(container.querySelectorAll('.otp-box')).map(inp => inp.value.trim()).join('');
+    }
+
+    function setOtpBoxesValue(wrapperId, code) {
+      const container = document.getElementById(wrapperId);
+      if (!container) return;
+      const inputs = container.querySelectorAll('.otp-box');
+      String(code).slice(0, 6).split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+    }
+
+    /* ── RESEND OTP TIMER HELPER ── */
+    function createResendTimer(containerId, resendFn) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      let seconds = 60;
+      el.innerHTML = `<span style="color:var(--muted);font-size:12px">Resend code in <strong id="${containerId}Count">60</strong>s</span>`;
+      const counter = document.getElementById(`${containerId}Count`);
+      const timer = setInterval(() => {
+        seconds--;
+        if (counter) counter.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          el.innerHTML = `<a href="#" id="${containerId}Link" style="color:var(--green);font-size:12px;font-weight:700;text-decoration:none"><i class="fas fa-redo"></i> Resend Verification Code</a>`;
+          document.getElementById(`${containerId}Link`)?.addEventListener('click', (e) => {
+            e.preventDefault();
+            resendFn();
+          });
+        }
+      }, 1000);
+    }
+
+    /* ══════════════════════════════
+       SHOW LOGIN FORM
+    ══════════════════════════════ */
+    function showLoginForm(prefill = '') {
       const headerTitle = signinModal.querySelector('h2');
       const headerSub = signinModal.querySelector('.modal-header p');
       if (headerTitle) headerTitle.textContent = 'Welcome Back';
@@ -267,8 +374,8 @@ const Auth = (() => {
       body.innerHTML = `
         <div id="loginFormState">
           <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="loginEmail" placeholder="Email address" autocomplete="email"/>
+            <i class="fas fa-user-circle"></i>
+            <input type="text" id="loginEmail" placeholder="Gmail address (e.g. user@gmail.com)" value="${prefill}" autocomplete="username"/>
           </div>
           <div class="input-group">
             <i class="fas fa-lock"></i>
@@ -276,11 +383,9 @@ const Auth = (() => {
             <button class="toggle-pw" id="togglePw" type="button"><i class="fas fa-eye"></i></button>
           </div>
           <div id="loginOtpGroup" style="display:none; margin-top: 10px;">
-            <div class="input-group">
-              <i class="fas fa-key"></i>
-              <input type="text" id="loginOtp" placeholder="Enter 6-digit verification code" maxlength="6"/>
-            </div>
-            <p style="font-size:11px;color:var(--green);margin:4px 0 0 4px"><i class="fas fa-info-circle"></i> Verification code sent to your email.</p>
+            ${createOtpBoxesHTML('loginOtpBoxes')}
+            <p style="font-size:11px;color:var(--green);margin:6px 0 0;text-align:center"><i class="fas fa-info-circle"></i> Verification code sent. Check your Gmail (Spam folder).</p>
+            <div id="loginResendTimer" style="text-align:center;margin-top:8px"></div>
           </div>
           <a href="#" class="forgot-link">Forgot password?</a>
           <button class="btn-modal-signin" id="loginSubmit">Sign In <i class="fas fa-arrow-right"></i></button>
@@ -290,7 +395,8 @@ const Auth = (() => {
         </div>
       `;
 
-      // Password toggle
+      initOtpBoxes('loginOtpBoxes');
+
       const togglePw = body.querySelector('#togglePw');
       const pwInput = body.querySelector('#loginPw');
       togglePw?.addEventListener('click', () => {
@@ -299,27 +405,21 @@ const Auth = (() => {
         togglePw.innerHTML = show ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
       });
 
-      // Switch to register
-      body.querySelector('#goToRegister')?.addEventListener('click', e => {
-        e.preventDefault();
-        showRegisterForm();
-      });
+      body.querySelector('#goToRegister')?.addEventListener('click', e => { e.preventDefault(); showRegisterForm(body.querySelector('#loginEmail')?.value?.trim() || ''); });
+      body.querySelector('.forgot-link')?.addEventListener('click', e => { e.preventDefault(); showForgotForm(); });
 
-      // Forgot password
-      body.querySelector('.forgot-link')?.addEventListener('click', e => {
-        e.preventDefault();
-        showForgotForm();
-      });
-
-      // Submit
       let otpSent = false;
+      let loginEmail;
       const submitBtn = body.querySelector('#loginSubmit');
       submitBtn?.addEventListener('click', async () => {
-        const email = body.querySelector('#loginEmail').value.trim();
+        const identifier = body.querySelector('#loginEmail').value.trim();
         const password = pwInput.value;
-        if (!email || !password) {
-          localToast('❌ Enter email and password', true);
-          return;
+        if (!identifier || !password) { localToast('❌ Enter your Gmail and password', true); return; }
+
+        loginEmail = identifier;
+
+        if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(loginEmail)) {
+          localToast('❌ Please enter a valid Gmail address (@gmail.com)', true); return;
         }
 
         submitBtn.disabled = true;
@@ -327,7 +427,7 @@ const Auth = (() => {
 
         try {
           if (!otpSent) {
-            const res = await API.auth.loginCustomer(email, password);
+            const res = await API.auth.loginCustomer(loginEmail, password);
             if (res.needsOtp) {
               otpSent = true;
               body.querySelector('#loginOtpGroup').style.display = 'block';
@@ -337,68 +437,66 @@ const Auth = (() => {
               submitBtn.disabled = false;
 
               if (res.devCode) {
-                body.querySelector('#loginOtp').value = res.devCode;
-                const devBanner = document.createElement('div');
-                devBanner.id = 'devModeBannerLogin';
-                devBanner.style.cssText = 'background:rgba(255,160,0,.15);border:1px solid rgba(255,160,0,.4);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:12px;color:#ffb300;line-height:1.5';
-                devBanner.innerHTML = `<i class="fas fa-flask" style="margin-right:6px"></i><strong>Dev Mode</strong> — Email not configured. Your OTP is: <span style="font-size:18px;font-weight:900;letter-spacing:4px;color:#00c853">${res.devCode}</span><br><small style="color:rgba(255,255,255,.45)">It has been auto-filled. Click verify to continue.</small>`;
-                body.querySelector('#loginOtpGroup').insertAdjacentElement('afterend', devBanner);
-                localToast('🔧 Dev mode: OTP auto-filled (email not configured)');
+                setOtpBoxesValue('loginOtpBoxes', res.devCode);
+                localToast('🔧 Dev mode: OTP auto-filled into boxes');
               } else {
-                localToast('📧 Verification code sent to your email!');
+                localToast('📧 Verification code sent! Check Gmail (spam).');
               }
+              // Start resend timer
+              createResendTimer('loginResendTimer', async () => {
+                try {
+                  const r2 = await API.auth.sendOtp(loginEmail, 'login', undefined, 'user');
+                  if (r2.devCode) setOtpBoxesValue('loginOtpBoxes', r2.devCode);
+                  localToast('📧 New verification code sent!');
+                  createResendTimer('loginResendTimer', () => {});
+                } catch (e2) { localToast(`❌ ${e2.message}`, true); }
+              });
             } else {
               Auth.saveSession(res.token, res.data);
               closeSignin();
               Auth.syncNavbar();
               localToast(`👋 Welcome back, ${res.data.name.split(' ')[0]}!`);
-              // If we are on my-bookings page, refresh it
-              if (window.location.pathname.includes('my-bookings')) {
-                window.location.reload();
-              }
+              if (window.location.pathname.includes('my-bookings')) window.location.reload();
             }
           } else {
-            const code = body.querySelector('#loginOtp').value.trim();
-            if (!code || code.length !== 6) {
-              localToast('❌ Enter the 6-digit code', true);
-              submitBtn.disabled = false;
-              return;
-            }
-            const res = await API.auth.loginCustomer(email, password, code);
+            const code = getOtpBoxesValue('loginOtpBoxes');
+            if (!code || code.length !== 6) { localToast('❌ Please fill all 6 OTP boxes', true); submitBtn.disabled = false; return; }
+            const res = await API.auth.loginCustomer(loginEmail, password, code);
             Auth.saveSession(res.token, res.data);
             closeSignin();
             Auth.syncNavbar();
             localToast(`👋 Welcome back, ${res.data.name.split(' ')[0]}!`);
-            if (window.location.pathname.includes('my-bookings')) {
-              window.location.reload();
-            }
+            if (window.location.pathname.includes('my-bookings')) window.location.reload();
           }
         } catch (err) {
-          localToast(`❌ ${err.message}`, true);
           submitBtn.disabled = false;
           submitBtn.innerHTML = otpSent ? 'Verify & Sign In <i class="fas fa-arrow-right"></i>' : 'Sign In <i class="fas fa-arrow-right"></i>';
+
+          // Show specific error: wrong password vs not found
+          if (err.notFound || err.message?.toLowerCase().includes('no account found')) {
+            localToast('❌ No account found with this Gmail. Please register first.', true);
+          } else if (err.message?.toLowerCase().includes('incorrect password')) {
+            localToast('❌ Incorrect password. Please try again or use Forgot Password.', true);
+          } else {
+            localToast(`❌ ${err.message}`, true);
+          }
         }
       });
 
-      // Google Sign-In
       Auth.initGoogleSignIn('googleSignInBtn', {
-        onSuccess: (user) => {
-          closeSignin();
-          Auth.syncNavbar();
-          localToast(`👋 Welcome, ${user.name.split(' ')[0]}!`);
-          if (window.location.pathname.includes('my-bookings')) {
-            window.location.reload();
-          }
-        },
-        onError:   (err)  => localToast(`❌ Google Sign-In failed: ${err.message}`, true),
+        onSuccess: (user) => { closeSignin(); Auth.syncNavbar(); localToast(`👋 Welcome, ${user.name.split(' ')[0]}!`); if (window.location.pathname.includes('my-bookings')) window.location.reload(); },
+        onError: (err) => localToast(`❌ Google Sign-In failed: ${err.message}`, true),
       });
     }
 
+    /* ══════════════════════════════
+       SHOW FORGOT FORM
+    ══════════════════════════════ */
     function showForgotForm() {
       const headerTitle = signinModal.querySelector('h2');
       const headerSub = signinModal.querySelector('.modal-header p');
       if (headerTitle) headerTitle.textContent = 'Forgot Password';
-      if (headerSub) headerSub.textContent = 'Verify your account email to reset password';
+      if (headerSub) headerSub.textContent = 'Verify your account Gmail to reset password';
 
       const body = signinModal.querySelector('.modal-body');
       if (!body) return;
@@ -406,33 +504,26 @@ const Auth = (() => {
       body.innerHTML = `
         <div id="forgotFormState">
           <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="forgotEmail" placeholder="Enter your email address" autocomplete="email"/>
+            <i class="fas fa-user-circle"></i>
+            <input type="text" id="forgotEmail" placeholder="Enter your Gmail address" autocomplete="username"/>
           </div>
           <button class="btn-modal-signin" id="forgotSubmit" style="margin-top: 12px;">Send Code <i class="fas fa-arrow-right"></i></button>
           <p class="modal-footer-text"><a href="#" id="backToLogin">Back to Sign In</a></p>
         </div>
       `;
 
-      body.querySelector('#backToLogin')?.addEventListener('click', e => {
-        e.preventDefault();
-        showLoginForm();
-      });
+      body.querySelector('#backToLogin')?.addEventListener('click', e => { e.preventDefault(); showLoginForm(); });
 
-      const submitBtn = body.querySelector('#forgotSubmit');
-      submitBtn?.addEventListener('click', async () => {
-        const email = body.querySelector('#forgotEmail').value.trim();
-        if (!email) {
-          localToast('❌ Please enter your email address', true);
-          return;
-        }
+      body.querySelector('#forgotSubmit')?.addEventListener('click', async () => {
+        const identifier = body.querySelector('#forgotEmail').value.trim();
+        if (!identifier) { localToast('❌ Please enter your Gmail address', true); return; }
+        const submitBtn = body.querySelector('#forgotSubmit');
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Sending Code… <i class="fas fa-spinner fa-spin"></i>';
-
         try {
-          const res = await API.auth.forgotPassword(email, 'user');
-          localToast('📧 Reset OTP code sent to your email!');
-          showResetForm(email, res.devCode);
+          const res = await API.auth.forgotPassword(identifier, 'user');
+          localToast('📧 Reset OTP code sent! Check Gmail (Spam).');
+          showResetForm(identifier, res.devCode);
         } catch (err) {
           localToast(`❌ ${err.message}`, true);
           submitBtn.disabled = false;
@@ -441,6 +532,9 @@ const Auth = (() => {
       });
     }
 
+    /* ══════════════════════════════
+       SHOW RESET FORM
+    ══════════════════════════════ */
     function showResetForm(email, devCode) {
       const headerTitle = signinModal.querySelector('h2');
       const headerSub = signinModal.querySelector('.modal-header p');
@@ -452,53 +546,52 @@ const Auth = (() => {
 
       body.innerHTML = `
         <div id="resetFormState">
-          <div class="input-group">
-            <i class="fas fa-key"></i>
-            <input type="text" id="resetOtp" placeholder="6-digit verification code" maxlength="6"/>
-          </div>
-          <div class="input-group" style="margin-top: 10px;">
+          ${createOtpBoxesHTML('resetOtpBoxes')}
+          <div class="input-group" style="margin-top: 12px;">
             <i class="fas fa-lock"></i>
             <input type="password" id="resetNewPw" placeholder="New password (min 6 characters)" autocomplete="new-password"/>
           </div>
           <div id="resetDevBanner" style="display:none; margin-top:10px;"></div>
+          <div id="resetResendTimer" style="text-align:center;margin-top:8px"></div>
           <button class="btn-modal-signin" id="resetSubmit" style="margin-top: 12px;">Reset Password <i class="fas fa-check"></i></button>
-          <p class="modal-footer-text"><a href="#" id="backToForgot">Resend Code</a></p>
+          <p class="modal-footer-text"><a href="#" id="backToLogin">Back to Sign In</a></p>
         </div>
       `;
 
+      initOtpBoxes('resetOtpBoxes');
+
       if (devCode) {
-        body.querySelector('#resetOtp').value = devCode;
+        setOtpBoxesValue('resetOtpBoxes', devCode);
         const banner = body.querySelector('#resetDevBanner');
         banner.style.cssText = 'background:rgba(255,160,0,.15);border:1px solid rgba(255,160,0,.4);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:12px;color:#ffb300;line-height:1.5;display:block';
         banner.innerHTML = `<i class="fas fa-flask" style="margin-right:6px"></i><strong>Dev Mode</strong> — OTP: <span style="font-size:18px;font-weight:900;letter-spacing:4px;color:#00c853">${devCode}</span>`;
         localToast('🔧 Dev mode: Reset OTP auto-filled');
       }
 
-      body.querySelector('#backToForgot')?.addEventListener('click', e => {
-        e.preventDefault();
-        showForgotForm();
+      // Resend timer for reset
+      createResendTimer('resetResendTimer', async () => {
+        try {
+          const res = await API.auth.forgotPassword(email, 'user');
+          if (res.devCode) setOtpBoxesValue('resetOtpBoxes', res.devCode);
+          localToast('📧 New reset code sent!');
+          createResendTimer('resetResendTimer', () => {});
+        } catch (e2) { localToast(`❌ ${e2.message}`, true); }
       });
 
-      const submitBtn = body.querySelector('#resetSubmit');
-      submitBtn?.addEventListener('click', async () => {
-        const code = body.querySelector('#resetOtp').value.trim();
+      body.querySelector('#backToLogin')?.addEventListener('click', e => { e.preventDefault(); showLoginForm(); });
+
+      body.querySelector('#resetSubmit')?.addEventListener('click', async () => {
+        const code = getOtpBoxesValue('resetOtpBoxes');
         const password = body.querySelector('#resetNewPw').value;
+        if (!code || code.length !== 6) { localToast('❌ Please fill all 6 OTP boxes', true); return; }
+        if (!password || password.length < 6) { localToast('❌ Password must be at least 6 characters', true); return; }
 
-        if (!code || code.length !== 6) {
-          localToast('❌ Enter the 6-digit code', true);
-          return;
-        }
-        if (!password || password.length < 6) {
-          localToast('❌ Password must be at least 6 characters', true);
-          return;
-        }
-
+        const submitBtn = body.querySelector('#resetSubmit');
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Resetting… <i class="fas fa-spinner fa-spin"></i>';
-
         try {
           await API.auth.resetPassword(email, 'user', code, password);
-          localToast('🎉 Password reset successfully! Please sign in with your new password.');
+          localToast('🎉 Password reset successfully! Sign in with your new password.');
           showLoginForm();
         } catch (err) {
           localToast(`❌ ${err.message}`, true);
@@ -508,14 +601,19 @@ const Auth = (() => {
       });
     }
 
-    function showRegisterForm() {
+    /* ══════════════════════════════
+       SHOW REGISTER FORM
+    ══════════════════════════════ */
+    function showRegisterForm(prefill = '') {
       const headerTitle = signinModal.querySelector('h2');
       const headerSub = signinModal.querySelector('.modal-header p');
       if (headerTitle) headerTitle.textContent = 'Create Account';
-      if (headerSub) headerSub.textContent = 'Join MyTurfy — it\'s free!';
+      if (headerSub) headerSub.textContent = 'Join MyTurfy — enter your details to get started!';
 
       const body = signinModal.querySelector('.modal-body');
       if (!body) return;
+
+      const prefillEmail = prefill.includes('@') ? prefill : '';
 
       body.innerHTML = `
         <div id="registerFormState">
@@ -525,22 +623,20 @@ const Auth = (() => {
           </div>
           <div class="input-group">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="regEmail" placeholder="Email address"/>
+            <input type="email" id="regEmail" placeholder="Gmail address (e.g. user@gmail.com)" value="${prefillEmail}"/>
           </div>
           <div class="input-group">
             <i class="fas fa-phone"></i>
-            <input type="tel" id="regPhone" placeholder="Phone number (optional)"/>
+            <input type="tel" id="regPhone" placeholder="10-digit Mobile number (Optional)" maxlength="10"/>
           </div>
           <div class="input-group">
             <i class="fas fa-lock"></i>
             <input type="password" id="regPw" placeholder="Password (min 6 characters)"/>
           </div>
           <div id="regOtpGroup" style="display:none; margin-top: 10px;">
-            <div class="input-group">
-              <i class="fas fa-key"></i>
-              <input type="text" id="regOtp" placeholder="Enter 6-digit verification code" maxlength="6"/>
-            </div>
-            <p style="font-size:11px;color:var(--green);margin:4px 0 0 4px"><i class="fas fa-info-circle"></i> Verification code sent to your email.</p>
+            ${createOtpBoxesHTML('regOtpBoxes')}
+            <p style="font-size:11px;color:var(--green);margin:6px 0 0;text-align:center"><i class="fas fa-info-circle"></i> Verification code sent to your Gmail (check Spam folder).</p>
+            <div id="regResendTimer" style="text-align:center;margin-top:8px"></div>
           </div>
           <button class="btn-modal-signin" id="regSubmit">Send Verification Code <i class="fas fa-arrow-right"></i></button>
           <div class="modal-divider"><span>or sign up with</span></div>
@@ -549,28 +645,30 @@ const Auth = (() => {
         </div>
       `;
 
-      // Switch to login
-      body.querySelector('#goToLogin')?.addEventListener('click', e => {
-        e.preventDefault();
-        showLoginForm();
-      });
+      initOtpBoxes('regOtpBoxes');
 
-      // Submit
+      body.querySelector('#goToLogin')?.addEventListener('click', e => { e.preventDefault(); showLoginForm(); });
+
       let otpSent = false;
+      let regName, regEmail, regPhone, regPassword;
       const submitBtn = body.querySelector('#regSubmit');
       submitBtn?.addEventListener('click', async () => {
-        const name = body.querySelector('#regName').value.trim();
-        const email = body.querySelector('#regEmail').value.trim();
-        const phone = body.querySelector('#regPhone').value.trim();
-        const password = body.querySelector('#regPw').value;
+        regName = body.querySelector('#regName').value.trim();
+        regEmail = body.querySelector('#regEmail').value.trim();
+        regPhone = body.querySelector('#regPhone').value.trim();
+        regPassword = body.querySelector('#regPw').value;
 
-        if (!name || !email || !password) {
-          localToast('❌ Name, email and password are required', true);
-          return;
+        if (!regName || !regEmail || !regPassword) {
+          localToast('❌ Full name, Gmail, and password are required', true); return;
         }
-        if (password.length < 6) {
-          localToast('❌ Password must be at least 6 characters', true);
-          return;
+        if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(regEmail)) {
+          localToast('❌ Please enter a valid Gmail address (@gmail.com)', true); return;
+        }
+        if (regPhone && !/^[6-9]\d{9}$/.test(regPhone.replace(/\D/g, ''))) {
+          localToast('❌ If providing a mobile number, please enter a valid 10-digit number', true); return;
+        }
+        if (regPassword.length < 6) {
+          localToast('❌ Password must be at least 6 characters', true); return;
         }
 
         submitBtn.disabled = true;
@@ -578,7 +676,7 @@ const Auth = (() => {
         try {
           if (!otpSent) {
             submitBtn.innerHTML = 'Sending Code… <i class="fas fa-spinner fa-spin"></i>';
-            const otpRes = await API.auth.sendOtp(email, 'signup', name, 'user');
+            const otpRes = await API.auth.sendOtp(regEmail, 'signup', regName, 'user');
             otpSent = true;
             body.querySelector('#regOtpGroup').style.display = 'block';
             body.querySelector('#regName').disabled = true;
@@ -589,26 +687,26 @@ const Auth = (() => {
             submitBtn.disabled = false;
 
             if (otpRes.devCode) {
-              // Dev mode — no real email configured, show the code directly in UI
-              body.querySelector('#regOtp').value = otpRes.devCode;
-              const devBanner = document.createElement('div');
-              devBanner.id = 'devModeBanner';
-              devBanner.style.cssText = 'background:rgba(255,160,0,.15);border:1px solid rgba(255,160,0,.4);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:12px;color:#ffb300;line-height:1.5';
-              devBanner.innerHTML = `<i class="fas fa-flask" style="margin-right:6px"></i><strong>Dev Mode</strong> — Email not configured. Your OTP is: <span style="font-size:18px;font-weight:900;letter-spacing:4px;color:#00c853">${otpRes.devCode}</span><br><small style="color:rgba(255,255,255,.45)">It has been auto-filled. Click verify to continue.</small>`;
-              body.querySelector('#regOtpGroup').insertAdjacentElement('afterend', devBanner);
-              localToast('🔧 Dev mode: OTP auto-filled (email not configured)');
+              setOtpBoxesValue('regOtpBoxes', otpRes.devCode);
+              localToast('🔧 Dev mode: OTP auto-filled into boxes');
             } else {
-              localToast('📧 Verification code sent to your email!');
+              localToast('📧 Verification code sent! Check Gmail (spam).');
             }
+
+            // Start resend timer for registration
+            createResendTimer('regResendTimer', async () => {
+              try {
+                const r2 = await API.auth.sendOtp(regEmail, 'signup', regName, 'user');
+                if (r2.devCode) setOtpBoxesValue('regOtpBoxes', r2.devCode);
+                localToast('📧 New verification code sent!');
+                createResendTimer('regResendTimer', () => {});
+              } catch (e2) { localToast(`❌ ${e2.message}`, true); }
+            });
           } else {
-            const code = body.querySelector('#regOtp').value.trim();
-            if (!code || code.length !== 6) {
-              localToast('❌ Enter the 6-digit code', true);
-              submitBtn.disabled = false;
-              return;
-            }
+            const code = getOtpBoxesValue('regOtpBoxes');
+            if (!code || code.length !== 6) { localToast('❌ Please fill all 6 OTP boxes', true); submitBtn.disabled = false; return; }
             submitBtn.innerHTML = 'Creating Account… <i class="fas fa-spinner fa-spin"></i>';
-            const res = await API.auth.registerCustomer(name, email, password, phone || undefined, code);
+            const res = await API.auth.registerCustomer(regName, regEmail, regPassword, regPhone || undefined, code);
             Auth.saveSession(res.token, res.data);
             closeSignin();
             Auth.syncNavbar();
@@ -621,10 +719,9 @@ const Auth = (() => {
         }
       });
 
-      // Google Sign-Up
       Auth.initGoogleSignIn('googleSignInBtnReg', {
         onSuccess: (user) => { closeSignin(); Auth.syncNavbar(); localToast(`🎉 Welcome to MyTurfy, ${user.name.split(' ')[0]}!`); },
-        onError:   (err)  => localToast(`❌ Google Sign-Up failed: ${err.message}`, true),
+        onError: (err) => localToast(`❌ Google Sign-Up failed: ${err.message}`, true),
       });
     }
   }

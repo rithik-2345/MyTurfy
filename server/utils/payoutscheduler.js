@@ -18,7 +18,7 @@ const Booking = require('../models/Booking');
 async function markPayoutEligibleBookings() {
   try {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const currentHour = now.getHours();
 
     // Find upcoming bookings that might have passed

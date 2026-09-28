@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Privacy Policy</title>
+  <title>Privacy Policy – How We Protect Your Data | MyTurfy</title>
+  <meta name="description" content="MyTurfy Privacy Policy. Learn how we collect, use, and protect your personal data."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/privacy-policy.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Privacy Policy – How We Protect Your Data | MyTurfy"/>
+  <meta property="og:description" content="MyTurfy Privacy Policy. Learn how we collect, use, and protect your personal data."/>
+  <meta property="og:url" content="https://myturfy.com/privacy-policy.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Privacy Policy – How We Protect Your Data | MyTurfy"/>
+  <meta name="twitter:description" content="MyTurfy Privacy Policy. Learn how we collect, use, and protect your personal data."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/content-pages.css"/>
@@ -24,14 +35,26 @@
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
+      </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
       <div class="dropdown profile-dropdown">
         <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
         <div class="dropdown-menu profile-menu" id="profileMenu">
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -143,7 +166,6 @@
       <div class="footer-links">
         <h4>Company</h4>
         <a href="about.html">About Us</a>
-        <a href="blog.html">Blog</a>
         <a href="support.html">Support</a>
       </div>
       <div class="footer-links">

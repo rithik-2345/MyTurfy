@@ -3,12 +3,63 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Book Your Turf</title>
+  <meta name="theme-color" content="#00c853"/>
+  <meta name="description" content="Book football turfs, cricket boxes, badminton and basketball courts online in India. Live slot availability, secure payments, zero phone calls. Book on MyTurfy."/>
+  <title>Book Sports Turfs & Courts Online in India | MyTurfy</title>
+  <!-- SEO Meta Tags -->
+  <meta name="keywords" content="book sports turf, football turf booking, cricket box booking, badminton court, basketball court, sports venue booking India, MyTurfy, online turf booking, pickleball court"/>
+  <meta name="author" content="MyTurfy"/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large"/>
+  <link rel="canonical" href="https://myturfy.com/"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="MyTurfy"/>
+  <meta property="og:title" content="Book Sports Turfs & Courts Online in India | MyTurfy"/>
+  <meta property="og:description" content="Book football turfs, cricket boxes, badminton and basketball courts online in India. Live slot availability, secure payments, zero phone calls."/>
+  <meta property="og:url" content="https://myturfy.com/"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Book Sports Turfs & Courts Online in India | MyTurfy"/>
+  <meta name="twitter:description" content="Book football turfs, cricket boxes, badminton and basketball courts online in India. Live slot availability, secure payments."/>
+  <meta name="twitter:image" content="https://myturfy.com/image/Hi.png"/>
   <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="stylesheet" href="css/styles.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "MyTurfy",
+    "url": "https://myturfy.com",
+    "description": "India's #1 sports venue booking platform. Book football turfs, cricket boxes, badminton courts and more.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://myturfy.com/venues.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MyTurfy",
+    "url": "https://myturfy.com",
+    "logo": "https://myturfy.com/image/Hi.png",
+    "sameAs": [],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "email": "myturfy@gmail.com"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -16,7 +67,7 @@
   <nav class="navbar">
     <div class="logo">
       <div class="logo-icon">
-        <img src="image/Hi.png" alt="Turfy Logo"/>
+        <img src="image/Hi.webp" alt="MyTurfy Logo" width="40" height="40" fetchpriority="high"/>
       </div>
       <div class="logo-text">
         <span class="logo-main">MY Turfy</span>
@@ -27,7 +78,7 @@
     <!-- Desktop search -->
     <div class="search-bar desktop-search" style="position:relative">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports, location…" autocomplete="off"/>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports, location…" aria-label="Search venues, sports, or locations" autocomplete="off"/>
       <div class="search-autocomplete-dropdown" id="searchAutocompleteDesktop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--green);border-radius:12px;margin-top:6px;max-height:280px;overflow-y:auto;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.8);padding:8px 0"></div>
     </div>
 
@@ -37,25 +88,15 @@
         <i class="fas fa-search"></i>
       </button>
 
-      <!-- City Dropdown -->
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="city-label">City</span>
-          <i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fas fa-city"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fas fa-city"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-city"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-city"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-city"></i> Chennai</a>
-          <a class="use-location" href="#" id="useLocationBtn"><i class="fas fa-location-crosshairs"></i> Use My Location</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn" role="button" tabindex="0" aria-label="View T-Coins Balance">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
 
       <!-- Sign In -->
@@ -79,10 +120,10 @@
           <div class="dropdown-header">Explore Turfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
           <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -92,8 +133,8 @@
   <div class="mobile-search-bar" id="mobileSearchBar">
     <div class="search-bar" style="position:relative">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…" autocomplete="off"/>
-      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports…" aria-label="Search venues and sports" autocomplete="off"/>
+      <button class="search-close" id="mobileSearchClose" aria-label="Close search"><i class="fas fa-times"></i></button>
       <div class="search-autocomplete-dropdown" id="searchAutocompleteMobile" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--green);border-radius:12px;margin-top:6px;max-height:240px;overflow-y:auto;z-index:1000;padding:8px 0"></div>
     </div>
   </div>
@@ -108,81 +149,27 @@
       <h1 class="hero-title">Find Your <span>Perfect</span> Turf</h1>
       <p class="hero-sub">Book premium sports venues near you — instantly.</p>
       <div class="hero-btns">
-        <button class="btn-explore" id="exploreBtn">Explore Now <i class="fas fa-arrow-right"></i></button>
-        <button class="btn-outline-hero mobile-only" id="filterToggleMobile">
-          <i class="fas fa-sliders"></i> Filters
-        </button>
+        <button class="btn-explore" id="exploreBtn" aria-label="Explore All Venues">Explore All Venues <i class="fas fa-arrow-right"></i></button>
       </div>
     </div>
   </section>
 
-  <!-- Sport Pills (mobile horizontal scroll) -->
-  <div class="sport-pills">
-    <button class="pill active" data-filter="all">All</button>
-    <button class="pill" data-filter="Football"><i class="fas fa-futbol"></i> Football</button>
-    <button class="pill" data-filter="Cricket"><i class="fas fa-baseball-bat-ball"></i> Cricket</button>
-    <button class="pill" data-filter="Basketball"><i class="fas fa-basketball"></i> Basketball</button>
-    <button class="pill" data-filter="Bowling">Bowling</button>
-    <button class="pill" data-filter="Pickleball"><i class="fas fa-tennis-ball"></i> PickleBall</button>
-    <button class="pill" data-filter="Pool"><i class="fas fa-person-swimming"></i> 8-Ball Poll  </button>
+  <!-- Sport Pills (horizontal scroll) -->
+  <div class="sport-pills" role="navigation" aria-label="Filter by sport">
+    <button class="pill active" data-filter="all" aria-label="All sports">All</button>
+    <button class="pill" data-filter="Football" aria-label="Football"><i class="fas fa-futbol"></i> Football</button>
+    <button class="pill" data-filter="Cricket" aria-label="Cricket"><i class="fas fa-baseball-bat-ball"></i> Cricket</button>
+    <button class="pill" data-filter="Basketball" aria-label="Basketball"><i class="fas fa-basketball"></i> Basketball</button>
+    <button class="pill" data-filter="Bowling" aria-label="Bowling">Bowling</button>
+    <button class="pill" data-filter="Pickleball" aria-label="Pickleball"><i class="fas fa-tennis-ball"></i> PickleBall</button>
+    <button class="pill" data-filter="Pool" aria-label="8-Ball Pool"><i class="fas fa-person-swimming"></i> 8-Ball Pool</button>
   </div>
 
   <!-- ══════════ MAIN LAYOUT ══════════ -->
-  <div class="main-layout">
-
-    <!-- FILTERS SIDEBAR (desktop) / DRAWER (mobile) -->
-    <aside class="sidebar" id="sidebar">
-      <!-- Mobile drawer handle -->
-      <div class="drawer-handle desktop-hide"></div>
-      <div class="sidebar-header">
-        <span><i class="fas fa-sliders"></i> Filters</span>
-        <button class="drawer-close desktop-hide" id="drawerClose"><i class="fas fa-times"></i></button>
-      </div>
-
-      <div class="filter-group">
-        <div class="filter-label">Sport</div>
-        <label class="filter-check"><input type="checkbox" checked data-sport="Football"/><span>Football</span></label>
-        <label class="filter-check"><input type="checkbox" checked data-sport="Cricket"/><span>Cricket</span></label>
-        <label class="filter-check"><input type="checkbox" data-sport="Basketball"/><span>Basketball</span></label>
-        <label class="filter-check"><input type="checkbox" data-sport="Pool"/><span>8-Ball Poll</span></label>
-        <label class="filter-check"><input type="checkbox" data-sport="Bowling"/><span>Bowling</span></label>
-        <label class="filter-check"><input type="checkbox" data-sport="Pickleball"/><span>PickleBall</span></label>
-      </div>
-
-      <div class="filter-group">
-        <div class="filter-label">Time Slot</div>
-        <label class="filter-check"><input type="checkbox"/><span>Morning (6AM–12PM)</span></label>
-        <label class="filter-check"><input type="checkbox" checked/><span>Afternoon (12PM–5PM)</span></label>
-        <label class="filter-check"><input type="checkbox" checked/><span>Evening (5PM–10PM)</span></label>
-        <label class="filter-check"><input type="checkbox"/><span>Night (10PM–6AM)</span></label>
-      </div>
-
-      <div class="filter-group">
-        <div class="filter-label">Price Range</div>
-        <div class="price-range">
-          <span>₹500</span>
-          <input type="range" min="500" max="5000" value="2500" class="range-slider" id="priceRange"/>
-          <span>₹5000</span>
-        </div>
-        <div class="price-value">Up to: <strong id="priceDisplay">₹2,500</strong></div>
-      </div>
-
-      <div class="filter-group">
-        <div class="filter-label">Facilities</div>
-        <label class="filter-check"><input type="checkbox"/><span>Floodlights</span></label>
-        <label class="filter-check"><input type="checkbox"/><span>Parking</span></label>
-        <label class="filter-check"><input type="checkbox"/><span>Changing Rooms</span></label>
-        <label class="filter-check"><input type="checkbox"/><span>Cafeteria</span></label>
-      </div>
-
-      <p class="filter-live-note"><i class="fas fa-bolt"></i> Filters apply instantly as you select them</p>
-    </aside>
-
-    <!-- Sidebar backdrop (mobile) -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main-layout homepage-layout">
 
     <!-- SPORTS GRID -->
-    <main class="sports-grid">
+    <main class="sports-grid" style="width:100%;max-width:1200px;margin:0 auto">
       <div class="section-title">
         <h2>Browse by Sport</h2>
         <p>Tap a sport to explore available venues</p>
@@ -192,81 +179,79 @@
 
         <div class="sport-card" data-sport="Football">
           <div class="card-img-wrap">
-           
-            <img src="image/football.png" alt="Football" class="card-img" loading="lazy"/>
+            <img src="image/football.webp" alt="Football Turf Ground" class="card-img" width="360" height="220" loading="lazy"/>
             <div class="card-overlay"><span class="card-tag"><i class="fas fa-futbol"></i> 42 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>Football</h3>
             <p>5-a-side, 7-a-side & full-size pitches with floodlights</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.8</span><span><i class="fas fa-clock"></i> From ₹800/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Football Venue">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
 
         <div class="sport-card" data-sport="Cricket">
           <div class="card-img-wrap">
-            <img src="image/cricket.png" alt="Cricket" class="card-img" loading="lazy"/>
+            <img src="image/cricket.webp" alt="Cricket Box Ground" class="card-img" width="360" height="220" loading="lazy"/>
             <div class="card-overlay"><span class="card-tag"><iconify-icon icon="game-icons:cricket-bat"></iconify-icon> 38 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>Cricket</h3>
             <p>Box cricket, turf nets & full ground bookings</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.7</span><span><i class="fas fa-clock"></i> From ₹1200/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Cricket Venue">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
 
          <div class="sport-card" data-sport="Pickleball">
           <div class="card-img-wrap">
-            <img src="image/pickleball.png" alt="PickleBall" class="card-img" loading="lazy"/>
-            <div class="card-overlay"><span class="card-tag"><i class="fa-solid fa-table-tennis-paddle-ball"></i>11 Venues</span></div>
+            <img src="image/pickleball.webp" alt="Pickleball Court" class="card-img" width="360" height="220" loading="lazy"/>
+            <div class="card-overlay"><span class="card-tag"><i class="fa-solid fa-table-tennis-paddle-ball"></i> 11 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>PickleBall</h3>
-            <p>A premium pickleball court with spacious design,and bright stadium lighting for an elite playing experience.</p>
+            <p>A premium pickleball court with spacious design, and bright stadium lighting for an elite playing experience.</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.7</span><span><i class="fas fa-clock"></i> From ₹500/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Pickleball Venue">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
 
-        
         <div class="sport-card" data-sport="Bowling">
           <div class="card-img-wrap">
-            <img src="image/bowling.png" alt="Badminton" class="card-img" loading="lazy"/>
-            <div class="card-overlay"><span class="card-tag">🎳25 Venues</span></div>
+            <img src="image/bowling.webp" alt="Bowling Alley" class="card-img" width="360" height="220" loading="lazy"/>
+            <div class="card-overlay"><span class="card-tag">🎳 25 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>Bowling</h3>
             <p>AC halls with aesthetic courts and music systems</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.3</span><span><i class="fas fa-clock"></i> From ₹800/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Bowling Venue">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
 
-
         <div class="sport-card" data-sport="Pool">
           <div class="card-img-wrap">
-            <img src="image/pool.png" alt="Badminton" class="card-img" loading="lazy"/>
+            <img src="image/pool.webp" alt="8-Ball Pool Table" class="card-img" width="360" height="220" loading="lazy"/>
             <div class="card-overlay"><span class="card-tag">🎱 25 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>8-Ball Pool</h3>
             <p>AC halls with standard sized tables</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.9</span><span><i class="fas fa-clock"></i> From ₹400/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Pool Table Venue">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
+
         <div class="sport-card" data-sport="Basketball">
           <div class="card-img-wrap">
-            <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&q=80" alt="Basketball" class="card-img" loading="lazy"/>
+            <img src="image/basketball.webp" alt="Basketball Court" class="card-img" width="360" height="220" loading="lazy"/>
             <div class="card-overlay"><span class="card-tag"><i class="fas fa-basketball"></i> 19 Venues</span></div>
           </div>
           <div class="card-body">
             <h3>Basketball</h3>
             <p>Indoor & outdoor courts — half and full court available</p>
             <div class="card-meta"><span><i class="fas fa-star"></i> 4.6</span><span><i class="fas fa-clock"></i> From ₹600/hr</span></div>
-            <button class="btn-book">Book Now <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-book" aria-label="Book Basketball Court">Book Now <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
 
@@ -277,10 +262,10 @@
   <!-- ══════════ SIGN IN MODAL ══════════ -->
   <div class="modal-overlay" id="signinModal">
     <div class="modal">
-      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <button class="modal-close" id="modalClose" aria-label="Close dialog"><i class="fas fa-times"></i></button>
       <div class="modal-header">
         <div class="modal-logo">
-          <img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy
+          <img src="image/Hi.webp" alt="MyTurfy Logo" class="modal-logo-img" width="32" height="32"/> MY Turfy
         </div>
         <h2>Welcome Back</h2>
         <p>Sign in to complete your booking</p>
@@ -296,17 +281,17 @@
   </div>
 
   <!-- ══════════ BOTTOM NAV (mobile) ══════════ -->
-  <nav class="bottom-nav mobile-only">
-    <button class="bottom-nav-item active" data-tab="home">
+  <nav class="bottom-nav mobile-only" aria-label="Mobile Navigation">
+    <button class="bottom-nav-item active" data-tab="home" aria-label="Home">
       <i class="fas fa-house"></i><span>Home</span>
     </button>
-    <button class="bottom-nav-item" data-tab="search" id="bottomSearch">
+    <button class="bottom-nav-item" data-tab="search" id="bottomSearch" aria-label="Search">
       <i class="fas fa-search"></i><span>Search</span>
     </button>
-    <a href="wishlist.html" class="bottom-nav-item" id="bottomWishlist">
+    <a href="wishlist.html" class="bottom-nav-item" id="bottomWishlist" aria-label="Wishlist">
       <i class="far fa-heart"></i><span>Wishlist</span>
     </a>
-    <button class="bottom-nav-item" data-tab="account" id="bottomAccount">
+    <button class="bottom-nav-item" data-tab="account" id="bottomAccount" aria-label="Account">
       <i class="fas fa-user"></i><span>Account</span>
     </button>
   </nav>
@@ -315,14 +300,14 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-brand">
-        <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+        <div class="logo-icon"><img src="image/Hi.webp" alt="MyTurfy Logo" width="36" height="36" loading="lazy"/></div>
         <span>Turfy.com</span>
         <p>India's fastest-growing sports venue booking platform.</p>
         <div style="display:flex;gap:12px;margin-top:12px">
-          <a href="#" data-soon="Instagram" class="footer-social"><i class="fab fa-instagram"></i></a>
-          <a href="#" data-soon="Twitter" class="footer-social"><i class="fab fa-twitter"></i></a>
-          <a href="#" data-soon="Facebook" class="footer-social"><i class="fab fa-facebook"></i></a>
-          <a href="#" data-soon="YouTube" class="footer-social"><i class="fab fa-youtube"></i></a>
+          <a href="#" data-soon="Instagram" class="footer-social" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" data-soon="Twitter" class="footer-social" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" data-soon="Facebook" class="footer-social" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="#" data-soon="YouTube" class="footer-social" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
         </div>
       </div>
       <div class="footer-links">
@@ -330,11 +315,10 @@
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
         <a href="#" data-soon="Careers">Careers</a>
-        <a href="blog.html">Blog</a>
       </div>
       <div class="footer-links">
         <h4>Sports</h4>
-        <a href="tournaments.html">Tournaments</a>
+        <a href="tournament.html">Tournaments</a>
         <a href="venues.html?sport=Football">Football</a>
         <a href="venues.html?sport=Cricket">Cricket</a>
         <a href="venues.html?sport=Pickleball">Pickleball</a>
@@ -343,15 +327,15 @@
         <h4>Support</h4>
         <a href="support.html">Help Center</a>
         <a href="support.html">Contact Us</a>
-        <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
-        <a href="#" data-soon="Terms of Service">Terms of Service</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
       </div>
     </div>
     <div class="footer-bottom">
       <p>© 2026 Turfy.com — All rights reserved.</p>
       <div style="display:flex;gap:16px;font-size:12px;margin-top:6px">
-        <a href="#" data-soon="Privacy Policy" style="color:var(--muted);text-decoration:none">Privacy Policy</a>
-        <a href="#" data-soon="Terms" style="color:var(--muted);text-decoration:none">Terms</a>
+        <a href="privacy-policy.html" style="color:var(--muted);text-decoration:none">Privacy Policy</a>
+        <a href="terms.html" style="color:var(--muted);text-decoration:none">Terms</a>
         <a href="support.html" style="color:var(--muted);text-decoration:none">Contact</a>
       </div>
     </div>

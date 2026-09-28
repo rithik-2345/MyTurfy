@@ -340,3 +340,61 @@ a {
 .faq-a p {
   padding: 8px 20px 20px;
 }
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Content Pages
+════════════════════════════════════ */
+[data-theme="light"] .cp-hero {
+  background:
+    radial-gradient(ellipse at top, rgba(0,200,83,.22), transparent 60%),
+    #ffffff;
+  border-bottom: 2px solid rgba(0, 200, 83, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 60, 25, 0.08);
+}
+[data-theme="light"] .cp-eyebrow {
+  color: #007b1b;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .cp-hero h1 {
+  color: #0a1f12;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .cp-hero h1 span {
+  color: #00a844;
+  text-shadow: 0 2px 12px rgba(0, 200, 83, 0.30);
+}
+[data-theme="light"] .cp-sub {
+  color: #2d4a35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .cp-section h2 {
+  color: #081d10;
+}
+[data-theme="light"] .cp-section p {
+  color: #3b5e43;
+}
+[data-theme="light"] .cp-stat,
+[data-theme="light"] .cp-value-card,
+[data-theme="light"] .cp-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 18px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .cp-stat-num {
+  color: #009624;
+}
+[data-theme="light"] .cp-stat-label {
+  color: #3b5e43;
+}
+[data-theme="light"] .article-main-title {
+  color: #081d10;
+}
+[data-theme="light"] .article-rich-text blockquote {
+  background: #f4fbf6;
+  border-left-color: var(--green);
+  color: #081d10;
+}
+[data-theme="light"] .faq-q:hover {
+  background-color: #f4fbf6;
+}

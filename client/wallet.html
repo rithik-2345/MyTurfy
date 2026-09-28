@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" content="MyTurfy T-Coins Wallet — earn cashback on sports venue bookings, unlock tier perks and save on every match."/>
+  <title>T-Coins Wallet &amp; Loyalty Rewards | MyTurfy</title>
+  <link rel="icon" type="image/png" href="image/Hi.png">
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/wallet.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+      <div class="logo-text">
+        <span class="logo-main">MY Turfy</span>
+        <span class="logo-sub">.com</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Button (Active page) -->
+      <div class="tcoin-block" id="tcoinBtn" style="border-color:var(--green);background:rgba(0,200,83,0.15)">
+        <i class="fas fa-coins" style="color:var(--gold)"></i>
+        <span>Wallet</span>
+      </div>
+
+      <!-- Wishlist -->
+      <a href="wishlist.html" class="btn-wishlist-nav" id="wishlistNavBtn" aria-label="Wishlist">
+        <i class="far fa-heart"></i>
+        <span class="wishlist-nav-label">Wishlist</span>
+      </a>
+
+      <!-- Sign In -->
+      <button class="btn-signin" id="signinBtn">
+        <i class="fas fa-user"></i>
+        <span class="signin-label">Sign In</span>
+      </button>
+
+      <!-- Hamburger Menu -->
+      <div class="dropdown profile-dropdown">
+        <button class="btn-menu dropdown-trigger" id="menuBtn" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="dropdown-menu profile-menu" id="profileMenu">
+          <div class="dropdown-header">My Account</div>
+          <a href="wallet.html"><i class="fas fa-wallet" style="color:var(--green)"></i> T-Coins Wallet</a>
+          <a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+          <a href="wishlist.html"><i class="fas fa-heart"></i> My Wishlist</a>
+          <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="support.html"><i class="fas fa-headset"></i> Support</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════ WALLET MAIN ══════════ -->
+  <main class="wallet-container">
+
+    <!-- 1. HERO BALANCE CARD -->
+    <section class="wallet-hero">
+      <div class="hero-flex">
+        <div>
+          <div class="balance-meta">
+            <i class="fas fa-wallet"></i> MyTurfy Loyalty Vault &bull; <span id="streakCount">0 Week Streak 🔥</span>
+          </div>
+          <div class="balance-amount-row">
+            <div class="balance-coins">
+              <i class="fas fa-coins" style="font-size:42px"></i>
+              <span id="walletCoinsDisplay">0</span>
+            </div>
+            <div class="balance-rupees" id="walletRupeesDisplay">≈ ₹0 value</div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">
+            10 T-Coins = ₹1 INR &bull; Use up to 70% of balance (max 20% order discount)
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <a href="venues.html?sport=all" class="btn-wallet-action">
+            <i class="fas fa-futbol"></i> Book Turfs &amp; Save
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TIER PROGRESS ROADMAP -->
+    <section class="tier-card">
+      <div class="tier-header">
+        <div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:1px">Loyalty Tier</div>
+          <div class="tier-badge" id="tierBadge"><i class="fas fa-crown"></i> ROOKIE MEMBER</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--green);font-weight:700" id="tierCashbackDisplay">3% Instant Cashback</div>
+          <div style="font-size:11px;color:var(--muted)">Credited on every completed booking</div>
+        </div>
+      </div>
+
+      <div class="tier-progress-track">
+        <div class="tier-progress-fill" id="tierProgressBar" style="width: 0%"></div>
+      </div>
+
+      <div class="tier-subtext">
+        <span>Rookie (0)</span>
+        <span id="tierNextText">5,000 more coins for REGULAR tier</span>
+        <span>Legend (50,000+)</span>
+      </div>
+    </section>
+
+    <!-- 3. PASSBOOK / TRANSACTION LEDGER -->
+    <section class="passbook-section">
+      <div class="passbook-header">
+        <div>
+          <h3 style="font-size:24px;color:var(--text)"><i class="fas fa-book-bookmark" style="color:var(--green);margin-right:8px"></i> T-Coins Passbook</h3>
+          <p style="font-size:13px;color:var(--muted)">Complete audit history of your earnings, cashbacks and redemptions</p>
+        </div>
+
+        <div class="passbook-tabs">
+          <button class="passbook-tab active" data-filter="all">All Activity</button>
+          <button class="passbook-tab" data-filter="earned">Earned</button>
+          <button class="passbook-tab" data-filter="redeemed">Redeemed</button>
+          <button class="passbook-tab" data-filter="bonus">Bonuses</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="passbook-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Coins</th>
+              <th>Rupee Value</th>
+              <th>Date &amp; Time</th>
+            </tr>
+          </thead>
+          <tbody id="passbookTableBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Loading passbook…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. HOW T-COINS WORK FAQ -->
+    <section>
+      <h3 style="font-size:26px;margin-bottom:16px;color:var(--text)">Frequently Asked Questions</h3>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4><i class="fas fa-coins" style="color:var(--gold);margin-right:6px"></i> What is 1 T-Coin worth?</h4>
+          <p>10 T-Coins equal ₹1 INR. You can apply your coins directly at checkout on any turf booking for an instant deduction.</p>
+        </div>
+        <div class="faq-item">
+          <h4><i class="fas fa-percent" style="color:var(--green);margin-right:6px"></i> How much can I discount?</h4>
+          <p>For solo bookings, you can use up to 70% of your current balance or up to 20% of your total booking amount, whichever is lower.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon"><img src="image/Hi.png" alt="Turfy Logo"/></div>
+          <div class="logo-text">
+            <span class="logo-main">MY Turfy</span>
+            <span class="logo-sub">.com</span>
+          </div>
+        </div>
+        <p>India's leading sports venue booking platform. Live slot booking, seamless payments, and real-time cashback rewards.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigation</h4>
+        <a href="index.html">Home</a>
+        <a href="venues.html?sport=all">Browse Venues</a>
+        <a href="wallet.html">T-Coins Wallet</a>
+        <a href="my-bookings.html">My Bookings</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="support.html">Help Center</a>
+        <a href="support.html">Contact Support</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 MyTurfy.com &bull; All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/wallet.js"></script>
+</body>
+</html>

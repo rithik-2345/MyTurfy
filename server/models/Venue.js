@@ -59,6 +59,23 @@ const venueSchema = new mongoose.Schema(
     rating:       { type: Number, default: 4.5, min: 0, max: 5 },
     reviewsCount: { type: Number, default: 0 },
     isActive:     { type: Boolean, default: true },
+
+    // ── Admin controls ──
+    isSponsored:    { type: Boolean, default: false },                       // Appears on top in sport listing
+    commissionPct:  { type: Number, default: 10, min: 0, max: 100 },       // Platform's cut for this venue
+    convenienceFee: { type: Number, default: 0, min: 0 },                  // Flat ₹ fee added to customer total
+    adminNotes:     { type: String, default: '', trim: true },             // Internal notes (admin only)
+
+    // ── Owner-blocked time slots (closed for a specific date+hour range) ──
+    // Owner can mark specific hours on specific dates as unavailable
+    // without giving a reason. These show as silently unavailable to customers.
+    blockedSlots: {
+      type: [{
+        date: { type: String }, // 'YYYY-MM-DD'
+        hours: { type: [Number] }, // array of blocked hours e.g. [18, 19, 20]
+      }],
+      default: [],
+    },
   },
   {
     timestamps: true,

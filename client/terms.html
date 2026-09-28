@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Terms of Service</title>
+  <title>Terms of Service – Booking Platform Rules | MyTurfy</title>
+  <meta name="description" content="MyTurfy Terms of Service. Read our terms and conditions for using the platform."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/terms.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Terms of Service – Booking Platform Rules | MyTurfy"/>
+  <meta property="og:description" content="MyTurfy Terms of Service. Read our terms and conditions for using the platform."/>
+  <meta property="og:url" content="https://myturfy.com/terms.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Terms of Service – Booking Platform Rules | MyTurfy"/>
+  <meta name="twitter:description" content="MyTurfy Terms of Service. Read our terms and conditions for using the platform."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/content-pages.css"/>
@@ -24,14 +35,26 @@
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
+      </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
       <div class="dropdown profile-dropdown">
         <button class="btn-menu dropdown-trigger" id="menuBtn"><i class="fas fa-bars"></i></button>
         <div class="dropdown-menu profile-menu" id="profileMenu">
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+          <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -94,9 +117,9 @@
       <h2><i class="fas fa-rotate-left"></i> 5. Cancellations and Refunds</h2>
       <p>Our full refund process and time tiers are described in detail in our <a href="refund-policy.html">Refund Policy</a>. Key terms:</p>
       <ul class="legal-list">
-        <li><strong>Tiered Cancellation Window:</strong> ≥24h before slot: 100% refund; 12–24h: 75% refund; 6–12h: 50% refund; 2–6h: 25% refund; &lt;2h / Past slot: 0% refund.</li>
-        <li><strong>Approval Authority:</strong> Refund requests are submitted via My Bookings and reviewed/approved by MyTurfy Admin (<a href="mailto:myturfy@gmail.com">myturfy@gmail.com</a>).</li>
-        <li><strong>Owner Compensation:</strong> Whenever a booking is cancelled within 24 hours of match time, 50% of the retained non-refunded amount is credited to the venue owner as fair slot holding compensation.</li>
+        <li><strong>Tiered Cancellation Window:</strong> Must be requested ≥24h before match slot time. &le;2h of booking: 95% refund; &le;12h of booking: 75% refund; 12–24h of booking: 50% refund; &gt;24h of booking or &lt;24h before match slot: 0% refund (cancellation not allowed).</li>
+        <li><strong>Approval Authority:</strong> Cancellations are automated from My Bookings or processed via MyTurfy Admin (<a href="mailto:myturfy@gmail.com">myturfy@gmail.com</a>).</li>
+        <li><strong>Owner Compensation:</strong> Whenever a booking is cancelled with a retained fee,upto 40% of the retained non-refunded amount is credited to the venue owner as fair slot holding compensation (`payoutEligible = true`).</li>
         <li><strong>Partner Bank Details:</strong> Payouts are transferred automatically to the owner's registered bank account / UPI ID. If payout details are missing, earnings remain accumulated safely under the partner's account balance.</li>
         <li>Approved refunds are returned to your original payment method via Razorpay within 5–7 business days.</li>
       </ul>
@@ -184,7 +207,6 @@
       <div class="footer-links">
         <h4>Company</h4>
         <a href="about.html">About Us</a>
-        <a href="blog.html">Blog</a>
         <a href="support.html">Support</a>
       </div>
       <div class="footer-links">

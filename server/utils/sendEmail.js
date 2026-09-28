@@ -166,9 +166,10 @@ async function sendRefundRequestEmail(booking, reason, refundPct = 100, refundAm
 async function sendRefundApprovedEmail(booking) {
   const pct = booking.refundPct || 100;
   const amount = booking.refundAmount || booking.amount;
+  const coins = Math.round(amount * 10);
   await sendEmail({
     to: booking.customer?.email,
-    subject: `Refund Approved — ${pct}% (₹${amount}) returning to your account`,
+    subject: `Refund Approved — ${pct}% (${coins.toLocaleString('en-IN')} T-Coins credited to wallet)`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0a0f0d;color:#e8f5e9;border-radius:14px;overflow:hidden;border:1px solid rgba(0,200,83,.2)">
         <div style="background:#00c853;padding:20px 28px">
@@ -177,7 +178,7 @@ async function sendRefundApprovedEmail(booking) {
         <div style="padding:24px 28px">
           <p>Hi <strong>${booking.customer?.name}</strong>,</p>
           <p>Your refund of <strong style="color:#00c853">${pct}% (₹${amount})</strong> for your booking at <strong>${booking.venue?.name}</strong> has been approved.</p>
-          <p>The amount will be credited back to your original payment method within <strong>5–7 business days</strong>.</p>
+          <p>A total of <strong style="color:#ffd700">${coins.toLocaleString('en-IN')} T-Coins</strong> (equivalent to ₹${amount}) has been instantly credited to your <strong>MyTurfy T-Coins Wallet</strong>. You can use these coins immediately for discounts on your next turf booking!</p>
           <p style="font-size:12px;color:#7aad82">Booking reference: ${booking._id}</p>
           <p><strong>— The MyTurfy Team</strong></p>
         </div>
@@ -224,13 +225,75 @@ async function sendVerificationCode(email, name, code) {
   });
 }
 
+async function sendBookingReminderToCustomer(customer, venue, booking, timePhrase) {
+  await sendEmail({
+    to: customer.email,
+    subject: `Friendly Reminder: Your booking at ${venue.name} is in ${timePhrase}!`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0a0f0d;color:#e8f5e9;border-radius:14px;overflow:hidden;border:1px solid rgba(0,200,83,.2)">
+        <div style="background:#00c853;padding:20px 28px">
+          <h2 style="margin:0;font-size:22px;color:#04140a">⏰ Booking Reminder (${timePhrase})</h2>
+        </div>
+        <div style="padding:24px 28px">
+          <p>Hi <strong>${customer.name}</strong>,</p>
+          <p>This is a friendly reminder that you have an upcoming booking at <strong>${venue.name}</strong> in <strong>${timePhrase}</strong>.</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#111a14;border-radius:10px;overflow:hidden">
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Date</td><td style="padding:10px 16px;font-weight:600">${booking.date}</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Time</td><td style="padding:10px 16px;font-weight:600">${booking.time}</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Duration</td><td style="padding:10px 16px;font-weight:600">${booking.durationHours} hour(s)</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Court/Pitch</td><td style="padding:10px 16px;font-weight:600">Court ${booking.courtNumber || 1}</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Location</td><td style="padding:10px 16px;font-weight:600">${venue.location}</td></tr>
+          </table>
+          <p style="font-size:12px;color:#7aad82">Please present your booking QR Pass when you arrive at the venue. Enjoy your game! 🏟️</p>
+          <p style="margin-top:20px">See you on the field!<br><strong>— The MyTurfy Team</strong></p>
+        </div>
+      </div>`,
+  });
+}
+
+async function sendLatePaymentRefundEmail(customer, venue, booking, refundAmount, reason) {
+  if (!customer?.email) return;
+  await sendEmail({
+    to: customer.email,
+    subject: `Booking Not Confirmed — 100% Full Refund Initiated (₹${refundAmount})`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0a0f0d;color:#e8f5e9;border-radius:14px;overflow:hidden;border:1px solid rgba(239,83,80,.3)">
+        <div style="background:#ef5350;padding:20px 28px">
+          <h2 style="margin:0;font-size:22px;color:#fff">⚠️ Slot Expired — Full Refund Initiated</h2>
+        </div>
+        <div style="padding:24px 28px">
+          <p>Hi <strong>${customer.name || 'Customer'}</strong>,</p>
+          <p>We received your payment for <strong>${venue?.name || 'Venue'}</strong> on <strong>${booking.date}</strong> at <strong>${booking.time}</strong>. However, your 3-minute reservation hold had already expired and another player secured the slot before payment was completed.</p>
+          
+          <div style="background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.3);border-radius:10px;padding:16px;margin:18px 0;text-align:center">
+            <div style="font-size:13px;color:#7aad82;text-transform:uppercase;letter-spacing:1px;font-weight:700">100% Real Money Refund Amount</div>
+            <div style="font-size:32px;font-weight:800;color:#00c853;margin:6px 0">₹${refundAmount}</div>
+            <div style="font-size:12px;color:#e8f5e9">Refund initiated directly back to your original bank account / payment source.</div>
+          </div>
+
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#111a14;border-radius:10px;overflow:hidden">
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Status</td><td style="padding:10px 16px;font-weight:600;color:#ef5350">Cancelled &amp; Refunded</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Reason</td><td style="padding:10px 16px;font-size:13px">${reason || 'Slot hold expired and slot was booked by another user before payment completion.'}</td></tr>
+            <tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Refund Timeline</td><td style="padding:10px 16px;font-weight:600">3 to 7 business days</td></tr>
+            ${booking.razorpayPaymentId ? `<tr><td style="padding:10px 16px;color:#7aad82;font-size:13px">Payment ID</td><td style="padding:10px 16px;font-family:monospace;font-size:12px">${booking.razorpayPaymentId}</td></tr>` : ''}
+          </table>
+
+          <p style="font-size:13px;color:#7aad82">Any T-Coins redeemed for this attempt have also been restored 100% to your wallet.</p>
+          <p style="margin-top:20px">We apologize for the inconvenience and invite you to explore other available slots on MyTurfy!<br><strong>— The MyTurfy Team</strong></p>
+        </div>
+      </div>`,
+  });
+}
+
 module.exports = {
   sendEmail,
   sendBookingConfirmationToCustomer,
   sendNewBookingAlertToOwner,
+  sendBookingReminderToCustomer,
   sendRefundRequestEmail,
   sendRefundApprovedEmail,
   sendRefundRejectedEmail,
+  sendLatePaymentRefundEmail,
   sendVerificationCode,
   isEmailConfigured,
   didLastSendFail,

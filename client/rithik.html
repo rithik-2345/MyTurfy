@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RITurf — Admin</title>
+<link rel="icon" type="image/png" href="image/Hi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/rithik.css"/>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN SCREEN ════════════════ -->
+<div class="admin-login">
+  <div class="login-card">
+    <h1><i class="fas fa-shield-halved" style="margin-right:8px"></i>RITurf</h1>
+    <p class="subtitle">Admin Control Panel</p>
+
+    <!-- Step 1: Email + Password -->
+    <div class="step active" id="step1">
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="Enter admin Gmail"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password"/>
+      </div>
+      <button class="btn-admin" id="loginStep1Btn">Continue <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Step 2: Identity Verification -->
+    <div class="step" id="step2">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center"><i class="fas fa-fingerprint"></i> Identity Verification</p>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="adminName" placeholder="Enter your name"/>
+      </div>
+      <div class="form-group">
+        <label>Father's Name</label>
+        <input type="text" id="adminFather" placeholder="Enter father's name"/>
+      </div>
+      <div class="form-group">
+        <label>Mother's Name</label>
+        <input type="text" id="adminMother" placeholder="Enter mother's name"/>
+      </div>
+      <button class="btn-admin" id="loginStep2Btn">Verify Identity & Send OTP <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Step 3: OTP -->
+    <div class="step" id="step3">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center"><i class="fas fa-envelope"></i> Enter 6-digit OTP sent to your Gmail</p>
+      <div class="otp-boxes" id="otpBoxes">
+        <input type="text" maxlength="1" inputmode="numeric"/>
+        <input type="text" maxlength="1" inputmode="numeric"/>
+        <input type="text" maxlength="1" inputmode="numeric"/>
+        <input type="text" maxlength="1" inputmode="numeric"/>
+        <input type="text" maxlength="1" inputmode="numeric"/>
+        <input type="text" maxlength="1" inputmode="numeric"/>
+      </div>
+      <button class="btn-admin" id="loginStep3Btn">Verify OTP & Login <i class="fas fa-check"></i></button>
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<button class="menu-toggle"><i class="fas fa-bars"></i></button>
+
+<div class="admin-dash">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand"><i class="fas fa-shield-halved"></i> RI<span>Turf</span> Admin</div>
+    <nav>
+      <a href="#" data-section="sec-overview" class="active"><i class="fas fa-gauge-high"></i> Overview</a>
+      <a href="#" data-section="sec-users"><i class="fas fa-users"></i> Users</a>
+      <a href="#" data-section="sec-owners"><i class="fas fa-building"></i> Owners</a>
+      <a href="#" data-section="sec-venues"><i class="fas fa-futbol"></i> Venues</a>
+      <a href="#" data-section="sec-bookings"><i class="fas fa-calendar-check"></i> Bookings</a>
+      <a href="#" data-section="sec-reviews"><i class="fas fa-star"></i> Reviews</a>
+      <a href="#" data-section="sec-promos"><i class="fas fa-ticket"></i> Promo Codes</a>
+      <a href="#" data-section="sec-announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+      <a href="#" data-section="sec-blocked"><i class="fas fa-clock"></i> Blocked Slots</a>
+      <a href="#" data-section="sec-analytics"><i class="fas fa-chart-line"></i> Analytics</a>
+      <a href="#" data-section="sec-audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
+    </nav>
+    <button class="logout-btn"><i class="fas fa-right-from-bracket"></i> Logout</button>
+  </aside>
+
+  <!-- Main Area -->
+  <main class="main-area">
+    <div class="topbar">
+      <h2 id="sectionTitle">Overview</h2>
+      <span class="admin-name"><i class="fas fa-user-shield"></i> RITurf Admin</span>
+    </div>
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <section class="dash-section active" id="sec-overview">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-icon green"><i class="fas fa-users"></i></div><div class="kpi-val" id="kpiUsers">0</div><div class="kpi-label">Total Users</div></div>
+        <div class="kpi-card"><div class="kpi-icon blue"><i class="fas fa-building"></i></div><div class="kpi-val" id="kpiOwners">0</div><div class="kpi-label">Total Owners</div></div>
+        <div class="kpi-card"><div class="kpi-icon green"><i class="fas fa-futbol"></i></div><div class="kpi-val" id="kpiVenues">0</div><div class="kpi-label">Total Venues</div></div>
+        <div class="kpi-card"><div class="kpi-icon blue"><i class="fas fa-calendar-check"></i></div><div class="kpi-val" id="kpiBookings">0</div><div class="kpi-label">Total Bookings</div></div>
+        <div class="kpi-card"><div class="kpi-icon green"><i class="fas fa-indian-rupee-sign"></i></div><div class="kpi-val" id="kpiRevenue">₹0</div><div class="kpi-label">Total Revenue</div></div>
+        <div class="kpi-card"><div class="kpi-icon yellow"><i class="fas fa-star"></i></div><div class="kpi-val" id="kpiSponsored">0</div><div class="kpi-label">Sponsored Venues</div></div>
+        <div class="kpi-card"><div class="kpi-icon red"><i class="fas fa-user-slash"></i></div><div class="kpi-val" id="kpiBlockedUsers">0</div><div class="kpi-label">Blocked Users</div></div>
+        <div class="kpi-card"><div class="kpi-icon red"><i class="fas fa-ban"></i></div><div class="kpi-val" id="kpiBlockedOwners">0</div><div class="kpi-label">Blocked Owners</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card"><h3>Bookings (Last 30 Days)</h3><canvas id="chartBookings30d"></canvas></div>
+        <div class="chart-card"><h3>Revenue (Last 30 Days)</h3><canvas id="chartRevenue30d"></canvas></div>
+        <div class="chart-card"><h3>Bookings by Sport</h3><canvas id="chartBySport"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ═══ USERS ═══ -->
+    <section class="dash-section" id="sec-users">
+      <div class="table-wrap" id="usersSection">
+        <div class="table-toolbar">
+          <input type="text" id="userSearch" placeholder="🔍 Search users by name, email, phone..."/>
+          <button class="btn-export" onclick="exportCSV('users')"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="usersTable">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Tier</th><th>T-Coins</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-pagination"><span class="page-info"></span></div>
+      </div>
+    </section>
+
+    <!-- ═══ OWNERS ═══ -->
+    <section class="dash-section" id="sec-owners">
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input type="text" id="ownerSearch" placeholder="🔍 Search owners by name, email, city..."/>
+          <button class="btn-export" onclick="exportCSV('owners')"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="ownersTable">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Verified</th><th>Venues</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VENUES ═══ -->
+    <section class="dash-section" id="sec-venues">
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input type="text" id="venueSearch" placeholder="🔍 Search venues..."/>
+          <select id="venueSportFilter">
+            <option value="all">All Sports</option>
+            <option value="Football">Football</option>
+            <option value="Cricket">Cricket</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Pickleball">Pickleball</option>
+            <option value="Bowling">Bowling</option>
+            <option value="Pool">Pool</option>
+            <option value="Badminton">Badminton</option>
+            <option value="Tennis">Tennis</option>
+          </select>
+          <button class="btn-export" onclick="exportCSV('venues')"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="venuesTable">
+            <thead><tr><th>Venue / Owner</th><th>Sport</th><th>Location</th><th>Price</th><th>Rating</th><th>Turfs</th><th>Commission</th><th>Sponsored</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ BOOKINGS ═══ -->
+    <section class="dash-section" id="sec-bookings">
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <select id="bkStatusFilter">
+            <option value="all">All Status</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="hold">On Hold</option>
+          </select>
+          <input type="date" id="bkDateFrom" title="From date"/>
+          <input type="date" id="bkDateTo" title="To date"/>
+          <button class="btn-export" onclick="exportCSV('bookings')"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="bookingsTable">
+            <thead><tr><th>Customer</th><th>Venue</th><th>Date</th><th>Time</th><th>Amount</th><th>Comm%</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ REVIEWS ═══ -->
+    <section class="dash-section" id="sec-reviews">
+      <div class="table-wrap">
+        <div style="overflow-x:auto">
+          <table id="reviewsTable">
+            <thead><tr><th>Customer</th><th>Venue</th><th>Rating</th><th>Review</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PROMO CODES ═══ -->
+    <section class="dash-section" id="sec-promos">
+      <!-- Create promo form -->
+      <div class="table-wrap" style="padding:16px;margin-bottom:16px">
+        <h3 style="font-size:18px;margin-bottom:12px"><i class="fas fa-plus-circle" style="color:var(--green)"></i> Create Promo Code</h3>
+        <div class="form-row">
+          <div><label>Code</label><input type="text" id="promoCode" placeholder="e.g. SUMMER50" style="text-transform:uppercase"/></div>
+          <div><label>Discount Type</label><select id="promoType"><option value="percent">Percentage %</option><option value="flat">Flat ₹</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label>Discount Value</label><input type="number" id="promoValue" placeholder="e.g. 20" min="0"/></div>
+          <div><label>Min Order ₹</label><input type="number" id="promoMinOrder" placeholder="0" min="0"/></div>
+        </div>
+        <div class="form-row">
+          <div><label>Max Discount ₹ (for %)</label><input type="number" id="promoMaxDiscount" placeholder="0 = no cap" min="0"/></div>
+          <div><label>Max Uses (0 = unlimited)</label><input type="number" id="promoMaxUses" placeholder="0" min="0"/></div>
+        </div>
+        <div class="form-row">
+          <div><label>Expires At</label><input type="date" id="promoExpiry"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn-admin" style="width:100%" onclick="createPromo()"><i class="fas fa-plus"></i> Create Promo</button></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div style="overflow-x:auto">
+          <table id="promosTable">
+            <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Max Disc</th><th>Used</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ANNOUNCEMENTS ═══ -->
+    <section class="dash-section" id="sec-announcements">
+      <div class="table-wrap" style="padding:16px;margin-bottom:16px">
+        <h3 style="font-size:18px;margin-bottom:12px"><i class="fas fa-bullhorn" style="color:var(--green)"></i> Create Announcement</h3>
+        <div class="form-row">
+          <div><label>Title</label><input type="text" id="annTitle" placeholder="Announcement title"/></div>
+          <div><label>Type</label><select id="annType"><option value="info">Info</option><option value="promo">Promo</option><option value="warning">Warning</option><option value="maintenance">Maintenance</option></select></div>
+        </div>
+        <div class="form-row full">
+          <div><label>Message</label><textarea id="annMessage" rows="3" placeholder="Announcement message..."></textarea></div>
+        </div>
+        <div class="form-row">
+          <div><label>Expires At (optional)</label><input type="date" id="annExpiry"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn-admin" style="width:100%" onclick="createAnnouncement()"><i class="fas fa-plus"></i> Post Announcement</button></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div style="overflow-x:auto">
+          <table id="announcementsTable">
+            <thead><tr><th>Title</th><th>Message</th><th>Type</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead>
+            <tbody><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ BLOCKED SLOTS ═══ -->
+    <section class="dash-section" id="sec-blocked">
+      <div class="table-wrap" style="padding:16px">
+        <h3 style="font-size:18px;margin-bottom:12px"><i class="fas fa-clock" style="color:var(--red)"></i> Owner-Blocked Time Slots</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px">These are hours blocked by venue owners across all turfs. Customers cannot book these slots.</p>
+        <div id="blockedSlotsContent"><p style="color:var(--muted)">Loading…</p></div>
+      </div>
+    </section>
+
+    <!-- ═══ ANALYTICS ═══ -->
+    <section class="dash-section" id="sec-analytics">
+      <div class="charts-grid">
+        <div class="chart-card"><h3>Top 10 Venues</h3><canvas id="chartTopVenues"></canvas></div>
+        <div class="chart-card"><h3>User Growth (Last 30 Days)</h3><canvas id="chartUserGrowth"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ═══ AUDIT LOG ═══ -->
+    <section class="dash-section" id="sec-audit">
+      <div class="table-wrap" style="padding:16px">
+        <h3 style="font-size:18px;margin-bottom:12px"><i class="fas fa-clipboard-list" style="color:var(--green)"></i> Admin Activity Log</h3>
+        <div id="auditLogContent"><p style="color:var(--muted)">Loading…</p></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="admin-modal-overlay" id="adminModalOverlay">
+  <div class="admin-modal" id="adminModalContent"></div>
+</div>
+
+<script src="js/rithik.js"></script>
+</body>
+</html>

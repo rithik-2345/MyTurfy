@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – My Wishlist</title>
+  <meta name="description" content="View and manage your saved sports venues on MyTurfy. Keep track of your favourite turfs, courts and cricket boxes, and book them anytime in one click."/>
+  <title>My Saved Sports Venues – Wishlist | MyTurfy</title>
   <meta name="description" content="Your saved venues on MyTurfy — view and book your favourite sports spots instantly."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
@@ -25,7 +26,7 @@
 
     <div class="search-bar desktop-search">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="navSearch" placeholder="Search venues, sports…"/>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports…"/>
     </div>
 
     <div class="nav-actions">
@@ -33,23 +34,15 @@
         <i class="fas fa-search"></i>
       </button>
 
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="city-label">City</span>
-          <i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
 
       <button class="btn-signin" id="signinBtn">
@@ -71,10 +64,10 @@
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
           <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -161,7 +154,6 @@
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
         <a href="#" data-soon="Careers">Careers</a>
-        <a href="blog.html">Blog</a>
       </div>
       <div class="footer-links">
         <h4>Support</h4>

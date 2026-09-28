@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" id="venueMetaDesc" content="Book sports venues near you on MyTurfy."/>
   <title>MyTurfy – Venue Detail</title>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
@@ -23,28 +24,20 @@
     </a>
     <div class="search-bar desktop-search">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="navSearch" placeholder="Search venues, sports, locations…"/>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports, locations…"/>
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle"><i class="fas fa-search"></i></button>
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="city-label">City</span>
-          <i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fas fa-location-dot"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fas fa-landmark"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
-          <a class="use-location" href="#" id="useLocationBtn"><i class="fas fa-location-crosshairs"></i> Use My Location</a>
-        </div>
+
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
 
@@ -59,10 +52,10 @@
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
           <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -72,7 +65,7 @@
   <div class="mobile-search-bar" id="mobileSearchBar">
     <div class="search-bar">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="mobileNavSearch" placeholder="Search venues, sports, locations…"/>
+      <input type="text" id="searchInputMobile" placeholder="Search venues, sports, locations…"/>
       <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
     </div>
   </div>
@@ -199,6 +192,52 @@
           <div class="summary-row"><span>Rate</span><span id="qbRate">₹800/hr</span></div>
           <div class="summary-row"><span>Duration</span><span id="qbDur">1 hour</span></div>
           <div class="summary-row summary-total"><span>Total</span><span id="qbTotal">₹800</span></div>
+          <div class="summary-row tcoins-discount-row" id="qbTcoinsDiscountRow" style="display:none">
+            <span><i class="fas fa-coins" style="color:#ffd700"></i> T-Coins Discount</span>
+            <span id="qbTcoinsDiscountVal" style="color:var(--green)">-₹0</span>
+          </div>
+          <div class="summary-row summary-total summary-final" id="qbFinalRow" style="display:none">
+            <span>You Pay</span>
+            <span id="qbFinalTotal">₹800</span>
+          </div>
+        </div>
+
+        <!-- T-Coins Apply Section — Desktop -->
+        <div class="tcoins-apply-section" id="tcoinsSection" style="display:none">
+          <div class="tcoins-apply-card">
+            <div class="tcoins-header">
+              <div class="tcoins-icon-wrap">
+                <i class="fas fa-coins"></i>
+                <span class="tcoins-pulse"></span>
+              </div>
+              <div class="tcoins-info">
+                <span class="tcoins-balance-label">Your T-Coins</span>
+                <span class="tcoins-balance-val" id="qbTcoinsBalance">0</span>
+                <span class="tcoins-rupee-val" id="qbTcoinsRupee">(= ₹0)</span>
+              </div>
+              <div class="tcoins-tier-badge" id="qbTcoinsTier">ROOKIE</div>
+            </div>
+            <div class="tcoins-savings-preview" id="qbTcoinsSavingsPreview">
+              <i class="fas fa-tag"></i>
+              Use <strong id="qbTcoinsMaxUse">0</strong> coins to save <strong id="qbTcoinsMaxSave">₹0</strong>
+            </div>
+            <div class="tcoins-apply-row" id="qbTcoinsApplyRow">
+              <button type="button" class="tcoins-apply-btn" id="qbApplyTcoins">
+                <i class="fas fa-bolt"></i> Apply T-Coins
+              </button>
+            </div>
+            <div class="tcoins-applied-banner" id="qbTcoinsApplied" style="display:none">
+              <div class="tcoins-applied-left">
+                <i class="fas fa-check-circle"></i>
+                <span>Saving <strong id="qbTcoinsSaving">₹0</strong> with T-Coins!</span>
+              </div>
+              <button type="button" class="tcoins-remove-btn" id="qbRemoveTcoins">✕ Remove</button>
+            </div>
+            <div class="tcoins-earn-preview">
+              <i class="fas fa-gift"></i>
+              You'll earn <strong id="qbTcoinsEarn">0</strong> T-Coins on this booking!
+            </div>
+          </div>
         </div>
 
         <!-- Premium Hold Banner -->
@@ -253,26 +292,23 @@
           </div>
         </div>
 
+        <div class="refund-policy-checkbox-wrap" style="margin: 12px 0 8px; display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); line-height:1.4;">
+          <input type="checkbox" id="qbRefundPolicyCheck" style="margin-top:2px; cursor:pointer; accent-color:var(--green);" required/>
+          <label for="qbRefundPolicyCheck" style="cursor:pointer;">
+            I agree to the <a href="refund-policy.html" target="_blank" style="color:var(--green); text-decoration:underline;">Refund & Cancellation Policy</a> (≥24 hrs before slot: up to 95% refund; <24 hrs: non-refundable).
+          </label>
+        </div>
+
         <button class="btn-confirm-booking" id="qbConfirm">
           <i class="fas fa-check-circle"></i> Confirm Booking
         </button>
-        <p class="booking-note"><i class="fas fa-shield-halved"></i> Free cancellation up to 2 hrs before slot</p>
+        <p class="booking-note"><i class="fas fa-shield-halved"></i> Refundable up to 24 hrs before slot</p>
       </div>
     </aside>
 
   </div><!-- /detail-wrapper -->
 
-  <!-- MOBILE BOOK BAR (fixed bottom) -->
-  <div class="mobile-book-bar mobile-only" id="mobileBookBar">
-    <div class="mbb-price">
-      <span class="mbb-from">From</span>
-      <span class="mbb-val" id="mbbPrice">₹800</span>
-      <span class="mbb-unit">/hr</span>
-    </div>
-    <button class="btn-book-detail" id="mobileBookBtn">
-      <i class="fas fa-calendar-check"></i> Book Now
-    </button>
-  </div>
+
 
   <!-- MOBILE BOOKING MODAL -->
   <div class="modal-overlay" id="bookingModal">
@@ -310,6 +346,52 @@
           <div class="summary-row"><span>Rate</span><span id="mSummaryRate">₹800/hr</span></div>
           <div class="summary-row"><span>Duration</span><span id="mSummaryDur">1 hour</span></div>
           <div class="summary-row summary-total"><span>Total</span><span id="mSummaryTotal">₹800</span></div>
+          <div class="summary-row tcoins-discount-row" id="mTcoinsDiscountRow" style="display:none">
+            <span><i class="fas fa-coins" style="color:#ffd700"></i> T-Coins Discount</span>
+            <span id="mTcoinsDiscountVal" style="color:var(--green)">-₹0</span>
+          </div>
+          <div class="summary-row summary-total summary-final" id="mFinalRow" style="display:none">
+            <span>You Pay</span>
+            <span id="mFinalTotal">₹800</span>
+          </div>
+        </div>
+
+        <!-- T-Coins Apply Section — Mobile -->
+        <div class="tcoins-apply-section" id="mTcoinsSection" style="display:none">
+          <div class="tcoins-apply-card">
+            <div class="tcoins-header">
+              <div class="tcoins-icon-wrap">
+                <i class="fas fa-coins"></i>
+                <span class="tcoins-pulse"></span>
+              </div>
+              <div class="tcoins-info">
+                <span class="tcoins-balance-label">Your T-Coins</span>
+                <span class="tcoins-balance-val" id="mTcoinsBalance">0</span>
+                <span class="tcoins-rupee-val" id="mTcoinsRupee">(= ₹0)</span>
+              </div>
+              <div class="tcoins-tier-badge" id="mTcoinsTier">ROOKIE</div>
+            </div>
+            <div class="tcoins-savings-preview" id="mTcoinsSavingsPreview">
+              <i class="fas fa-tag"></i>
+              Use <strong id="mTcoinsMaxUse">0</strong> coins to save <strong id="mTcoinsMaxSave">₹0</strong>
+            </div>
+            <div class="tcoins-apply-row" id="mTcoinsApplyRow">
+              <button type="button" class="tcoins-apply-btn" id="mApplyTcoins">
+                <i class="fas fa-bolt"></i> Apply T-Coins
+              </button>
+            </div>
+            <div class="tcoins-applied-banner" id="mTcoinsApplied" style="display:none">
+              <div class="tcoins-applied-left">
+                <i class="fas fa-check-circle"></i>
+                <span>Saving <strong id="mTcoinsSaving">₹0</strong> with T-Coins!</span>
+              </div>
+              <button type="button" class="tcoins-remove-btn" id="mRemoveTcoins">✕ Remove</button>
+            </div>
+            <div class="tcoins-earn-preview">
+              <i class="fas fa-gift"></i>
+              You'll earn <strong id="mTcoinsEarn">0</strong> T-Coins on this booking!
+            </div>
+          </div>
         </div>
 
         <!-- Premium Mobile Hold Banner -->
@@ -364,10 +446,17 @@
           </div>
         </div>
 
+        <div class="refund-policy-checkbox-wrap" style="margin: 12px 0 8px; display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); line-height:1.4;">
+          <input type="checkbox" id="mRefundPolicyCheck" style="margin-top:2px; cursor:pointer; accent-color:var(--green);" required/>
+          <label for="mRefundPolicyCheck" style="cursor:pointer;">
+            I agree to the <a href="refund-policy.html" target="_blank" style="color:var(--green); text-decoration:underline;">Refund & Cancellation Policy</a> (≥24 hrs before slot: up to 95% refund; <24 hrs: non-refundable).
+          </label>
+        </div>
+
         <button class="btn-confirm-booking" id="mConfirmBook">
           <i class="fas fa-check-circle"></i> Confirm Booking
         </button>
-        <p class="booking-note"><i class="fas fa-shield-halved"></i> Free cancellation up to 2 hrs before slot</p>
+        <p class="booking-note"><i class="fas fa-shield-halved"></i> Refundable up to 24 hrs before slot</p>
       </div>
     </div>
   </div>
@@ -433,6 +522,49 @@
     </div>
   </div>
 
+  <!-- T-COINS WALLET MODAL -->
+  <div class="modal-overlay" id="tcoinsModal">
+    <div class="modal tcoins-modal">
+      <button class="modal-close" id="tcoinsModalClose"><i class="fas fa-times"></i></button>
+      <div class="modal-header" style="text-align:center">
+        <div class="tcoins-wallet-icon"><i class="fas fa-coins"></i></div>
+        <div class="modal-logo">T-Coins Wallet</div>
+      </div>
+      <div class="modal-body">
+        <!-- Balance Display -->
+        <div class="tcw-balance-card">
+          <div class="tcw-balance-big" id="tcwBalance">0</div>
+          <div class="tcw-balance-sub">T-Coins <span id="tcwBalanceRupee">(= ₹0)</span></div>
+          <div class="tcw-tier-row">
+            <span class="tcw-tier-badge" id="tcwTier">🥉 ROOKIE</span>
+            <span class="tcw-streak" id="tcwStreak">🔥 0-week streak</span>
+          </div>
+          <div class="tcw-tier-progress-wrap">
+            <div class="tcw-tier-progress" id="tcwTierProgress" style="width:0%"></div>
+          </div>
+          <div class="tcw-tier-next" id="tcwTierNext">100,000 more coins to Regular!</div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="tcw-how-it-works">
+          <h4><i class="fas fa-info-circle"></i> How T-Coins Work</h4>
+          <div class="tcw-rule"><i class="fas fa-arrow-up" style="color:#00c853"></i> Earn 3% T-Coins on every booking</div>
+          <div class="tcw-rule"><i class="fas fa-arrow-down" style="color:#ffd700"></i> 10 T-Coins = ₹1 discount</div>
+          <div class="tcw-rule"><i class="fas fa-wallet" style="color:#42a5f5"></i> Use up to 50% of your coins per booking</div>
+          <div class="tcw-rule"><i class="fas fa-percent" style="color:#ef5350"></i> Max 10% of booking amount as discount</div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="tcw-history-title"><i class="fas fa-history"></i> Recent Activity</div>
+        <div class="tcw-history-list" id="tcwHistoryList">
+          <p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV (mobile) -->
   <nav class="bottom-nav mobile-only" id="bottomNavEl">
     <a href="index.html" class="bottom-nav-item">
@@ -465,8 +597,7 @@
       <div class="footer-links">
         <h4>Company</h4>
         <a href="about.html">About Us</a>
-        <a href="blog.html">Blog</a>
-        <a href="tournaments.html">Tournaments</a>
+        <a href="tournament.html">Tournaments</a>
         <a href="owner-portal.html">Partner With Us</a>
       </div>
       <div class="footer-links">

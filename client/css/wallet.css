@@ -1,0 +1,367 @@
+/* =============================================
+   MYTURFY — wallet.css
+   Special T-Coins Fin-tech & Gamified Loyalty Wallet
+   ============================================= */
+
+:root {
+  --green:       #00c853;
+  --green-dark:  #009624;
+  --green-glow:  rgba(0, 200, 83, 0.35);
+  --gold:        #ffd700;
+  --gold-glow:   rgba(255, 215, 0, 0.35);
+  --dark:        #0a0f0d;
+  --dark2:       #111a14;
+  --dark3:       #1a2a1e;
+  --card-bg:     #141f17;
+  --card-border: rgba(0, 200, 83, 0.18);
+  --text:        #e8f5e9;
+  --muted:       #7aad82;
+  --red:         #ef5350;
+  --radius:      16px;
+  --radius-lg:   24px;
+  --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow:      0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; }
+
+/* ─── CONTAINER ─── */
+.wallet-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 30px 16px 80px;
+}
+
+/* ─── HERO BALANCE CARD ─── */
+.wallet-hero {
+  background: linear-gradient(135deg, #14281a 0%, #0d1a11 50%, #061009 100%);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 200, 83, 0.2);
+  margin-bottom: 30px;
+}
+
+.wallet-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.balance-meta {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.balance-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.balance-coins {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 24px var(--gold-glow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.balance-rupees {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(0, 200, 83, 0.15);
+  border: 1px solid rgba(0, 200, 83, 0.3);
+  padding: 4px 14px;
+  border-radius: 50px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-wallet-action {
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  color: #04140a;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 22px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px var(--green-glow);
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.btn-wallet-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px var(--green-glow);
+}
+
+.btn-wallet-secondary {
+  background: var(--dark3);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 13px 22px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s var(--ease);
+}
+.btn-wallet-secondary:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ─── TIER PROGRESS BAR ─── */
+.tier-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 30px;
+}
+
+.tier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.tier-progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--dark3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.tier-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  border-radius: 10px;
+  transition: width 0.6s ease;
+  box-shadow: 0 0 12px var(--green-glow);
+}
+
+.tier-subtext {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ─── PASSBOOK / TRANSACTIONS TABLE ─── */
+.passbook-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  margin-bottom: 30px;
+}
+
+.passbook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.passbook-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--dark3);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.passbook-tab {
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.passbook-tab.active {
+  background: var(--green);
+  color: #04140a;
+}
+
+.passbook-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.passbook-table th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--card-border);
+}
+.passbook-table td {
+  padding: 14px;
+  border-bottom: 1px solid rgba(0, 200, 83, 0.08);
+  vertical-align: middle;
+}
+.passbook-table tr:last-child td { border-bottom: none; }
+
+.tx-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+}
+.tx-earned { background: rgba(0, 200, 83, 0.15); color: var(--green); }
+.tx-redeemed { background: rgba(239, 83, 80, 0.15); color: var(--red); }
+.tx-bonus { background: rgba(255, 215, 0, 0.15); color: var(--gold); }
+
+
+/* ─── FAQ ACCORDION ─── */
+.faq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.faq-item {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.faq-item h4 { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+.faq-item p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+@media (max-width: 768px) {
+  .hero-flex { flex-direction: column; align-items: flex-start; }
+  .faq-grid { grid-template-columns: 1fr; }
+  .balance-coins { font-size: 42px; }
+}
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Wallet Page
+════════════════════════════════════ */
+[data-theme="light"] .wallet-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #edfcf2 50%, #dff5e6 100%);
+  border: 1.5px solid rgba(0, 200, 83, 0.40);
+  box-shadow: 0 12px 40px rgba(0, 150, 50, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .balance-meta {
+  color: #008720;
+}
+[data-theme="light"] .balance-coins {
+  color: #b45309;
+  text-shadow: none;
+}
+[data-theme="light"] .balance-inr {
+  color: #3b5e43;
+}
+[data-theme="light"] .tier-badge {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+[data-theme="light"] .faq-item,
+[data-theme="light"] .passbook-card,
+[data-theme="light"] .earn-way-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .faq-item h4,
+[data-theme="light"] .earn-way-card h4 {
+  color: #081d10;
+}
+[data-theme="light"] .faq-item p,
+[data-theme="light"] .earn-way-card p {
+  color: #3b5e43;
+}
+[data-theme="light"] .passbook-table th {
+  color: #3b5e43;
+  border-bottom-color: rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .passbook-table td {
+  color: #081d10;
+  border-bottom-color: rgba(0, 200, 83, 0.1);
+}
+[data-theme="light"] .passbook-tab {
+  background: #f4fbf6;
+  border-color: rgba(0, 200, 83, 0.2);
+  color: #3b5e43;
+}
+[data-theme="light"] .passbook-tab.active {
+  background: var(--green);
+  color: #04140a;
+}

@@ -197,7 +197,56 @@
   text-decoration: none; transition: .2s var(--ease);
 }
 .legal-contact-btn:hover { box-shadow: 0 4px 18px var(--green-glow); transform: translateY(-1px); }
-.legal-contact-btn-outline {
-  background: transparent; border: 1px solid var(--border); color: var(--text);
-}
 .legal-contact-btn-outline:hover { border-color: var(--green); color: var(--green); box-shadow: none; }
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Legal Pages
+════════════════════════════════════ */
+[data-theme="light"] .legal-hero {
+  background:
+    radial-gradient(ellipse at top, rgba(0,200,83,.20), transparent 60%),
+    #ffffff;
+  border-bottom: 2px solid rgba(0, 200, 83, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 60, 25, 0.08);
+}
+[data-theme="light"] .legal-hero h1 {
+  color: #0a1f12;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .legal-hero h1 span {
+  color: #00a844;
+  text-shadow: 0 2px 12px rgba(0, 200, 83, 0.30);
+}
+[data-theme="light"] .legal-updated {
+  background: #eaf4ed;
+  border-color: rgba(0, 200, 83, 0.25);
+  color: #3b5e43;
+}
+[data-theme="light"] .legal-section h2 {
+  color: #081d10;
+}
+[data-theme="light"] .legal-section p {
+  color: #3b5e43;
+}
+[data-theme="light"] .legal-section p strong {
+  color: #081d10;
+}
+[data-theme="light"] .legal-flow-step {
+  background: #ffffff;
+  border-color: rgba(0, 200, 83, 0.2);
+}
+[data-theme="light"] .legal-flow-step strong {
+  color: #081d10;
+}
+[data-theme="light"] .legal-flow-step span {
+  color: #3b5e43;
+}
+[data-theme="light"] .legal-contact-btn-outline {
+  border-color: rgba(0, 200, 83, 0.3);
+  color: #081d10;
+  background: #ffffff;
+}
+[data-theme="light"] .legal-contact-btn-outline:hover {
+  background: #eaf4ed;
+  color: #008720;
+}

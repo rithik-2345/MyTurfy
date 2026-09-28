@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – Tournaments (Coming Soon)</title>
+  <title>Sports Tournaments Coming Soon | MyTurfy</title>
+  <meta name="description" content="Join and register for sports tournaments on MyTurfy. Football, cricket, basketball competitions near you."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/tournament.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Sports Tournaments Coming Soon | MyTurfy"/>
+  <meta property="og:description" content="Join and register for sports tournaments on MyTurfy. Football, cricket, basketball competitions near you."/>
+  <meta property="og:url" content="https://myturfy.com/tournament.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Sports Tournaments Coming Soon | MyTurfy"/>
+  <meta name="twitter:description" content="Join and register for sports tournaments on MyTurfy. Football, cricket, basketball competitions near you."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/content-pages.css"/>
@@ -24,14 +35,14 @@
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn"><i class="fas fa-map-marker-alt"></i><span class="city-label">City</span><i class="fas fa-chevron-down chevron"></i></button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
       <div class="dropdown profile-dropdown">
@@ -40,10 +51,10 @@
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
-          <a href="owner-portal.html"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -124,7 +135,6 @@
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
         <a href="#" data-soon="Careers">Careers</a>
-        <a href="blog.html">Blog</a>
       </div>
       <div class="footer-links">
         <h4>Support</h4>

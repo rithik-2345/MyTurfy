@@ -25,7 +25,7 @@
 
     <div class="search-bar desktop-search">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="navSearch" placeholder="Search venues, sports…"/>
+      <input type="text" id="searchInputDesktop" placeholder="Search venues, sports…"/>
     </div>
 
     <div class="nav-actions">
@@ -33,23 +33,15 @@
         <i class="fas fa-search"></i>
       </button>
 
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="city-label">City</span>
-          <i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
 
       <button class="btn-signin" id="signinBtn">
@@ -71,10 +63,10 @@
           <div class="dropdown-header">Explore MyTurfy</div>
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
-          <a href="tournaments.html"><i class="fas fa-trophy"></i> Tournaments</a>
+          <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
           <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -85,7 +77,7 @@
     <div class="search-bar">
       <i class="fas fa-search search-icon"></i>
       <input type="text" id="searchInputMobile" placeholder="Search venues, sports…"/>
-      <button class="search-close" id="mobileSearchClose"><i class="fas fa-times"></i></button>
+      <button class="search-close" id="mobileSearchClose" aria-label="Close search"><i class="fas fa-times"></i></button>
     </div>
   </div>
 
@@ -111,7 +103,7 @@
   <!-- ══════════ CANCEL & REFUND MODAL ══════════ -->
   <div class="modal-overlay" id="cancelModal" style="display:none">
     <div class="modal">
-      <button class="modal-close" id="cancelModalClose"><i class="fas fa-times"></i></button>
+      <button class="modal-close" id="cancelModalClose" aria-label="Close modal"><i class="fas fa-times"></i></button>
       <div class="modal-header">
         <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
         <h2 style="margin-top: 10px; font-size: 24px; color: var(--red);">Cancel Booking &amp; Refund</h2>
@@ -122,7 +114,7 @@
         <div id="refundTierPreview" style="background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;">
           <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;"><i class="fas fa-calculator"></i> Refund Policy Calculation</div>
           <div id="tierEstimate" style="font-size: 15px; font-weight: 700; color: var(--green);">Calculating estimated refund…</div>
-          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;" id="tierPolicyNote">Policy: ≥24h (100%) · 12-24h (75%) · 6-12h (50%) · 1-6h (25%) · &lt;1h (10%)</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;" id="tierPolicyNote">Policy: ≤2h (95%) · 2-12h (75%) · 12-24h (50%) · Credited instantly as T-Coins to your MyTurfy wallet</div>
         </div>
         <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <label for="cancelReason" style="font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px;">Reason for cancellation &amp; refund *</label>
@@ -140,7 +132,7 @@
   <!-- ══════════ SIGN IN MODAL ══════════ -->
   <div class="modal-overlay" id="signinModal">
     <div class="modal">
-      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      <button class="modal-close" id="modalClose" aria-label="Close modal"><i class="fas fa-times"></i></button>
       <div class="modal-header">
         <div class="modal-logo"><img src="image/Hi.png" alt="Logo" class="modal-logo-img"/> MY Turfy</div>
         <h2>Welcome Back</h2>
@@ -186,7 +178,6 @@
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
         <a href="#" data-soon="Careers">Careers</a>
-        <a href="blog.html">Blog</a>
       </div>
       <div class="footer-links">
         <h4>Support</h4>

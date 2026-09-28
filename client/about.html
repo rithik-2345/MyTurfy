@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>MyTurfy – About Us</title>
+  <title>About MyTurfy – India's Sports Venue Booking App</title>
+  <meta name="description" content="Learn about MyTurfy — India's fastest-growing sports venue booking platform. Our mission, team, and vision."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://myturfy.com/about.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="About MyTurfy – India's Sports Venue Booking App"/>
+  <meta property="og:description" content="Learn about MyTurfy — India's fastest-growing sports venue booking platform. Our mission, team, and vision."/>
+  <meta property="og:url" content="https://myturfy.com/about.html"/>
+  <meta property="og:image" content="https://myturfy.com/image/Hi.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="About MyTurfy – India's Sports Venue Booking App"/>
+  <meta name="twitter:description" content="Learn about MyTurfy — India's fastest-growing sports venue booking platform. Our mission, team, and vision."/>
   <link rel="icon" type="image/png" href="image/Hi.png">
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/content-pages.css"/>
@@ -27,21 +38,14 @@
     </div>
     <div class="nav-actions">
       <button class="btn-icon-nav mobile-only" id="mobileSearchToggle" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div class="dropdown city-dropdown">
-        <button class="btn-city dropdown-trigger" id="cityBtn">
-          <i class="fas fa-map-marker-alt"></i><span class="city-label">City</span><i class="fas fa-chevron-down chevron"></i>
-        </button>
-        <div class="dropdown-menu city-menu" id="cityMenu">
-          <div class="dropdown-header">Select Your City</div>
-          <a href="#" data-city="Mumbai"><i class="fas fa-city"></i> Mumbai</a>
-          <a href="#" data-city="Delhi"><i class="fas fa-city"></i> Delhi</a>
-          <a href="#" data-city="Bangalore"><i class="fas fa-city"></i> Bangalore</a>
-          <a href="#" data-city="Surat"><i class="fa-solid fa-location-dot"></i> Surat</a>
-          <a href="#" data-city="Ahmedabad"><i class="fa-solid fa-landmark"></i> Ahmedabad</a>
-          <a href="#" data-city="Pune"><i class="fas fa-circle-dot"></i> Pune</a>
-          <a href="#" data-city="Hyderabad"><i class="fas fa-circle-dot"></i> Hyderabad</a>
-          <a href="#" data-city="Chennai"><i class="fas fa-circle-dot"></i> Chennai</a>
-        </div>
+      <!-- Theme Switcher Button -->
+      <button class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle Light / Dark Theme" title="Toggle Light / Dark Theme">
+        <i class="fas fa-sun"></i>
+      </button>
+      <!-- T Coin Block -->
+      <div class="tcoin-block" id="tcoinBtn">
+        <i class="fas fa-coins"></i>
+        <span>T Coin</span>
       </div>
       <button class="btn-signin" id="signinBtn"><i class="fas fa-user"></i><span class="signin-label">Sign In</span></button>
       <div class="dropdown profile-dropdown">
@@ -51,9 +55,9 @@
           <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
           <a href="about.html"><i class="fas fa-bullseye"></i> Our Goal</a>
           <a href="tournament.html"><i class="fas fa-trophy"></i> Tournaments</a>
-          <a href="owner-portal.html"><i class="fas fa-handshake"></i> Partner With Us</a>
+          <a href="owner-portal.html" data-role="partner"><i class="fas fa-handshake"></i> Partner With Us</a>
           <a href="support.html"><i class="fas fa-headset"></i> Support</a>
-          <a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="#" id="menuThemeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></a>
         </div>
       </div>
     </div>
@@ -85,11 +89,12 @@
         <p>It began the way most good ideas do — with a bad Saturday. A group of friends trying to book a football turf for a weekend match spent an hour calling five different venues, only to find two were fully booked, one didn't pick up, and the "confirmed" slot at the fourth turned out to be double-booked when they showed up.</p>
         <p>That's the moment MyTurfy was born — a single place to see real availability, real pricing, and real reviews, for every turf, court, and lane in the city.</p>
       </div>
-      <div class="cp-stats-grid">
-        <div class="cp-stat"><span class="cp-stat-num">500+</span><span class="cp-stat-label">Venues Listed</span></div>
-        <div class="cp-stat"><span class="cp-stat-num">50K+</span><span class="cp-stat-label">Bookings Made</span></div>
-        <div class="cp-stat"><span class="cp-stat-num">12</span><span class="cp-stat-label">Cities Covered</span></div>
-        <div class="cp-stat"><span class="cp-stat-num">6</span><span class="cp-stat-label">Sports Supported</span></div>
+      <div class="cp-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr))">
+        <div class="cp-stat"><span class="cp-stat-num" id="statVenues">...</span><span class="cp-stat-label">Venues Listed</span></div>
+        <div class="cp-stat"><span class="cp-stat-num" id="statTurfs">...</span><span class="cp-stat-label">Total Turfs</span></div>
+        <div class="cp-stat"><span class="cp-stat-num" id="statBookings">...</span><span class="cp-stat-label">Bookings Made</span></div>
+        <div class="cp-stat"><span class="cp-stat-num" id="statCities">...</span><span class="cp-stat-label">Cities Covered</span></div>
+        <div class="cp-stat"><span class="cp-stat-num" id="statSports">...</span><span class="cp-stat-label">Sports Supported</span></div>
       </div>
     </div>
   </section>
@@ -116,6 +121,46 @@
           <div class="cp-value-icon"><i class="fas fa-people-group"></i></div>
           <h3>A platform venue owners actually like</h3>
           <p>Simple tools, fast payouts, and a dashboard that doesn't need a manual to use.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ FREQUENTLY ASKED QUESTIONS ══════════ -->
+  <section class="cp-section" id="faq">
+    <div class="cp-container">
+      <p class="cp-kicker cp-center">Got Questions?</p>
+      <h2 class="cp-center">Frequently Asked Questions</h2>
+      
+      <div class="cp-values-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 30px;">
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-undo"></i></div>
+          <h3>What is the cancellation & refund policy?</h3>
+          <p>Cancellations are allowed <strong>at least 24 hours before</strong> your match slot time:</p>
+          <ul style="font-size:13px;color:var(--muted);margin-top:8px;padding-left:18px;line-height:1.6">
+            <li><strong>Within 1 hr of booking:</strong> 95% refund</li>
+            <li><strong>Within 12 hrs of booking:</strong> 75% refund</li>
+            <li><strong>Between 12 to 24 hrs of booking:</strong> 50% refund</li>
+            <li><strong>After 24 hrs or &lt;24h before match:</strong> 0% refund</li>
+          </ul>
+        </div>
+
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-stopwatch"></i></div>
+          <h3>How long are slots held during checkout?</h3>
+          <p>To ensure fair access and prevent bot slot hoarding, <strong>solo bookings</strong> hold slots for <strong>3 minutes</strong>, while <strong>split team bookings</strong> give your team <strong>10 minutes</strong> to complete payments.</p>
+        </div>
+
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-calculator"></i></div>
+          <h3>Can teammates pay a custom amount in split pay?</h3>
+          <p>Yes! Teammates can pay their designated share, enter a custom amount (from ₹1 up to the full remaining balance), or clear the entire remaining balance for the team.</p>
+        </div>
+
+        <div class="cp-value-card">
+          <div class="cp-value-icon"><i class="fas fa-shield-cat"></i></div>
+          <h3>What happens if an account cancels repeatedly?</h3>
+          <p>To prevent bot attacks and slot hoarding, any account that makes <strong>10 consecutive cancellations</strong> is temporarily blocked from making cancellations for <strong>24 hours</strong>.</p>
         </div>
       </div>
     </div>
@@ -175,7 +220,6 @@
         <a href="about.html">About Us</a>
         <a href="about.html">Our Goal</a>
         <a href="#" data-soon="Careers">Careers</a>
-        <a href="blog.html">Blog</a>
       </div>
       <div class="footer-links">
         <h4>Support</h4>
@@ -203,5 +247,28 @@
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
   <script src="js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await API.venues.publicStats();
+        const s = res.data;
+        if (s) {
+          const vNum = document.getElementById('statVenues');
+          const tNum = document.getElementById('statTurfs');
+          const bNum = document.getElementById('statBookings');
+          const cNum = document.getElementById('statCities');
+          const sNum = document.getElementById('statSports');
+          
+          if (vNum) vNum.textContent = s.venues + '+';
+          if (tNum) tNum.textContent = s.turfs + '+';
+          if (bNum) bNum.textContent = s.bookings + '+';
+          if (cNum) cNum.textContent = s.cities;
+          if (sNum) sNum.textContent = s.sports;
+        }
+      } catch (err) {
+        console.error('Failed to load public stats:', err);
+      }
+    });
+  </script>
 </body>
 </html>

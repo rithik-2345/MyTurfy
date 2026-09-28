@@ -21,56 +21,23 @@ const isOwner = require('../middleware/isOwner');
 const Booking = require('../models/Booking');
 const Venue = require('../models/Venue');
 const User = require('../models/User');
-const { sendRefundRequestEmail, sendRefundApprovedEmail, sendRefundRejectedEmail } = require('../utils/sendEmail');
+const TCoinsLedger = require('../models/TCoinsLedger');
+const { sendEmail, sendRefundRequestEmail, sendRefundApprovedEmail, sendRefundRejectedEmail } = require('../utils/sendEmail');
+const { getCashbackPct } = require('./tcoins');
+const config = require('../config/config');
+const Razorpay = require('razorpay');
 
-/* ─────────────────────────────────────────────────────
-   HELPER — count how many bookings exist for a given
-   hour slot. Excludes cancelled or expired 5-min holds.
-───────────────────────────────────────────────────── */
-async function getHourBookingCounts(venueId, date, courtNumber = null) {
-  const now = new Date();
-
-  // Auto-expire active split bookings whose splitExpiresAt has passed
-  await Booking.updateMany(
-    { isSplit: true, splitStatus: 'active', splitExpiresAt: { $lte: now } },
-    { $set: { splitStatus: 'expired', status: 'cancelled' } }
-  );
-
-  // Auto-expire 5-min holds whose holdExpiresAt has passed
-  await Booking.updateMany(
-    { status: 'hold', holdExpiresAt: { $lte: now } },
-    { $set: { status: 'cancelled' } }
-  );
-
-  const query = {
-    venue: venueId,
-    date,
-    status: { $ne: 'cancelled' },
-    $or: [
-      { paymentStatus: 'paid' },
-      { status: 'hold', holdExpiresAt: { $gt: now } },
-      { isSplit: true, splitStatus: 'active', splitExpiresAt: { $gt: now } },
-    ],
-  };
-
-  if (courtNumber) {
-    query.courtNumber = Number(courtNumber);
-  }
-
-  const bookings = await Booking.find(query).select('time durationHours courtNumber');
-
-  const counts = new Map(); // hour → number of concurrent bookings
-  bookings.forEach(b => {
-    const startH = parseInt((b.time || '0').split(':')[0], 10);
-    if (!isNaN(startH)) {
-      for (let i = 0; i < (b.durationHours || 1); i++) {
-        const h = startH + i;
-        counts.set(h, (counts.get(h) || 0) + 1);
-      }
-    }
-  });
-  return counts;
-}
+const razorpayConfiguredBookings = !!(config.razorpay?.keyId && config.razorpay?.keySecret);
+const razorpayBookings = razorpayConfiguredBookings
+  ? new Razorpay({ key_id: config.razorpay.keyId, key_secret: config.razorpay.keySecret })
+  : null;
+const {
+  parseTimeTo24Hour,
+  formatHourToString,
+  autoExpireHoldsAndSplits,
+  getHourBookingCounts,
+  checkSlotAvailability,
+} = require('../utils/slotHelper');
 
 /* ══════════════════════════════════════
    PUBLIC — booked hours for a venue on a date
@@ -81,7 +48,7 @@ router.get('/slots', async (req, res, next) => {
     const { venueId, date, courtNumber } = req.query;
     if (!venueId || !date) return res.json({ success: true, data: [] });
 
-    const venue = await Venue.findById(venueId).select('specs.turfs openHour closeHour closedDates isActive');
+    const venue = await Venue.findById(venueId).select('specs.turfs openHour closeHour closedDates blockedSlots isActive');
     if (!venue || !venue.isActive) return res.json({ success: true, data: [] });
 
     if ((venue.closedDates || []).includes(date)) {
@@ -100,6 +67,14 @@ router.get('/slots', async (req, res, next) => {
       if (count >= threshold) fullyBookedHours.push(hour);
     });
 
+    // Add owner-blocked hours (silently unavailable — same as booked)
+    const blockedEntry = (venue.blockedSlots || []).find(s => s.date === date);
+    if (blockedEntry && blockedEntry.hours && blockedEntry.hours.length > 0) {
+      blockedEntry.hours.forEach(h => {
+        if (!fullyBookedHours.includes(h)) fullyBookedHours.push(h);
+      });
+    }
+
     res.json({ success: true, data: fullyBookedHours, turfsCount });
   } catch (err) {
     next(err);
@@ -107,7 +82,7 @@ router.get('/slots', async (req, res, next) => {
 });
 
 /* ══════════════════════════════════════
-   5-MINUTE SLOT HOLD — BookMyShow Style
+   3-MINUTE SLOT HOLD — BookMyShow Style
    POST /api/bookings/hold-slot
    ══════════════════════════════════════ */
 router.post('/hold-slot', protect, async (req, res, next) => {
@@ -120,19 +95,36 @@ router.post('/hold-slot', protect, async (req, res, next) => {
     const venue = await Venue.findById(venueId);
     if (!venue) return res.status(404).json({ success: false, message: 'Venue not found' });
 
-    const hourCounts = await getHourBookingCounts(venueId, date, courtNumber);
-    const startH = parseInt(time.split(':')[0], 10);
-    for (let i = 0; i < durationHours; i++) {
-      if ((hourCounts.get(startH + i) || 0) >= 1) {
-        return res.status(400).json({
-          success: false,
-          message: `Court ${courtNumber} at ${startH + i}:00 is currently being booked or held by another user.`,
-        });
-      }
+    // Validate past dates & time
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (date < todayStr) {
+      return res.status(400).json({ success: false, message: 'Booking for past dates is not allowed.' });
     }
 
-    // Set 5-minute hold lock
-    const holdExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const startH = parseTimeTo24Hour(time);
+    if (date === todayStr && startH <= now.getHours()) {
+      return res.status(400).json({ success: false, message: 'This time slot has already passed today.' });
+    }
+
+    // Check slot availability
+    const availability = await checkSlotAvailability({
+      venueId,
+      date,
+      time,
+      durationHours,
+      courtNumber,
+    });
+
+    if (!availability.available) {
+      return res.status(400).json({
+        success: false,
+        message: availability.reason || 'This time slot is currently unavailable or being booked by another user.',
+      });
+    }
+
+    // Set 3-minute hold lock for solo bookings
+    const holdExpiresAt = new Date(Date.now() + 3 * 60 * 1000);
     const crypto = require('crypto');
     const qrCodeData = crypto.randomBytes(8).toString('hex');
     const splitCode = 'SPLIT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -143,9 +135,9 @@ router.post('/hold-slot', protect, async (req, res, next) => {
       owner: venue.owner,
       date,
       time,
-      durationHours,
-      courtNumber: Number(courtNumber),
-      amount: venue.price * durationHours,
+      durationHours: Number(durationHours) || 1,
+      courtNumber: Number(courtNumber) || 1,
+      amount: venue.price * (Number(durationHours) || 1),
       status: 'hold',
       paymentStatus: 'pending',
       holdExpiresAt,
@@ -161,7 +153,7 @@ router.post('/hold-slot', protect, async (req, res, next) => {
         amount: booking.amount,
         courtNumber: booking.courtNumber,
         splitCode: booking.splitCode,
-        message: 'Slot held for 5 minutes. Complete payment to finalize booking.',
+        message: 'Slot held for 3 minutes. Complete payment to finalize booking.',
       },
     });
   } catch (err) {
@@ -206,6 +198,8 @@ router.get('/mine', protect, async (req, res, next) => {
     }
 
     const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     // Auto-expire active split bookings whose splitExpiresAt has passed
     await Booking.updateMany(
       { isSplit: true, splitStatus: 'active', splitExpiresAt: { $lte: now } },
@@ -216,6 +210,20 @@ router.get('/mine', protect, async (req, res, next) => {
       { status: 'hold', holdExpiresAt: { $lte: now } },
       { $set: { status: 'cancelled' } }
     );
+    // TIME-BASED AUTO-COMPLETE: mark paid upcoming bookings as completed once their date has passed
+    await Booking.updateMany(
+      { status: 'upcoming', paymentStatus: 'paid', date: { $lt: todayStr }, refundStatus: { $nin: ['requested'] } },
+      { $set: { status: 'completed', payoutEligible: true } }
+    );
+    // Also auto-complete for today if the slot hour has passed
+    const nowHour = now.getHours();
+    const upcomingToday = await Booking.find({ status: 'upcoming', paymentStatus: 'paid', date: todayStr });
+    for (const b of upcomingToday) {
+      const slotH = parseTimeTo24Hour(b.time);
+      if (slotH + (b.durationHours || 1) <= nowHour) {
+        await Booking.findByIdAndUpdate(b._id, { status: 'completed', payoutEligible: true });
+      }
+    }
 
     const user = await User.findById(req.auth.id);
     const filter = {
@@ -228,8 +236,33 @@ router.get('/mine', protect, async (req, res, next) => {
     }
 
     const bookings = await Booking.find(filter)
-      .populate('venue', 'name location images sport')
-      .sort({ createdAt: -1 });
+      .populate('venue', 'name location images sport');
+
+    // Sort by increasing slot time (chronological)
+    bookings.sort((a, b) => {
+      const getSlotMs = (item) => {
+        try {
+          const [y, m, d] = (item.date || '').split('-').map(Number);
+          let h = 0, min = 0;
+          if (item.time) {
+            const match = item.time.match(/(\d+):?(\d+)?\s*(AM|PM)?/i);
+            if (match) {
+              h = parseInt(match[1], 10);
+              min = parseInt(match[2] || '0', 10);
+              const isPM = match[3] && match[3].toUpperCase() === 'PM';
+              const isAM = match[3] && match[3].toUpperCase() === 'AM';
+              if (isPM && h < 12) h += 12;
+              if (isAM && h === 12) h = 0;
+            }
+          }
+          return new Date(y, m - 1, d, h, min, 0).getTime() || 0;
+        } catch (_) {
+          return 0;
+        }
+      };
+      return getSlotMs(a) - getSlotMs(b);
+    });
+
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
     next(err);
@@ -242,15 +275,42 @@ router.get('/mine', protect, async (req, res, next) => {
    ══════════════════════════════════════ */
 router.get('/owner', protect, isOwner, async (req, res, next) => {
   try {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // TIME-BASED AUTO-COMPLETE: mark paid upcoming bookings as completed once their date has passed
+    await Booking.updateMany(
+      { owner: req.auth.id, status: 'upcoming', paymentStatus: 'paid', date: { $lt: todayStr }, refundStatus: { $nin: ['requested'] } },
+      { $set: { status: 'completed', payoutEligible: true } }
+    );
+    // Also auto-complete for today if the slot hour has passed
+    const nowHour = now.getHours();
+    const upcomingToday = await Booking.find({ owner: req.auth.id, status: 'upcoming', paymentStatus: 'paid', date: todayStr });
+    for (const b of upcomingToday) {
+      const slotH = parseTimeTo24Hour(b.time);
+      if (slotH + (b.durationHours || 1) <= nowHour) {
+        await Booking.findByIdAndUpdate(b._id, { status: 'completed', payoutEligible: true });
+      }
+    }
+
     const { venueId, status } = req.query;
     const filter = { owner: req.auth.id, status: { $ne: 'hold' } }; // Exclude temporary holds from owner portal!
     if (venueId && venueId !== 'all') filter.venue = venueId;
     if (status && status !== 'all') filter.status = status;
 
-    const bookings = await Booking.find(filter)
+    const rawBookings = await Booking.find(filter)
       .populate('venue', 'name')
-      .populate('customer', 'name phone email')
+      .populate('customer', 'name') // DO NOT expose phone/email to owners
       .sort({ createdAt: -1 });
+
+    // Strip any contact info — only show first name and booking details
+    const bookings = rawBookings.map(b => {
+      const obj = b.toObject();
+      if (obj.customer) {
+        obj.customer = { _id: obj.customer._id, name: obj.customer.name };
+      }
+      return obj;
+    });
 
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
@@ -279,6 +339,24 @@ router.delete('/:id/release-hold', protect, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Only unpaid hold bookings can be released' });
     }
 
+    // Refund any T-Coins that were locked for this hold
+    if (booking.tCoinsUsed > 0) {
+      const user = await User.findById(booking.customer);
+      if (user) {
+        user.tCoins = (user.tCoins || 0) + booking.tCoinsUsed;
+        await user.save();
+        await TCoinsLedger.create({
+          user: user._id,
+          booking: booking._id,
+          type: 'reverse_redeem',
+          amount: booking.tCoinsUsed,
+          rupeesEquivalent: booking.tCoinsDiscount || (booking.tCoinsUsed / 10),
+          balanceAfter: user.tCoins,
+          description: `Refunded ${booking.tCoinsUsed} T-Coins — slot hold released`,
+        });
+      }
+    }
+
     // Completely delete the hold booking so the slot is instantly free
     await Booking.findByIdAndDelete(booking._id);
 
@@ -288,90 +366,335 @@ router.delete('/:id/release-hold', protect, async (req, res, next) => {
   }
 });
 
+/* ─────────────────────────────────────────────────────
+   HELPER — calculate refund tier info
+   - MUST be requested >= 24 hours before match slot time
+   - <= 2 hrs since booking: 95% refund (5% platform fee, 0% owner)
+   - 2 to 12 hrs since booking: 75% refund (15% platform fee, 10% owner)
+   - 12 to 24 hrs since booking: 50% refund (30% platform fee, 20% owner)
+   - > 24 hrs since booking OR < 24 hrs before match: 0% refund
+───────────────────────────────────────────────────── */
+function getRefundTierInfo(createdAt, dateStr, timeStr) {
+  const now = new Date();
+
+  let matchHour = 0;
+  if (timeStr) {
+    const timeMatch = timeStr.match(/(\d+):?(\d+)?\s*(AM|PM)?/i);
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1], 10);
+      const isPM = timeMatch[3] && timeMatch[3].toUpperCase() === 'PM';
+      const isAM = timeMatch[3] && timeMatch[3].toUpperCase() === 'AM';
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+      matchHour = h;
+    }
+  }
+
+  const [yyyy, mm, dd] = (dateStr || '').split('-').map(Number);
+  const matchDateTime = new Date(yyyy, mm - 1, dd, matchHour, 0, 0);
+  const hoursUntilMatch = (matchDateTime - now) / (1000 * 60 * 60);
+
+  if (hoursUntilMatch <= 0) {
+    return {
+      canCancel: false,
+      refundPct: 0,
+      ownerPct: 0,
+      message: 'Cannot cancel a match slot that has already started or passed.',
+    };
+  }
+
+  if (hoursUntilMatch < 24) {
+    return {
+      canCancel: false,
+      refundPct: 0,
+      ownerPct: 0,
+      message: 'Cannot cancel booking: Match is starting within 24 hours (cancellations are only permitted at least 24 hours before match start).',
+    };
+  }
+
+  const hoursSinceBooking = (now - new Date(createdAt)) / (1000 * 60 * 60);
+
+  if (hoursSinceBooking <= 2) {
+    return {
+      canCancel: true,
+      refundPct: 95,
+      ownerPct: 0,
+      message: '95% refund — cancelled within 2 hours of booking.',
+    };
+  } else if (hoursSinceBooking <= 12) {
+    return {
+      canCancel: true,
+      refundPct: 75,
+      ownerPct: 10,
+      message: '75% refund — cancelled within 12 hours of booking (10% owner compensation).',
+    };
+  } else if (hoursSinceBooking <= 24) {
+    return {
+      canCancel: true,
+      refundPct: 50,
+      ownerPct: 20,
+      message: '50% refund — cancelled between 12 to 24 hours of booking (20% owner compensation).',
+    };
+  } else {
+    return {
+      canCancel: false,
+      refundPct: 0,
+      ownerPct: 0,
+      message: 'No refund available — cancellation window (more than 24 hours after making booking) has passed.',
+    };
+  }
+}
+
+async function getMonthlyUserCancellationCount(userId) {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const count = await Booking.countDocuments({
+    customer: userId,
+    status: 'cancelled',
+    paymentStatus: { $in: ['paid', 'refunded'] },
+    $or: [
+      { cancelledAt: { $gte: startOfMonth } },
+      { updatedAt: { $gte: startOfMonth } },
+    ],
+  });
+  return count;
+}
+
 /* ══════════════════════════════════════
-   CANCEL — customer or owner
+   CANCEL — customer/booker only (owners cannot cancel bookings)
    PATCH /api/bookings/:id/cancel
    ══════════════════════════════════════ */
 router.patch('/:id/cancel', protect, async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('venue', 'name location')
-      .populate('customer', 'name email');
+      .populate('customer', 'name email phone');
 
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    const isTheCustomer = req.auth.role === 'user' && booking.customer._id.toString() === req.auth.id;
-    const isTheOwner    = req.auth.role === 'owner' && booking.owner.toString() === req.auth.id;
-    if (!isTheCustomer && !isTheOwner) {
-      return res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' });
-    }
-    // Allow customers to cancel both 'hold' and 'upcoming' bookings
-    if (!isTheOwner && booking.status !== 'upcoming' && booking.status !== 'hold') {
-      return res.status(400).json({ success: false, message: `Cannot cancel a ${booking.status} booking` });
+    const customerId = (booking.customer?._id || booking.customer)?.toString();
+    const isTheCustomer = req.auth.role === 'user' && customerId === req.auth.id;
+    if (!isTheCustomer) {
+      return res.status(403).json({
+        success: false,
+        message: booking.isSplit
+          ? 'Only the team organizer (booker) who created this group booking can cancel it.'
+          : 'Only the customer who made the booking can request cancellation.',
+      });
     }
 
     // If it's an unpaid hold, delete it entirely for instant slot release
     if (booking.status === 'hold' && booking.paymentStatus !== 'paid') {
+      if (booking.tCoinsUsed > 0) {
+        const user = await User.findById(booking.customer);
+        if (user) {
+          user.tCoins = (user.tCoins || 0) + booking.tCoinsUsed;
+          await user.save();
+          await TCoinsLedger.create({
+            user: user._id,
+            booking: booking._id,
+            type: 'reverse_redeem',
+            amount: booking.tCoinsUsed,
+            rupeesEquivalent: booking.tCoinsDiscount || (booking.tCoinsUsed / 10),
+            balanceAfter: user.tCoins,
+            description: `Refunded ${booking.tCoinsUsed} T-Coins — hold cancelled`,
+          });
+        }
+      }
       await Booking.findByIdAndDelete(booking._id);
       return res.json({ success: true, data: { _id: booking._id, status: 'cancelled' }, message: 'Hold discarded — slot released.' });
     }
 
+    if (booking.status !== 'upcoming') {
+      return res.status(400).json({ success: false, message: `Cannot cancel a ${booking.status} booking` });
+    }
+
+    // Check monthly cancellation limit (max 2 per month)
+    const monthlyCount = await getMonthlyUserCancellationCount(req.auth.id);
+    if (monthlyCount >= 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Monthly cancellation limit reached: You are allowed to cancel a maximum of 2 bookings per month.',
+      });
+    }
+
+    const tier = getRefundTierInfo(booking.createdAt, booking.date, booking.time);
+    if (!tier.canCancel) {
+      return res.status(400).json({ success: false, message: tier.message });
+    }
+
+    const refundAmount = Math.round((booking.amount * tier.refundPct) / 100);
+    const ownerCompensation = Math.round((booking.amount * tier.ownerPct) / 100);
+    const totalRefundCoins = Math.round(refundAmount * 10); // 10 coins = ₹1
+
+    // ── NOTE: NO REAL MONEY/RAZORPAY GATEWAY REFUND.
+    // Instead, award 100% equivalent T-Coins directly to user wallets! ──
+
     booking.status = 'cancelled';
+    booking.cancelledAt = new Date();
+    booking.paymentStatus = refundAmount > 0 ? 'refunded' : booking.paymentStatus;
+    booking.refundStatus = tier.refundPct > 0 ? 'approved' : 'none';
+    booking.refundPct = tier.refundPct;
+    booking.refundAmount = refundAmount;
+    booking.refundInTCoins = !booking.isSplit; // Solo: T-Coins refund | Split: Real INR refund
+    booking.refundCoins = totalRefundCoins;
+    booking.ownerCompensation = ownerCompensation;
+    booking.payoutEligible = ownerCompensation > 0;
     booking.holdExpiresAt = null;
     if (booking.isSplit) {
       booking.splitStatus = 'expired';
       booking.splitExpiresAt = null;
     }
+
+    // ── Distribute Real INR Refund & Reverse Cashback / Used Coins for Split Bookings ──
+    if (booking.isSplit && booking.splitPayments && booking.splitPayments.length > 0) {
+      // Group Booking: Process each teammate/payer with REAL Razorpay INR refund (not phantom T-Coins)
+      for (const p of booking.splitPayments) {
+        // 1. Issue real Razorpay INR refund for this payer's share (tier-based %)
+        if (razorpayConfiguredBookings && p.razorpayPaymentId) {
+          const payerShareRefund = Math.round((p.amount || 0) * (tier.refundPct / 100));
+          if (payerShareRefund > 0) {
+            try {
+              const paidPaise = payerShareRefund * 100; // Razorpay uses paise
+              await razorpayBookings.payments.refund(p.razorpayPaymentId, {
+                amount: paidPaise,
+                speed: 'optimum',
+                notes: {
+                  reason: `Group booking cancelled — ${tier.refundPct}% refund per cancellation policy`,
+                  splitCode: booking.splitCode,
+                  payerName: p.payerName || '',
+                },
+              });
+              console.log(`✅ Split cancel refund: ₹${payerShareRefund} (${tier.refundPct}%) for ${p.payerName} (${p.razorpayPaymentId})`);
+            } catch (rzpErr) {
+              console.error(`❌ Split cancel Razorpay refund failed for ${p.razorpayPaymentId}:`, rzpErr.message);
+            }
+          }
+        }
+
+        // 2. Find payer user for T-Coins operations
+        let payerUser = null;
+        if (p.user) {
+          payerUser = await User.findById(p.user);
+        }
+        if (!payerUser && p.payerPhone) {
+          payerUser = await User.findOne({ phone: p.payerPhone });
+        }
+        if (!payerUser) {
+          payerUser = await User.findById(booking.customer?._id || booking.customer);
+        }
+
+        if (payerUser) {
+          // NOTE: No phantom T-Coins refund! The INR refund above handles the real money.
+          // We only handle T-Coins that were actually used/earned.
+
+          // 3. Reverse earned cashback on share
+          const payerCashbackPct = getCashbackPct(payerUser);
+          const shareCashback = Math.round((p.amount || 0) * (payerCashbackPct / 100) * 10);
+          if (shareCashback > 0) {
+            payerUser.tCoins = Math.max(0, (payerUser.tCoins || 0) - shareCashback);
+            payerUser.tCoinsLifetime = Math.max(0, (payerUser.tCoinsLifetime || 0) - shareCashback);
+            await TCoinsLedger.create({
+              user: payerUser._id,
+              booking: booking._id,
+              type: 'reverse_earn',
+              amount: -shareCashback,
+              rupeesEquivalent: -Math.round((p.amount || 0) * (payerCashbackPct / 100)),
+              balanceAfter: payerUser.tCoins,
+              description: `Reversed ${shareCashback} earned T-Coins — group booking cancelled`,
+            });
+          }
+
+          // 4. Return actually-used T-Coins for this share (100% refund of coins used)
+          if (p.tCoinsUsed > 0) {
+            payerUser.tCoins = (payerUser.tCoins || 0) + p.tCoinsUsed;
+            await TCoinsLedger.create({
+              user: payerUser._id,
+              booking: booking._id,
+              type: 'reverse_redeem',
+              amount: p.tCoinsUsed,
+              rupeesEquivalent: p.tCoinsDiscount || (p.tCoinsUsed / 10),
+              balanceAfter: payerUser.tCoins,
+              description: `Refunded 100% (${p.tCoinsUsed}) used T-Coins — group booking cancelled`,
+            });
+          }
+
+          await payerUser.save();
+        }
+      }
+    } else {
+      // Solo Booking: Process single customer wallet
+      const customerUser = await User.findById(booking.customer?._id || booking.customer);
+      if (customerUser) {
+        // 1. Credit T-Coins policy refund
+        if (totalRefundCoins > 0) {
+          customerUser.tCoins = (customerUser.tCoins || 0) + totalRefundCoins;
+          await TCoinsLedger.create({
+            user: customerUser._id,
+            booking: booking._id,
+            type: 'refund',
+            amount: totalRefundCoins,
+            rupeesEquivalent: refundAmount,
+            balanceAfter: customerUser.tCoins,
+            description: `Refund of ₹${refundAmount} (${tier.refundPct}%) credited as ${totalRefundCoins} T-Coins for cancelled booking`,
+          });
+        }
+
+        // 2. Reverse earned cashback coins
+        const customerCashbackPct = getCashbackPct(customerUser);
+        const coinsToReverse = booking.tCoinsEarned || (booking.paymentStatus === 'paid' ? Math.round(booking.amount * (customerCashbackPct / 100) * 10) : 0);
+        if (coinsToReverse > 0 && (booking.tCoinsEarnedCredited || booking.tCoinsEarned > 0)) {
+          customerUser.tCoins = Math.max(0, (customerUser.tCoins || 0) - coinsToReverse);
+          customerUser.tCoinsLifetime = Math.max(0, (customerUser.tCoinsLifetime || 0) - coinsToReverse);
+          booking.tCoinsEarnedCredited = false;
+          await TCoinsLedger.create({
+            user: customerUser._id,
+            booking: booking._id,
+            type: 'reverse_earn',
+            amount: -coinsToReverse,
+            rupeesEquivalent: -(Math.round(coinsToReverse / 10)),
+            balanceAfter: customerUser.tCoins,
+            description: `Reversed ${coinsToReverse} earned T-Coins — booking cancelled`,
+          });
+        }
+
+        // 3. 100% refund used coins back to wallet
+        if (booking.tCoinsUsed > 0) {
+          customerUser.tCoins = (customerUser.tCoins || 0) + booking.tCoinsUsed;
+          await TCoinsLedger.create({
+            user: customerUser._id,
+            booking: booking._id,
+            type: 'reverse_redeem',
+            amount: booking.tCoinsUsed,
+            rupeesEquivalent: booking.tCoinsDiscount || (booking.tCoinsUsed / 10),
+            balanceAfter: customerUser.tCoins,
+            description: `Refunded 100% (${booking.tCoinsUsed}) used T-Coins — booking cancelled`,
+          });
+        }
+
+        await customerUser.save();
+      }
+    }
+
     await booking.save();
 
-    res.json({ success: true, data: booking });
+    res.json({
+      success: true,
+      message: `${tier.refundPct}% refund credited as ${totalRefundCoins.toLocaleString('en-IN')} T-Coins (₹${refundAmount}) to your MyTurfy wallet.`,
+      data: {
+        bookingId: booking._id,
+        status: 'cancelled',
+        refundPct: tier.refundPct,
+        refundAmount,
+        refundCoins: totalRefundCoins,
+        originalAmount: booking.amount,
+        ownerCompensation,
+      },
+    });
   } catch (err) {
     next(err);
   }
 });
-
-/* ─────────────────────────────────────────────────────
-   HELPER — calculate tiered refund percentage based on
-   time remaining before booked slot start time.
-   ≥ 24h: 100%, 12–24h: 75%, 6–12h: 50%, 1–6h: 25%, < 1h: 10%, Past: 0%
-───────────────────────────────────────────────────── */
-function calculateRefundTier(dateStr, timeStr) {
-  try {
-    if (!dateStr || !timeStr) return 0;
-    const [year, month, day] = dateStr.split('-').map(Number);
-    let hour = 0, minute = 0;
-
-    if (timeStr.includes(':')) {
-      const parts = timeStr.trim().split(':');
-      hour = parseInt(parts[0], 10);
-      const minPart = parts[1] || '0';
-      minute = parseInt(minPart, 10);
-
-      if (timeStr.toLowerCase().includes('pm') && hour < 12) {
-        hour += 12;
-      } else if (timeStr.toLowerCase().includes('am') && hour === 12) {
-        hour = 0;
-      }
-    } else {
-      hour = parseInt(timeStr, 10);
-    }
-
-    const slotTime = new Date(year, month - 1, day, hour, minute, 0, 0);
-    const now = new Date();
-
-    const diffMs = slotTime.getTime() - now.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-
-    if (diffHours >= 24) return 100;
-    if (diffHours >= 12) return 75;
-    if (diffHours >= 6) return 50;
-    if (diffHours >= 2) return 25;
-    return 0; // Less than 2 hours before slot or past
-  } catch (err) {
-    console.error('Error calculating refund tier:', err.message);
-    return 0;
-  }
-}
 
 /* ══════════════════════════════════════
    REFUND PREVIEW — preview refund tier for a booking
@@ -382,16 +705,42 @@ router.get('/:id/refund-preview', protect, async (req, res, next) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    const pct = calculateRefundTier(booking.date, booking.time);
-    const refundAmount = Math.round((booking.amount * pct) / 100);
+    const monthlyCount = await getMonthlyUserCancellationCount(req.auth.id);
+    if (monthlyCount >= 2) {
+      return res.json({
+        success: true,
+        data: {
+          bookingId: booking._id,
+          bookingAmount: booking.amount,
+          refundPct: 0,
+          refundAmount: 0,
+          refundCoins: 0,
+          canCancel: false,
+          isSplit: !!booking.isSplit,
+          message: 'Monthly cancellation limit reached: You are allowed to cancel a maximum of 2 bookings per month.',
+          date: booking.date,
+          time: booking.time,
+        },
+      });
+    }
+
+    const tier = getRefundTierInfo(booking.createdAt, booking.date, booking.time);
+    const refundAmount = Math.round((booking.amount * tier.refundPct) / 100);
+    const refundCoins = Math.round(refundAmount * 10); // 10 coins = ₹1
 
     res.json({
       success: true,
       data: {
         bookingId: booking._id,
         bookingAmount: booking.amount,
-        refundPct: pct,
+        refundPct: tier.refundPct,
         refundAmount,
+        refundCoins,
+        canCancel: tier.canCancel,
+        isSplit: !!booking.isSplit,
+        message: tier.canCancel
+          ? `${tier.refundPct}% refund (${refundCoins.toLocaleString('en-IN')} T-Coins = ₹${refundAmount}) will be credited to your MyTurfy wallet.`
+          : tier.message,
         date: booking.date,
         time: booking.time,
       },
@@ -443,8 +792,21 @@ router.post('/:id/request-refund', protect, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'A refund has already been requested for this booking' });
     }
 
+    const monthlyCount = await getMonthlyUserCancellationCount(req.auth.id);
+    if (monthlyCount >= 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Monthly cancellation limit reached: You are allowed to cancel a maximum of 2 bookings per month.',
+      });
+    }
+
     const { reason } = req.body;
-    const pct = calculateRefundTier(booking.date, booking.time);
+    const tier = getRefundTierInfo(booking.createdAt, booking.date, booking.time);
+    if (!tier.canCancel) {
+      return res.status(400).json({ success: false, message: tier.message });
+    }
+
+    const pct = tier.refundPct;
     const refundAmount = Math.round((booking.amount * pct) / 100);
 
     // Keep booking.status = 'upcoming' so the court slot remains reserved while under review!
@@ -493,37 +855,69 @@ router.post('/:id/approve-refund', protect, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'No pending refund request for this booking' });
     }
 
-    const refundPaise = (booking.refundAmount || 0) * 100;
-
-    // Trigger Razorpay refund if payment was made via Razorpay and refundPaise > 0
-    if (booking.razorpayPaymentId && refundPaise > 0) {
-      try {
-        const Razorpay = require('razorpay');
-        const config = require('../config/config');
-        const razorpayConfigured = !!(config.razorpay.keyId && config.razorpay.keySecret);
-        if (razorpayConfigured) {
-          const razorpay = new Razorpay({ key_id: config.razorpay.keyId, key_secret: config.razorpay.keySecret });
-          await razorpay.payments.refund(booking.razorpayPaymentId, {
-            amount: refundPaise,
-            speed: 'optimum',
-            notes: { reason: booking.refundReason || 'Customer refund request approved by Admin' },
-          });
-        }
-      } catch (rzpErr) {
-        console.error('Razorpay refund failed:', rzpErr.message);
-        return res.status(500).json({ success: false, message: 'Refund initiation failed: ' + rzpErr.message });
-      }
-    }
-
-    // 50% Owner compensation out of non-refunded retained amount
+    // 40% Owner compensation out of non-refunded retained amount
     const unrefunded = Math.max(0, booking.amount - (booking.refundAmount || 0));
-    const ownerCompensation = Math.round(unrefunded * 0.5);
+    const ownerCompensation = Math.round(unrefunded * 0.40);
+    const totalRefundCoins = Math.round((booking.refundAmount || 0) * 10);
 
     booking.refundStatus = 'approved';
     booking.status = 'cancelled'; // NOW the slot is freed!
     booking.paymentStatus = 'refunded';
+    booking.refundInTCoins = true;
+    booking.refundCoins = totalRefundCoins;
     booking.ownerCompensation = ownerCompensation;
     booking.payoutEligible = ownerCompensation > 0;
+
+    // ── T-Coins Credit & Reversal on Admin Refund ──
+    const refundCustomer = await User.findById(booking.customer._id || booking.customer);
+    if (refundCustomer) {
+      // 1. Credit Policy Refund as T-Coins
+      if (totalRefundCoins > 0) {
+        refundCustomer.tCoins = (refundCustomer.tCoins || 0) + totalRefundCoins;
+        await TCoinsLedger.create({
+          user: refundCustomer._id,
+          booking: booking._id,
+          type: 'refund',
+          amount: totalRefundCoins,
+          rupeesEquivalent: booking.refundAmount || 0,
+          balanceAfter: refundCustomer.tCoins,
+          description: `Admin approved refund of ₹${booking.refundAmount} (${booking.refundPct}%) credited as ${totalRefundCoins} T-Coins`,
+        });
+      }
+
+      // 2. Reverse earned T-Coins (claw back 3% cashback)
+      if (booking.tCoinsEarned > 0 && booking.tCoinsEarnedCredited) {
+        refundCustomer.tCoins = Math.max(0, (refundCustomer.tCoins || 0) - booking.tCoinsEarned);
+        refundCustomer.tCoinsLifetime = Math.max(0, (refundCustomer.tCoinsLifetime || 0) - booking.tCoinsEarned);
+        await TCoinsLedger.create({
+          user: refundCustomer._id,
+          booking: booking._id,
+          type: 'reverse_earn',
+          amount: -booking.tCoinsEarned,
+          rupeesEquivalent: -Math.round(booking.tCoinsEarned / 10),
+          balanceAfter: refundCustomer.tCoins,
+          description: `Reversed ${booking.tCoinsEarned} T-Coins (refund approved)`,
+        });
+        booking.tCoinsEarnedCredited = false;
+      }
+
+      // 3. Refund redeemed T-Coins (give back coins used for discount)
+      if (booking.tCoinsUsed > 0) {
+        refundCustomer.tCoins = (refundCustomer.tCoins || 0) + booking.tCoinsUsed;
+        await TCoinsLedger.create({
+          user: refundCustomer._id,
+          booking: booking._id,
+          type: 'reverse_redeem',
+          amount: booking.tCoinsUsed,
+          rupeesEquivalent: Math.round(booking.tCoinsUsed / 10),
+          balanceAfter: refundCustomer.tCoins,
+          description: `Refunded ${booking.tCoinsUsed} T-Coins (discount reversed)`,
+        });
+      }
+
+      await refundCustomer.save();
+    }
+
     await booking.save();
 
     await sendRefundApprovedEmail(booking);
@@ -531,7 +925,7 @@ router.post('/:id/approve-refund', protect, async (req, res, next) => {
     res.json({
       success: true,
       data: booking,
-      message: `Refund of ${booking.refundPct}% (₹${booking.refundAmount}) approved and processed by Admin. Slot released.`,
+      message: `Refund of ${booking.refundPct}% (₹${booking.refundAmount} = ${totalRefundCoins} T-Coins) approved and credited to customer's wallet by Admin. Slot released.`,
     });
   } catch (err) {
     next(err);
@@ -593,10 +987,6 @@ router.post('/:id/reject-refund', protect, async (req, res, next) => {
    ══════════════════════════════════════ */
 router.get('/payout-eligible', protect, isOwner, async (req, res, next) => {
   try {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    const currentHour = now.getHours();
-
     const bookings = await Booking.find({
       owner: req.auth.id,
       status: { $ne: 'cancelled' },
@@ -605,17 +995,7 @@ router.get('/payout-eligible', protect, isOwner, async (req, res, next) => {
       payoutEligible: true,
     }).populate('venue', 'name').populate('customer', 'name');
 
-    // Further filter: slot time must have passed
-    const eligible = bookings.filter(b => {
-      if (b.date < todayStr) return true;
-      if (b.date === todayStr) {
-        const slotHour = parseInt((b.time || '0').split(':')[0], 10);
-        return slotHour + (b.durationHours || 1) <= currentHour;
-      }
-      return false;
-    });
-
-    res.json({ success: true, count: eligible.length, data: eligible });
+    res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
     next(err);
   }
@@ -660,12 +1040,11 @@ router.post('/validate-qr', protect, isOwner, async (req, res, next) => {
       return res.status(400).json({ success: false, message: `Booking is ${booking.status}, cannot validate` });
     }
 
-    // Mark QR as validated
+    // Mark QR as validated — identity check only; status stays 'upcoming' until time-based auto-complete
     booking.qrValidated = true;
     booking.qrValidatedAt = new Date();
     booking.qrValidatedBy = req.auth.id;
-    booking.status = 'completed';
-    booking.payoutEligible = true; // Make eligible for immediate payout
+    // NOTE: status remains 'upcoming'; time-based auto-complete will mark it 'completed'
     await booking.save();
 
     res.json({
@@ -676,7 +1055,7 @@ router.post('/validate-qr', protect, isOwner, async (req, res, next) => {
         venueName: booking.venue.name,
         amount: booking.amount,
         validatedAt: booking.qrValidatedAt,
-        message: 'QR code validated successfully. Booking marked as completed and payout eligible.',
+        message: 'QR identity verified successfully. Customer is authenticated for this slot.',
       },
     });
   } catch (err) {
@@ -695,8 +1074,8 @@ router.post('/send-verification-otp', protect, isOwner, async (req, res, next) =
       return res.status(400).json({ success: false, message: 'Customer email is required' });
     }
 
-
-    const customer = await User.findOne({ email });
+    const cleanEmail = email.toLowerCase().trim();
+    const customer = await User.findOne({ email: cleanEmail });
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found with this email' });
     }
@@ -724,21 +1103,17 @@ router.post('/send-verification-otp', protect, isOwner, async (req, res, next) =
     booking.verificationOtpExpires = otpExpires;
     await booking.save();
 
-    // Send OTP email
-    const nodemailer = require('nodemailer');
-    const config = require('../config/config');
-    const transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.port === 465,
-      auth: { user: config.email.user, pass: config.email.pass },
-    });
-
-    await transporter.sendMail({
-      from: config.email.user,
-      to: email,
+    // Send OTP email via central sendEmail helper
+    await sendEmail({
+      to: cleanEmail,
       subject: 'MyTurfy - Booking Verification Code',
-      text: `Your verification code for booking at ${booking.venue.name} is: ${otp}\n\nThis code is valid for 10 minutes. Share this code with the venue owner to verify your booking.`,
+      html: `
+        <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;background:#0a0f0d;color:#e8f5e9;border-radius:12px;border:1px solid rgba(0,200,83,.2)">
+          <h2 style="color:#00c853;font-size:24px">Booking Verification Code 🏟️</h2>
+          <p>Your verification code for booking at <strong>${booking.venue.name}</strong> is:</p>
+          <div style="font-size:36px;font-weight:800;letter-spacing:8px;color:#00c853;background:#111a14;padding:16px;border-radius:10px;text-align:center;margin:20px 0;border:1px solid rgba(0,200,83,.2)">${otp}</div>
+          <p style="font-size:12px;color:#7aad82">Valid for 10 minutes. Share this code with the venue manager to verify your entry.</p>
+        </div>`,
     });
 
     res.json({
@@ -762,8 +1137,8 @@ router.post('/verify-otp', protect, isOwner, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email and OTP are required' });
     }
 
-
-    const customer = await User.findOne({ email });
+    const cleanEmail = email.toLowerCase().trim();
+    const customer = await User.findOne({ email: cleanEmail });
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
@@ -785,12 +1160,10 @@ router.post('/verify-otp', protect, isOwner, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Booking already validated' });
     }
 
-    // Mark as validated
+    // Mark as identity-verified — status stays 'upcoming'; time-based auto-complete handles completion
     booking.qrValidated = true;
     booking.qrValidatedAt = new Date();
     booking.qrValidatedBy = req.auth.id;
-    booking.status = 'completed';
-    booking.payoutEligible = true;
     booking.verificationOtp = undefined;
     booking.verificationOtpExpires = undefined;
     await booking.save();
@@ -803,66 +1176,9 @@ router.post('/verify-otp', protect, isOwner, async (req, res, next) => {
         venueName: booking.venue.name,
         amount: booking.amount,
         validatedAt: booking.qrValidatedAt,
-        message: 'Booking verified成功. Marked as completed and payout eligible.',
+        message: 'Customer identity verified. Booking is confirmed for this slot.',
       },
     });
-  } catch (err) {
-    next(err);
-  }
-});
-
-/* ══════════════════════════════════════
-   OFFLINE BOOKING (owner creates walk-in booking)
-   POST /api/bookings/offline
-   ══════════════════════════════════════ */
-router.post('/offline', protect, isOwner, async (req, res, next) => {
-  try {
-    const { venueId, date, time, durationHours = 1, customerName, customerPhone } = req.body;
-    if (!venueId || !date || !time) {
-      return res.status(400).json({ success: false, message: 'venueId, date and time are required' });
-    }
-
-    const venue = await Venue.findOne({ _id: venueId, owner: req.auth.id });
-    if (!venue) return res.status(404).json({ success: false, message: 'Venue not found or you do not own it' });
-
-    // Check turfs-aware availability
-    const hourCounts = await getHourBookingCounts(venueId, date);
-    const turfsCount = venue.specs?.turfs || 1;
-    const startH = parseInt(time.split(':')[0], 10);
-    for (let i = 0; i < durationHours; i++) {
-      if ((hourCounts.get(startH + i) || 0) >= turfsCount) {
-        return res.status(400).json({ success: false, message: `Time slot ${startH + i}:00 is fully booked across all ${turfsCount} court(s)` });
-      }
-    }
-
-
-    const phoneClean = (customerPhone || '').replace(/\s+/g, '');
-    const dummyEmail = phoneClean
-      ? `offline_${phoneClean}@myturfy.com`.toLowerCase()
-      : `offline_${Date.now()}@myturfy.com`;
-
-    let user = await User.findOne({ email: dummyEmail });
-    if (!user) {
-      user = await User.create({
-        name: customerName || 'Walk-in Customer',
-        email: dummyEmail,
-        phone: customerPhone || undefined,
-        password: 'offline-placeholder',
-      });
-    }
-
-    const booking = await Booking.create({
-      customer: user._id,
-      venue: venue._id,
-      owner: req.auth.id,
-      date, time, durationHours,
-      amount: venue.price * durationHours,
-      status: 'upcoming',
-      paymentStatus: 'paid',
-      payoutEligible: false, // offline bookings — payout handled separately
-    });
-
-    res.status(201).json({ success: true, data: booking });
   } catch (err) {
     next(err);
   }

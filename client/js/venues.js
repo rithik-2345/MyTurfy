@@ -20,8 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(()=>{ t.classList.remove('visible'); setTimeout(()=>t.remove(),400); },3000);
   }
 
-  /* ── Sync navbar ── */
-  Auth.syncNavbar();
+
 
   /* ─── CONSTANTS ─── */
   const FACILITY_LABELS = { floodlights:'Floodlights', parking:'Parking', changing:'Changing Rooms', cafeteria:'Cafeteria', ac:'Air Conditioned' };
@@ -30,15 +29,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const SPORT_BG = {
     Football:'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=1400&q=80',
     Cricket:'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&q=80',
-    Basketball:'image/basketball.png', Pickleball:'image/pickleball.png',
-    Bowling:'image/bowling.png', Pool:'image/pool.png',
-    all:'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80',
+    Basketball:'image/basketball.webp', Pickleball:'image/pickleball.webp',
+    Bowling:'image/bowling.webp', Pool:'image/pool.webp',
+    all:'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1400&q=80'
   };
 
   /* ─── URL PARAMS ─── */
   const params = new URLSearchParams(location.search);
   const currentSport = params.get('sport') || 'Football';
   const qParam       = params.get('q') || '';
+  const timeParam    = params.get('time') || '';
+  const priceParam   = params.get('price') || '';
+  const ratingParam  = params.get('rating') || '';
+  const facilityParam= params.get('facilities') || params.get('facility') || '';
+  const sortParam    = params.get('sort') || '';
+  const availParam   = params.get('avail') || '';
+  const nearestParam = params.get('nearest') || '';
 
   // Current state — updated on every filter/sort/search action
   let allLoaded = [];      // full list from the last API call
@@ -92,6 +98,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const height = v.specs?.height ?? 0;
     const sportBadge = currentSport === 'all'
       ? `<span class="badge badge-blue"><i class="fas fa-tag"></i> ${v.sport}</span>` : '';
+    const distBadge = v.distKm != null && isFinite(v.distKm)
+      ? `<span class="badge badge-green" style="background:rgba(0,200,83,0.22);color:var(--green);font-weight:800"><i class="fas fa-location-arrow"></i> ~${v.distKm < 1 ? Math.round(v.distKm * 1000) + ' m' : v.distKm.toFixed(1) + ' km'} approx</span>`
+      : '';
 
     return `
       <div class="venue-card" data-id="${v._id}" data-price="${v.price}" data-rating="${v.rating}">
@@ -100,6 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="venue-img-overlay">
             <div class="venue-badges">
               ${v.badge ? `<span class="badge ${v.badgeType||'badge-green'}"><i class="fas fa-bolt"></i> ${v.badge}</span>` : ''}
+              ${distBadge}
               ${sportBadge}
             </div>
           </div>
@@ -185,9 +195,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (id) window.location.href = `venue-detail.html?id=${encodeURIComponent(id)}`;
       });
     });
-
-    // Keep the map's pins in sync if Map View is currently open
-    if (typeof renderMap === 'function') renderMap();
   }
 
   /* ─── LOADING STATE ─── */
@@ -235,6 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       $('#emptyState').style.display = 'block';
     }
   }
+  window.loadVenues = loadVenues;
 
   /* ─── SEARCH ─── */
   const venueSearch    = $('#venueSearch');
@@ -367,8 +375,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div>
               <div style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase">Upcoming Live Match Ticket</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);margin-top:2px">${venue.name} <span style="font-size:14px;color:var(--muted)">(${b.date} at ${b.time})</span></div>
-              <div style="font-size:12px;color:var(--muted)"><i class="fas fa-map-marker-alt"></i> ${venue.location} · Court ${b.courtNumber || 1}</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);margin-top:2px">${escapeHTML(venue.name)} <span style="font-size:14px;color:var(--muted)">(${escapeHTML(b.date)} at ${escapeHTML(b.time)})</span></div>
+              <div style="font-size:12px;color:var(--muted)"><i class="fas fa-map-marker-alt"></i> ${escapeHTML(venue.location)} · Court ${escapeHTML(b.courtNumber || 1)}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
@@ -388,8 +396,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         qrModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
         qrModal.innerHTML = `
           <div style="background:var(--card-bg);border:1px solid var(--green);border-radius:20px;padding:24px;text-align:center;max-width:320px">
-            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);margin:0 0 4px">${venue.name}</h3>
-            <p style="font-size:12px;color:var(--green);margin:0 0 16px">Court ${b.courtNumber || 1} · ${b.date} @ ${b.time}</p>
+            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);margin:0 0 4px">${escapeHTML(venue.name)}</h3>
+            <p style="font-size:12px;color:var(--green);margin:0 0 16px">Court ${escapeHTML(b.courtNumber || 1)} · ${escapeHTML(b.date)} @ ${escapeHTML(b.time)}</p>
             <img src="${qrUrl}" alt="QR Ticket" style="width:180px;height:180px;border-radius:12px;border:2px solid var(--green);padding:6px;background:#fff"/>
             <p style="font-size:11px;color:var(--muted);margin:14px 0 16px">Show this QR Pass to the venue manager upon arrival</p>
             <button id="closeQrBtn" style="padding:8px 24px;background:var(--green);color:#04140a;border:none;border-radius:50px;font-weight:700;cursor:pointer">Close Pass</button>
@@ -403,70 +411,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   loadLiveMatchCard();
 
-  function applySearch(q) {
-    const lq = q.toLowerCase().trim();
-    displayed = !lq ? [...allLoaded] : allLoaded.filter(v =>
-      v.name.toLowerCase().includes(lq) ||
-      v.location.toLowerCase().includes(lq) ||
-      (v.tags||[]).some(t=>t.includes(lq))
-    );
-    renderCards(displayed);
-    const subEl = $('#pageSub');
-    if (subEl) subEl.textContent = `${displayed.length} venue${displayed.length!==1?'s':''} available near you`;
+  /* ─── NEAREST TO ME — geolocation + Haversine ─── */
+  let userCoords = null;
+
+  const CITY_COORDS = {
+    surat:     { lat: 21.1702, lng: 72.8311 },
+    mumbai:    { lat: 19.0760, lng: 72.8777 },
+    ahmedabad: { lat: 23.0225, lng: 72.5714 },
+    delhi:     { lat: 28.6139, lng: 77.2090 },
+    bangalore: { lat: 12.9716, lng: 77.5946 },
+    bengaluru: { lat: 12.9716, lng: 77.5946 },
+    pune:      { lat: 18.5204, lng: 73.8567 },
+    hyderabad: { lat: 17.3850, lng: 78.4867 },
+    kolkata:   { lat: 22.5726, lng: 88.3639 },
+    chennai:   { lat: 13.0827, lng: 80.2707 },
+    vadodara:  { lat: 22.3072, lng: 73.1812 },
+    rajkot:    { lat: 22.3039, lng: 70.8022 },
+  };
+
+  function getVenueCoords(v) {
+    if (v.lat != null && v.lng != null && !isNaN(v.lat) && !isNaN(v.lng)) {
+      return { lat: Number(v.lat), lng: Number(v.lng) };
+    }
+    const loc = (v.location || '').toLowerCase();
+    for (const [cityName, coords] of Object.entries(CITY_COORDS)) {
+      if (loc.includes(cityName)) return coords;
+    }
+    return null;
   }
-
-  venueSearch?.addEventListener('input',  () => applySearch(venueSearch.value));
-  mobileSearch?.addEventListener('input', () => { if (venueSearch) venueSearch.value = mobileSearch.value; applySearch(mobileSearch.value); });
-
-  // Pre-fill search from URL ?q= param
-  if (qParam) {
-    if (venueSearch) venueSearch.value = qParam;
-    if (mobileSearch) mobileSearch.value = qParam;
-  }
-
-  /* ─── MOBILE SEARCH TOGGLE ─── */
-  const mobileSearchBar   = $('#mobileSearchBar');
-  const mobileSearchToggle = $('#mobileSearchToggle');
-  const mobileSearchClose  = $('#mobileSearchClose');
-  mobileSearchToggle?.addEventListener('click', () => { mobileSearchBar.classList.add('open'); mobileSearch?.focus(); });
-  mobileSearchClose?.addEventListener('click', () => mobileSearchBar.classList.remove('open'));
-
-  /* ─── SIGN IN MODAL (Centralized) ─── */
-  Auth.initAuthModal(toast);
-
-  /* ─── NAVBAR DROPDOWNS ─── */
-  const cityBtn = $('#cityBtn'), cityMenu = $('#cityMenu');
-  const menuBtn = $('#menuBtn'), profileMenu = $('#profileMenu');
-  function toggleDrop(menu) {
-    const open = menu.classList.contains('open');
-    $$('.dropdown-menu.open').forEach(m=>m.classList.remove('open'));
-    if (!open) menu.classList.add('open');
-  }
-  cityBtn?.addEventListener('click', e=>{e.stopPropagation();toggleDrop(cityMenu)});
-  menuBtn?.addEventListener('click', e=>{e.stopPropagation();toggleDrop(profileMenu)});
-  document.addEventListener('click', ()=>$$('.dropdown-menu.open').forEach(m=>m.classList.remove('open')));
-
-  $$('.city-menu a[data-city]').forEach(link=>{
-    link.addEventListener('click', e=>{
-      e.preventDefault();
-      cityBtn.innerHTML=`<i class="fas fa-map-marker-alt"></i> <span class="city-label">${link.dataset.city}</span> <i class="fas fa-chevron-down chevron"></i>`;
-      cityMenu.classList.remove('open');
-    });
-  });
-
-  /* ─── NEAREST-FIRST — real distance, not a stub ───
-     Uses the browser's geolocation + the Haversine formula (great-circle
-     distance) against each venue's lat/lng. Venues without coordinates
-     set sort to the back rather than crashing the sort.
-  ─── */
-  let userCoords = null; // cached after first successful geolocation lookup
 
   function haversineKm(lat1, lng1, lat2, lng2) {
     const R = 6371;
-    const dLat = (lat2-lat1) * Math.PI/180;
-    const dLng = (lng2-lng1) * Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    const straight = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return straight * 1.35; // road-distance approximation
   }
 
   function getUserLocation() {
@@ -475,48 +455,319 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!navigator.geolocation) return reject(new Error('Geolocation is not supported by your browser'));
       navigator.geolocation.getCurrentPosition(
         (pos) => { userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; resolve(userCoords); },
-        () => reject(new Error('Location access denied — enable it in your browser settings to sort by nearest')),
-        { timeout: 10000 }
+        () => reject(new Error('Please allow location access to find turfs nearest to you')),
+        { timeout: 10000, enableHighAccuracy: true }
       );
     });
   }
 
-  /* ─── SORT (horizontal scroll chip strip) ─── */
-  $$('input[name="sortOption"]').forEach(radio => {
-    radio.addEventListener('change', async () => {
-      $$('.sort-chip').forEach(c=>c.classList.remove('active'));
-      radio.closest('.sort-chip').classList.add('active');
-      const sort = radio.value;
-      const label = radio.closest('.sort-chip').querySelector('span').textContent.trim();
-      // Client-side sort on already-loaded data (fast, no extra API call)
-      let sorted = [...displayed];
-      if (sort==='price-low')  sorted.sort((a,b)=>a.price-b.price);
-      if (sort==='price-high') sorted.sort((a,b)=>b.price-a.price);
-      if (sort==='rating')     sorted.sort((a,b)=>b.rating-a.rating);
-      if (sort==='area-large') sorted.sort((a,b)=>(b.area||0)-(a.area||0));
-      if (sort==='area-small') sorted.sort((a,b)=>(a.area||0)-(b.area||0));
-      if (sort==='distance') {
-        toast('📍 Finding venues near you…');
-        try {
-          const coords = await getUserLocation();
-          sorted.sort((a, b) => {
-            const distA = (a.lat!=null && a.lng!=null) ? haversineKm(coords.lat, coords.lng, a.lat, a.lng) : Infinity;
-            const distB = (b.lat!=null && b.lng!=null) ? haversineKm(coords.lat, coords.lng, b.lat, b.lng) : Infinity;
-            return distA - distB;
-          });
-        } catch (err) {
-          toast(`❌ ${err.message}`, true);
-          return; // keep the previous order rather than applying a broken sort
+  function calculateAllDistances(coords) {
+    allLoaded.forEach(v => {
+      const vc = getVenueCoords(v);
+      v.distKm = vc ? haversineKm(coords.lat, coords.lng, vc.lat, vc.lng) : null;
+    });
+  }
+
+  /* ─── TIME SLOT AVAILABILITY CHECKER ─── */
+  function venueHasTimeSlot(v, slotType, availDay = 'any') {
+    // Check explicit venue slots array if defined & not empty
+    if (Array.isArray(v.slots) && v.slots.length > 0) {
+      if (!v.slots.includes(slotType)) return false;
+    }
+
+    const open = v.openHour ?? 6;
+    const close = v.closeHour ?? 22; // 22 = 10 PM, 24 = 12 AM
+
+    // Check operating hours overlap with selected slot window
+    let isOpenInSlot = false;
+    if (slotType === 'morning') {
+      // Morning: 6 AM to 12 PM (6:00 to 12:00)
+      isOpenInSlot = (open < 12 && close > 6);
+    } else if (slotType === 'afternoon') {
+      // Afternoon: 12 PM to 5 PM (12:00 to 17:00)
+      isOpenInSlot = (open < 17 && close > 12);
+    } else if (slotType === 'evening') {
+      // Evening: 5 PM to 10 PM (17:00 to 22:00)
+      isOpenInSlot = (open < 22 && close > 17);
+    } else if (slotType === 'night') {
+      // Night: 10 PM to 6 AM (22:00 to 06:00)
+      isOpenInSlot = (open < 6 || close > 22 || close === 24 || close === 0);
+    }
+
+    if (!isOpenInSlot) return false;
+
+    // Check date-specific blocks or closed dates if filtering for a specific day
+    const now = new Date();
+    let targetDateStr = null;
+    if (availDay === 'today') {
+      targetDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const currentHour = now.getHours();
+      // If filtering today and the slot time window has already completely passed
+      if (slotType === 'morning' && currentHour >= 12) return false;
+      if (slotType === 'afternoon' && currentHour >= 17) return false;
+      if (slotType === 'evening' && currentHour >= 22) return false;
+    } else if (availDay === 'tomorrow') {
+      const tom = new Date(now);
+      tom.setDate(tom.getDate() + 1);
+      targetDateStr = `${tom.getFullYear()}-${String(tom.getMonth()+1).padStart(2,'0')}-${String(tom.getDate()).padStart(2,'0')}`;
+    }
+
+    if (targetDateStr) {
+      if ((v.closedDates || []).includes(targetDateStr)) return false;
+
+      // Check owner blocked slots for this date
+      const blocked = (v.blockedSlots || []).find(b => b.date === targetDateStr);
+      if (blocked && Array.isArray(blocked.hours)) {
+        let slotHours = [];
+        if (slotType === 'morning') slotHours = [6,7,8,9,10,11];
+        else if (slotType === 'afternoon') slotHours = [12,13,14,15,16];
+        else if (slotType === 'evening') slotHours = [17,18,19,20,21];
+        else if (slotType === 'night') slotHours = [22,23,0,1,2,3,4,5];
+
+        const activeVenueHours = slotHours.filter(h => h >= open && h < close);
+        if (activeVenueHours.length > 0 && activeVenueHours.every(h => blocked.hours.includes(h))) {
+          return false;
         }
       }
-      displayed = sorted;
-      renderCards(displayed);
+    }
+
+    return true;
+  }
+
+  /* ─── AVAILABILITY DAY FILTER ─── */
+  function venueMatchesAvailability(v, availValue) {
+    if (!availValue || availValue === 'any') return true;
+    const now = new Date();
+    const formatDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    if (availValue === 'today') {
+      const todayStr = formatDate(now);
+      if ((v.closedDates || []).includes(todayStr)) return false;
+      if (now.getHours() >= (v.closeHour ?? 22)) return false;
+      return true;
+    }
+    if (availValue === 'tomorrow') {
+      const tom = new Date(now);
+      tom.setDate(tom.getDate() + 1);
+      const tomStr = formatDate(tom);
+      return !(v.closedDates || []).includes(tomStr);
+    }
+    if (availValue === 'weekend') {
+      const day = now.getDay();
+      const satOffset = (6 - day + 7) % 7;
+      const sunOffset = (7 - day + 7) % 7;
+      const sat = new Date(now); sat.setDate(sat.getDate() + satOffset);
+      const sun = new Date(now); sun.setDate(sun.getDate() + sunOffset);
+      const satStr = formatDate(sat);
+      const sunStr = formatDate(sun);
+      const closed = v.closedDates || [];
+      return !(closed.includes(satStr) && closed.includes(sunStr));
+    }
+    return true;
+  }
+
+  /* ─── MULTI-TIER 3KM RADIUS SORTING & GLOBAL SORTING ─── */
+  function sortVenuesList(list, sortType, nearestActive) {
+    const comparator = (a, b) => {
+      if (sortType === 'price-low')  return a.price - b.price;
+      if (sortType === 'price-high') return b.price - a.price;
+      if (sortType === 'rating')     return (b.rating || 0) - (a.rating || 0);
+      if (sortType === 'area-large') return (b.area || 0) - (a.area || 0);
+      if (sortType === 'area-small') return (a.area || 0) - (b.area || 0);
+      // relevance: sponsored first, then rating
+      return ((b.isSponsored ? 1 : 0) - (a.isSponsored ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0));
+    };
+
+    if (!nearestActive) {
+      return [...list].sort(comparator);
+    }
+
+    // Group venues into 3 km radius rings:
+    // Band 0: 0 - 3 km (Math.floor(distKm / 3) === 0)
+    // Band 1: 3 - 6 km (Math.floor(distKm / 3) === 1)
+    // Band 2: 6 - 9 km (Math.floor(distKm / 3) === 2)
+    // etc.
+    return [...list].sort((a, b) => {
+      const distA = (a.distKm != null && isFinite(a.distKm)) ? a.distKm : 999999;
+      const distB = (b.distKm != null && isFinite(b.distKm)) ? b.distKm : 999999;
+
+      const tierA = Math.floor(distA / 3);
+      const tierB = Math.floor(distB / 3);
+
+      if (tierA !== tierB) {
+        return tierA - tierB; // Closer 3 km radius band comes first
+      }
+
+      // Within the SAME 3 km radius ring, sort by chosen sort criteria (e.g. price-low, rating)
+      return comparator(a, b);
+    });
+  }
+
+  /* ─── UNIFIED FILTER & SORT ENGINE ─── */
+  const rangeSlider  = $('#priceRange');
+  const priceDisplay = $('#priceDisplay');
+  const nearestCheckbox = $('#nearestCheckbox');
+  const quickNearestBtn = $('#quickNearestBtn');
+
+  function applyAllFiltersAndSort(showToast = false) {
+    const maxPrice     = +(rangeSlider?.value || 5000);
+    const minRating    = +($$('[name="rating"]:checked')[0]?.value || 0);
+    const facilities   = $$('[data-filter="facility"]:checked').map(c => c.value);
+    const selectedSlots= $$('[data-filter="time"]:checked').map(c => c.value);
+    const availVal     = $$('[name="avail"]:checked')[0]?.value || 'any';
+    const sortType     = $$('[name="sortOption"]:checked')[0]?.value || 'relevance';
+    const nearestActive= nearestCheckbox ? nearestCheckbox.checked : false;
+    const q            = (venueSearch?.value || mobileSearch?.value || '').toLowerCase().trim();
+
+    displayed = allLoaded.filter(v => {
+      // 1. Search filter (name, location, sport, tags)
+      if (q) {
+        const matchName  = (v.name || '').toLowerCase().includes(q);
+        const matchLoc   = (v.location || '').toLowerCase().includes(q);
+        const matchTags  = (v.tags || []).some(t => (t || '').toLowerCase().includes(q));
+        const matchSport = (v.sport || '').toLowerCase().includes(q);
+        if (!matchName && !matchLoc && !matchTags && !matchSport) return false;
+      }
+      // 2. Price filter
+      if (v.price > maxPrice) return false;
+      // 3. Rating filter
+      if ((v.rating || 0) < minRating) return false;
+      // 4. Facility filter
+      if (facilities.length && !facilities.every(f => (v.tags || []).includes(f))) return false;
+      // 5. Time slot filter (Morning, Afternoon, Evening, Night)
+      if (selectedSlots.length > 0) {
+        const hasSlot = selectedSlots.some(slot => venueHasTimeSlot(v, slot, availVal));
+        if (!hasSlot) return false;
+      }
+      // 6. Availability filter (Any, Today, Tomorrow, Weekend)
+      if (!venueMatchesAvailability(v, availVal)) return false;
+
+      return true;
+    });
+
+    // Apply sort (with 3 km radius banding if nearest is active)
+    displayed = sortVenuesList(displayed, sortType, nearestActive);
+
+    renderCards(displayed);
+    const subEl = $('#pageSub');
+    if (subEl) subEl.textContent = `${displayed.length} venue${displayed.length !== 1 ? 's' : ''} available near you`;
+
+    if (showToast) {
+      toast(`✅ ${displayed.length} venue${displayed.length !== 1 ? 's' : ''} found`);
+    }
+  }
+
+  /* ─── NEAREST TO ME TOGGLE ─── */
+  async function toggleNearestMode(forceState = null) {
+    if (!nearestCheckbox) return;
+    const targetState = forceState !== null ? forceState : nearestCheckbox.checked;
+    nearestCheckbox.checked = targetState;
+
+    if (targetState) {
+      toast('📍 Finding turfs nearest to you…');
+      quickNearestBtn?.classList.add('active');
+      try {
+        const coords = await getUserLocation();
+        calculateAllDistances(coords);
+        applyAllFiltersAndSort();
+        toast('📍 Grouped by 3 km radius rings!');
+      } catch (err) {
+        nearestCheckbox.checked = false;
+        quickNearestBtn?.classList.remove('active');
+        toast(`❌ ${err.message}`, true);
+        applyAllFiltersAndSort();
+      }
+    } else {
+      quickNearestBtn?.classList.remove('active');
+      allLoaded.forEach(v => { delete v.distKm; });
+      applyAllFiltersAndSort();
+      toast('📍 Nearest priority disabled');
+    }
+  }
+
+  nearestCheckbox?.addEventListener('change', () => toggleNearestMode(nearestCheckbox.checked));
+  quickNearestBtn?.addEventListener('click', () => toggleNearestMode(!nearestCheckbox.checked));
+
+  /* ─── SEARCH INPUTS ─── */
+  venueSearch?.addEventListener('input', () => {
+    if (mobileSearch) mobileSearch.value = venueSearch.value;
+    applyAllFiltersAndSort();
+  });
+  mobileSearch?.addEventListener('input', () => {
+    if (venueSearch) venueSearch.value = mobileSearch.value;
+    applyAllFiltersAndSort();
+  });
+
+  if (qParam) {
+    if (venueSearch) venueSearch.value = qParam;
+    if (mobileSearch) mobileSearch.value = qParam;
+  }
+
+  /* ─── SORT OPTIONS ─── */
+  $$('input[name="sortOption"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      $$('.sort-chip').forEach(c => c.classList.remove('active'));
+      radio.closest('.sort-chip')?.classList.add('active');
+      const label = radio.closest('.sort-chip')?.querySelector('span')?.textContent.trim() || 'Sort';
+      applyAllFiltersAndSort();
       toast(`🔃 Sorted by ${label}`);
     });
   });
-  $('input[name="sortOption"]:checked')?.closest('.sort-chip')?.classList.add('active');
 
-  /* ─── FILTER DRAWER ─── */
+  /* ─── PRICE RANGE SLIDER ─── */
+  rangeSlider?.addEventListener('input', () => {
+    const v = +rangeSlider.value;
+    if (priceDisplay) priceDisplay.textContent = `₹${v.toLocaleString('en-IN')}`;
+    const pct = ((v - 500) / 4500) * 100;
+    rangeSlider.style.background = `linear-gradient(to right,var(--green) ${pct}%,var(--dark3) ${pct}%)`;
+  });
+  rangeSlider?.addEventListener('change', () => applyAllFiltersAndSort(true));
+
+  /* ─── RATING, FACILITIES, TIME SLOTS, AVAILABILITY LISTENERS ─── */
+  $$('[name="rating"]').forEach(r => r.addEventListener('change', () => applyAllFiltersAndSort(true)));
+  $$('[data-filter="facility"]').forEach(c => c.addEventListener('change', () => applyAllFiltersAndSort(true)));
+  $$('[data-filter="time"]').forEach(c => c.addEventListener('change', () => applyAllFiltersAndSort(true)));
+  $$('[name="avail"]').forEach(r => r.addEventListener('change', () => applyAllFiltersAndSort(true)));
+
+  /* ─── RESET FILTERS BUTTON ─── */
+  $('#resetFiltersBtn')?.addEventListener('click', () => {
+    // Reset Price
+    if (rangeSlider) {
+      rangeSlider.value = 5000;
+      if (priceDisplay) priceDisplay.textContent = '₹5,000';
+      rangeSlider.style.background = 'linear-gradient(to right,var(--green) 100%,var(--dark3) 100%)';
+    }
+    // Reset Rating
+    const defaultRating = $('input[name="rating"][value="any"]');
+    if (defaultRating) defaultRating.checked = true;
+    // Reset Facilities & Time Slots
+    $$('[data-filter="facility"]').forEach(c => { c.checked = false; });
+    $$('[data-filter="time"]').forEach(c => { c.checked = false; });
+    // Reset Availability
+    const defaultAvail = $('input[name="avail"][value="any"]');
+    if (defaultAvail) defaultAvail.checked = true;
+    // Reset Sort
+    const defaultSort = $('input[name="sortOption"][value="relevance"]');
+    if (defaultSort) {
+      defaultSort.checked = true;
+      $$('.sort-chip').forEach(c => c.classList.remove('active'));
+      defaultSort.closest('.sort-chip')?.classList.add('active');
+    }
+    // Reset Nearest
+    if (nearestCheckbox) nearestCheckbox.checked = false;
+    quickNearestBtn?.classList.remove('active');
+    allLoaded.forEach(v => { delete v.distKm; });
+
+    // Reset Search
+    if (venueSearch) venueSearch.value = '';
+    if (mobileSearch) mobileSearch.value = '';
+
+    applyAllFiltersAndSort();
+    closeDrawer();
+    toast('🔄 Filters reset');
+  });
+
+  /* ─── FILTER DRAWER (Mobile) ─── */
   const sidebar = $('#sidebar'), sidebarBackdrop = $('#sidebarBackdrop'), drawerClose = $('#drawerClose');
   function openDrawer() { sidebar.classList.add('drawer-open'); sidebarBackdrop.classList.add('active'); document.body.style.overflow='hidden'; }
   function closeDrawer() { sidebar.classList.remove('drawer-open'); sidebarBackdrop.classList.remove('active'); document.body.style.overflow=''; }
@@ -525,136 +776,65 @@ document.addEventListener('DOMContentLoaded', async () => {
   drawerClose?.addEventListener('click', closeDrawer);
   sidebarBackdrop?.addEventListener('click', closeDrawer);
 
-  let touchY=0;
-  sidebar?.addEventListener('touchstart',e=>{touchY=e.touches[0].clientY},{passive:true});
-  sidebar?.addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-touchY>80&&sidebar.scrollTop===0)closeDrawer()},{passive:true});
+  let touchY = 0;
+  sidebar?.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+  sidebar?.addEventListener('touchend', e => {
+    if (e.changedTouches[0].clientY - touchY > 80 && sidebar.scrollTop === 0) closeDrawer();
+  }, { passive: true });
 
-  /* ─── PRICE RANGE ─── */
-  const rangeSlider = $('#priceRange'), priceDisplay = $('#priceDisplay');
-  rangeSlider?.addEventListener('input', ()=>{
-    const v=+rangeSlider.value;
-    priceDisplay.textContent=`₹${v.toLocaleString('en-IN')}`;
-    const pct=((v-500)/4500)*100;
-    rangeSlider.style.background=`linear-gradient(to right,var(--green) ${pct}%,var(--dark3) ${pct}%)`;
-  });
-
-  /* ─── LIVE FILTERS (client-side on loaded data) ─── */
-  function applySidebarFilters() {
-    const maxPrice  = +(rangeSlider?.value || 5000);
-    const minRating = +($$('[name="rating"]:checked')[0]?.value || 0);
-    const facilities = $$('[data-filter="facility"]:checked').map(c=>c.value);
-    displayed = allLoaded.filter(v => {
-      if (v.price > maxPrice) return false;
-      if (v.rating < minRating) return false;
-      if (facilities.length && !facilities.every(f=>(v.tags||[]).includes(f))) return false;
-      return true;
-    });
-    renderCards(displayed);
-    toast(`✅ ${displayed.length} venue${displayed.length!==1?'s':''} found`);
+  /* ─── INITIALIZE FILTERS FROM URL PARAMS ─── */
+  function initFiltersFromUrl() {
+    if (priceParam && rangeSlider) {
+      const p = Math.max(500, Math.min(5000, +priceParam));
+      rangeSlider.value = p;
+      if (priceDisplay) priceDisplay.textContent = `₹${p.toLocaleString('en-IN')}`;
+      const pct = ((p - 500) / 4500) * 100;
+      rangeSlider.style.background = `linear-gradient(to right,var(--green) ${pct}%,var(--dark3) ${pct}%)`;
+    }
+    if (timeParam) {
+      const times = timeParam.split(',').map(s => s.trim().toLowerCase());
+      $$('[data-filter="time"]').forEach(cb => {
+        if (times.includes(cb.value.toLowerCase())) cb.checked = true;
+      });
+    }
+    if (ratingParam) {
+      const rRadio = $(`input[name="rating"][value="${ratingParam}"]`);
+      if (rRadio) rRadio.checked = true;
+    }
+    if (facilityParam) {
+      const facs = facilityParam.split(',').map(s => s.trim().toLowerCase());
+      $$('[data-filter="facility"]').forEach(cb => {
+        if (facs.includes(cb.value.toLowerCase())) cb.checked = true;
+      });
+    }
+    if (availParam) {
+      const aRadio = $(`input[name="avail"][value="${availParam}"]`);
+      if (aRadio) aRadio.checked = true;
+    }
+    if (sortParam) {
+      const sRadio = $(`input[name="sortOption"][value="${sortParam}"]`);
+      if (sRadio) {
+        sRadio.checked = true;
+        $$('.sort-chip').forEach(c => c.classList.remove('active'));
+        sRadio.closest('.sort-chip')?.classList.add('active');
+      }
+    }
   }
-
-  rangeSlider?.addEventListener('change', applySidebarFilters);
-  $$('[name="rating"]').forEach(r=>r.addEventListener('change', applySidebarFilters));
-  $$('[data-filter="facility"]').forEach(c=>c.addEventListener('change', applySidebarFilters));
-
-  $('#resetFiltersBtn')?.addEventListener('click', ()=>{
-    $$('[data-filter="facility"]').forEach(c=>c.checked=false);
-    $$('[name="rating"]')[0].checked=true;
-    $$('[name="sortOption"]')[0].checked=true;
-    $$('.sort-chip').forEach(c=>c.classList.remove('active'));
-    $$('.sort-chip')[0]?.classList.add('active');
-    if(rangeSlider){rangeSlider.value=5000;priceDisplay.textContent='₹5,000';
-      rangeSlider.style.background='linear-gradient(to right,var(--green) 100%,var(--dark3) 100%)';}
-    displayed=[...allLoaded]; renderCards(displayed); closeDrawer(); toast('🔄 Filters reset');
-  });
 
   /* ─── NAVBAR SCROLL ─── */
   const navbar = document.querySelector('.navbar');
-  window.addEventListener('scroll',()=>{
-    navbar.style.boxShadow=window.scrollY>20?'0 4px 28px rgba(0,0,0,.7)':'0 2px 16px rgba(0,0,0,.4)';
-  },{passive:true});
-
-  /* ─── MAP VIEW — optional, needs GOOGLE_MAPS_API_KEY in client/js/config.js.
-     Without a key, clicking "Map View" shows a friendly explanation
-     instead of a broken/blank map. ─── */
-  let mapInstance = null;
-  let mapMarkers = [];
-
-  function loadGoogleMapsScript() {
-    return new Promise((resolve, reject) => {
-      if (window.google?.maps) return resolve();
-      if (!window.CONFIG_READY?.maps) return reject(new Error('Map view needs a Google Maps API key — add one to client/js/config.js'));
-      window.__mtInitMap = () => resolve();
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY}&callback=__mtInitMap`;
-      script.async = true;
-      script.onerror = () => reject(new Error('Failed to load Google Maps — check your API key'));
-      document.head.appendChild(script);
-    });
-  }
-
-  async function renderMap() {
-    const mapContainer = $('#mapContainer');
-    if (!mapContainer || mapContainer.style.display !== 'block') return; // map not currently showing
-
-    try {
-      await loadGoogleMapsScript();
-    } catch (err) {
-      mapContainer.innerHTML = `<div class="map-unavailable"><i class="fas fa-map-location-dot"></i><p>${err.message}</p></div>`;
-      return;
-    }
-
-    const withCoords = displayed.filter(v => v.lat != null && v.lng != null);
-    const center = withCoords.length ? { lat: withCoords[0].lat, lng: withCoords[0].lng } : { lat: 21.1702, lng: 72.8311 };
-
-    if (!mapInstance) mapInstance = new google.maps.Map(mapContainer, { center, zoom: 12 });
-    else mapInstance.setCenter(center);
-
-    mapMarkers.forEach(m => m.setMap(null));
-    mapMarkers = [];
-
-    if (!withCoords.length) {
-      toast('📍 None of these venues have map coordinates set yet', true);
-      return;
-    }
-
-    const bounds = new google.maps.LatLngBounds();
-    withCoords.forEach(v => {
-      const marker = new google.maps.Marker({ position: { lat: v.lat, lng: v.lng }, map: mapInstance, title: v.name });
-      const info = new google.maps.InfoWindow({
-        content: `<div style="color:#111;min-width:160px">
-          <strong>${v.name}</strong><br/>₹${v.price}/hr · ⭐ ${v.rating}<br/>
-          <a href="venue-detail.html?id=${v._id}" style="color:#00c853">View Details →</a></div>`,
-      });
-      marker.addListener('click', () => info.open(mapInstance, marker));
-      mapMarkers.push(marker);
-      bounds.extend(marker.getPosition());
-    });
-    if (withCoords.length > 1) mapInstance.fitBounds(bounds);
-  }
-
-  $('#mapViewToggle')?.addEventListener('click', async () => {
-    const mapContainer = $('#mapContainer');
-    const cardsContainer = $('#venueCards');
-    const toggleBtn = $('#mapViewToggle');
-    const showingMap = mapContainer.style.display === 'block';
-
-    if (showingMap) {
-      mapContainer.style.display = 'none';
-      cardsContainer.style.display = '';
-      toggleBtn.innerHTML = '<i class="fas fa-map"></i> Map View';
-      toggleBtn.classList.remove('active');
-    } else {
-      mapContainer.style.display = 'block';
-      cardsContainer.style.display = 'none';
-      toggleBtn.innerHTML = '<i class="fas fa-list"></i> List View';
-      toggleBtn.classList.add('active');
-      await renderMap();
-    }
-  });
+  window.addEventListener('scroll', () => {
+    navbar.style.boxShadow = window.scrollY > 20 ? '0 4px 28px rgba(0,0,0,.7)' : '0 2px 16px rgba(0,0,0,.4)';
+  }, { passive: true });
 
   /* ─── INIT ─── */
   await loadVenues();
+  initFiltersFromUrl();
+  if (nearestParam === 'true' || nearestParam === '1') {
+    await toggleNearestMode(true);
+  } else {
+    applyAllFiltersAndSort();
+  }
 
   /* ── COMING SOON handler for data-soon links ── */
   const csOverlay = document.getElementById('comingSoonOverlay');

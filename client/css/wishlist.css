@@ -427,3 +427,52 @@ a {
 
 /* Sign in modal override for wishlist page */
 .wl-page .modal-header p { color: var(--muted); }
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Wishlist
+════════════════════════════════════ */
+[data-theme="light"] .wishlist-hero {
+  background:
+    linear-gradient(135deg, rgba(233,30,99,.12) 0%, rgba(0,200,83,.08) 100%),
+    url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1400&q=80') center/cover no-repeat;
+  border-bottom: 2px solid rgba(0, 200, 83, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 60, 25, 0.10);
+}
+[data-theme="light"] .wishlist-hero::before {
+  background: linear-gradient(to right, rgba(220,245,232,0.94) 15%, rgba(220,245,232,0.75) 50%, rgba(220,245,232,0.20) 100%);
+}
+@media(max-width: 767px) {
+  [data-theme="light"] .wishlist-hero::before {
+    background: linear-gradient(to bottom, rgba(220,245,232,0.95) 0%, rgba(220,245,232,0.80) 55%, rgba(220,245,232,0.30) 100%);
+  }
+}
+[data-theme="light"] .wishlist-title {
+  color: #0a1f12;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .wishlist-subtitle {
+  color: #2d4a35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .wishlist-count-badge {
+  background: #fdf2f8;
+  border-color: #fbcfe8;
+  color: #be185d;
+}
+[data-theme="light"] .wl-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 18px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .wl-venue-name {
+  color: #081d10;
+}
+[data-theme="light"] .wl-location {
+  color: #3b5e43;
+}
+[data-theme="light"] .wishlist-empty h3 {
+  color: #081d10;
+}
+[data-theme="light"] .wishlist-empty p {
+  color: #3b5e43;
+}

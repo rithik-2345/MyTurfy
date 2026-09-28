@@ -34,12 +34,17 @@ router.get('/venue/:venueId', async (req, res, next) => {
    CUSTOMER — leave a review
    POST /api/reviews
    ══════════════════════════════════════ */
+/* ══════════════════════════════════════
+   POST REVIEW — Customers & Admins
+   POST /api/reviews
+   ══════════════════════════════════════ */
 router.post('/', protect, async (req, res, next) => {
   try {
-    if (req.auth.role !== 'user') {
-      return res.status(403).json({ success: false, message: 'Only customers can leave reviews' });
+    const isAdmin = req.auth.role === 'admin';
+    if (!isAdmin && req.auth.role !== 'user') {
+      return res.status(403).json({ success: false, message: 'Only registered customers and admins can leave reviews' });
     }
-    const { venueId, rating, text, bookingId } = req.body;
+    const { venueId, rating, text, bookingId, adminBadge } = req.body;
     if (!venueId || !rating || !text) {
       return res.status(400).json({ success: false, message: 'venueId, rating and text are required' });
     }
@@ -47,33 +52,41 @@ router.post('/', protect, async (req, res, next) => {
     const venue = await Venue.findById(venueId);
     if (!venue) return res.status(404).json({ success: false, message: 'Venue not found' });
 
-    // Verify customer has completed at least 1 paid booking at this venue
-    const hasBooking = await Booking.findOne({
-      customer: req.auth.id,
-      venue: venue._id,
-      paymentStatus: 'paid',
-      status: { $in: ['upcoming', 'completed'] },
-    });
+    let linkedBookingId = null;
 
-    if (!hasBooking) {
-      return res.status(400).json({
-        success: false,
-        message: 'You must have completed at least one paid booking at this venue to write a review.',
+    if (!isAdmin) {
+      // Verify customer has completed at least 1 paid booking at this venue
+      const hasBooking = await Booking.findOne({
+        customer: req.auth.id,
+        venue: venue._id,
+        paymentStatus: 'paid',
+        status: { $in: ['upcoming', 'completed'] },
       });
-    }
 
-    const existingReview = await Review.findOne({ customer: req.auth.id, venue: venue._id });
-    if (existingReview) {
-      return res.status(400).json({ success: false, message: 'You have already rated/reviewed this venue' });
+      if (!hasBooking) {
+        return res.status(400).json({
+          success: false,
+          message: 'You must have completed at least one paid booking at this venue to write a review.',
+        });
+      }
+
+      const existingReview = await Review.findOne({ customer: req.auth.id, venue: venue._id, isAdminReview: { $ne: true } });
+      if (existingReview) {
+        return res.status(400).json({ success: false, message: 'You have already rated/reviewed this venue' });
+      }
+      linkedBookingId = bookingId || hasBooking._id;
     }
 
     const review = await Review.create({
-      customer: req.auth.id,
+      customer: isAdmin ? null : req.auth.id,
       venue: venue._id,
       owner: venue.owner,
-      booking: bookingId || hasBooking._id,
+      booking: linkedBookingId,
       rating: Number(rating),
       text: text.trim(),
+      isAdminReview: isAdmin,
+      adminAuthorName: isAdmin ? (req.auth.name || 'MyTurfy Official Admin') : null,
+      authorBadge: isAdmin ? (adminBadge || 'Official MyTurfy Verified Review') : null,
     });
 
     // Keep the venue's displayed rating/reviewsCount in sync automatically.
@@ -85,7 +98,7 @@ router.post('/', protect, async (req, res, next) => {
     venue.reviewsCount = stats[0] ? stats[0].count : venue.reviewsCount;
     await venue.save();
 
-    res.status(201).json({ success: true, data: review });
+    res.status(201).json({ success: true, data: review, message: isAdmin ? 'Admin review published successfully!' : 'Review submitted!' });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(400).json({ success: false, message: 'You have already rated/reviewed this venue' });
@@ -96,7 +109,6 @@ router.post('/', protect, async (req, res, next) => {
 
 /* ══════════════════════════════════════
    OWNER — all reviews across their venues (owner-portal.js reviews list)
-   GET /api/reviews/owner
    ══════════════════════════════════════ */
 router.get('/owner', protect, isOwner, async (req, res, next) => {
   try {
@@ -112,7 +124,6 @@ router.get('/owner', protect, isOwner, async (req, res, next) => {
 
 /* ══════════════════════════════════════
    OWNER — reply to a review on one of their venues
-   PATCH /api/reviews/:id/reply
    ══════════════════════════════════════ */
 router.patch('/:id/reply', protect, isOwner, async (req, res, next) => {
   try {
@@ -135,23 +146,23 @@ router.patch('/:id/reply', protect, isOwner, async (req, res, next) => {
 });
 
 /* ══════════════════════════════════════
-   CUSTOMER — update their own review
+   UPDATE REVIEW — Author or Admin
    PUT /api/reviews/:id
    ══════════════════════════════════════ */
 router.put('/:id', protect, async (req, res, next) => {
   try {
-    if (req.auth.role !== 'user') {
-      return res.status(403).json({ success: false, message: 'Only customer accounts can edit reviews' });
-    }
-    const { rating, text } = req.body;
+    const isAdmin = req.auth.role === 'admin';
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ success: false, message: 'Review not found' });
-    if (review.customer.toString() !== req.auth.id) {
+
+    if (!isAdmin && review.customer?.toString() !== req.auth.id) {
       return res.status(403).json({ success: false, message: 'You can only edit your own review' });
     }
 
-    if (rating) review.rating = rating;
+    const { rating, text, adminBadge } = req.body;
+    if (rating) review.rating = Number(rating);
     if (text !== undefined) review.text = text.trim();
+    if (isAdmin && adminBadge !== undefined) review.authorBadge = adminBadge;
     await review.save();
 
     // Recalculate venue rating
@@ -173,17 +184,16 @@ router.put('/:id', protect, async (req, res, next) => {
 });
 
 /* ══════════════════════════════════════
-   CUSTOMER — delete their own review
+   DELETE REVIEW — Author or Admin
    DELETE /api/reviews/:id
    ══════════════════════════════════════ */
 router.delete('/:id', protect, async (req, res, next) => {
   try {
-    if (req.auth.role !== 'user') {
-      return res.status(403).json({ success: false, message: 'Only customer accounts can delete reviews' });
-    }
+    const isAdmin = req.auth.role === 'admin';
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ success: false, message: 'Review not found' });
-    if (review.customer.toString() !== req.auth.id) {
+
+    if (!isAdmin && review.customer?.toString() !== req.auth.id) {
       return res.status(403).json({ success: false, message: 'You can only delete your own review' });
     }
 

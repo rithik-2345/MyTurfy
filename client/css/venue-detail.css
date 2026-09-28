@@ -803,7 +803,7 @@
    MOBILE BOOKING MODAL IMPROVEMENTS
 ════════════════════════════════════ */
 
-/* Better modal scrolling on mobile */
+/* Better modal scrolling on all screens */
 .booking-modal {
   max-height: 90vh;
   max-height: 90dvh;
@@ -813,6 +813,25 @@
 }
 .booking-modal .modal-body {
   padding-bottom: 20px;
+}
+
+/* On phones — full-screen bottom sheet */
+@media (max-width: 539px) {
+  #bookingModal .modal {
+    max-height: 95vh;
+    max-height: 95dvh;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+  }
+  /* 3-column time slots on narrow phones (easier to tap) */
+  #bookingModal .time-slots {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+  #bookingModal .time-slot {
+    font-size: 11px;
+    padding: 9px 4px;
+  }
 }
 
 /* Mobile split section — full-width buttons on small screens */
@@ -826,7 +845,7 @@
     width: 100%;
     justify-content: center;
     padding: 12px;
-    font-size: 13px;
+    font-size: 14px;
   }
   .booking-modal .split-cost-display {
     padding: 12px;
@@ -835,11 +854,11 @@
     font-size: 24px;
   }
   .booking-modal .step-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     font-size: 22px;
   }
-  /* Ensure touch-friendly tap targets */
+  /* Touch-friendly tap targets */
   .booking-modal .time-slot {
     min-height: 44px;
     display: flex;
@@ -850,9 +869,15 @@
     min-height: 44px;
     font-size: 14px;
   }
+  /* Confirm button bigger on mobile */
+  .booking-modal .btn-confirm-booking {
+    padding: 15px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
 }
 
-/* Mobile book bar animation */
+/* Mobile book bar show/hide animation */
 .mobile-book-bar {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -864,4 +889,322 @@
 @keyframes splitFadeIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Disable hover transforms on touch screens */
+@media (hover: none) {
+  .btn-confirm-booking:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* ═══════════════════════════════════════
+   T-COINS LOYALTY SYSTEM STYLES
+═══════════════════════════════════════ */
+.tcoins-apply-section { margin: 12px 0; }
+
+.tcoins-apply-card {
+  background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.02) 100%);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 16px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.tcoins-apply-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.06) 50%, transparent 60%);
+  animation: tcoinsShimmer 4s infinite;
+}
+
+.tcoins-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tcoins-icon-wrap {
+  position: relative;
+  font-size: 22px;
+  color: #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+}
+.tcoins-pulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,215,0,0.4);
+  animation: tcoinPulse 2s infinite;
+}
+.tcoins-info { flex: 1; }
+.tcoins-balance-label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.tcoins-balance-val { font-size: 22px; font-weight: 800; color: #ffd700; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; line-height: 1; }
+.tcoins-rupee-val { font-size: 12px; color: var(--muted); margin-left: 4px; font-weight: 600; }
+.tcoins-tier-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 9px;
+  border-radius: 50px;
+  background: rgba(255,215,0,0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255,215,0,0.35);
+  text-transform: uppercase;
+}
+
+.tcoins-savings-preview {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: rgba(0,200,83,0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(0,200,83,0.2);
+}
+.tcoins-savings-preview i { color: var(--green); margin-right: 6px; }
+.tcoins-savings-preview strong { color: var(--green); font-weight: 800; }
+
+.tcoins-apply-row { margin-bottom: 6px; }
+.tcoins-apply-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(255,215,0,0.25);
+}
+.tcoins-apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255,215,0,0.35);
+}
+.tcoins-apply-btn:active { transform: scale(0.98); }
+
+.tcoins-applied-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(0,200,83,0.1);
+  border: 1px solid rgba(0,200,83,0.3);
+  border-radius: 12px;
+  animation: tcoinsSlideIn 0.3s ease;
+}
+.tcoins-applied-left { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--green); }
+.tcoins-applied-left i { font-size: 15px; }
+.tcoins-remove-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.tcoins-remove-btn:hover { border-color: var(--red); color: var(--red); background: rgba(239,83,80,0.1); }
+
+.tcoins-earn-preview {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  padding: 4px;
+}
+.tcoins-earn-preview i { color: #ffd700; margin-right: 4px; }
+.tcoins-earn-preview strong { color: #ffd700; font-weight: 800; }
+
+.tcoins-discount-row span { color: var(--green) !important; font-weight: 700; }
+.summary-final span { font-weight: 800; font-size: 16px; color: var(--text); }
+
+/* T-Coins Wallet Modal */
+.tcoins-modal { max-width: 440px; }
+.tcoins-wallet-icon { font-size: 44px; color: #ffd700; margin-bottom: 4px; text-shadow: 0 0 16px rgba(255,215,0,0.4); }
+.tcw-balance-card {
+  text-align: center;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.12) 0%, rgba(255,215,0,0.02) 100%);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+.tcw-balance-big { font-size: 48px; font-weight: 800; color: #ffd700; font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; line-height: 1; }
+.tcw-balance-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.tcw-tier-row { display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: 13px; font-weight: 700; }
+.tcw-tier-badge { color: #ffd700; }
+.tcw-streak { color: #ef5350; }
+.tcw-tier-progress-wrap { height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-top: 10px; overflow: hidden; }
+.tcw-tier-progress { height: 100%; background: linear-gradient(90deg, #ffd700, #ffb300); border-radius: 6px; transition: width 0.5s ease; }
+.tcw-tier-next { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.tcw-how-it-works { margin-bottom: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 14px; border-radius: 14px; }
+.tcw-how-it-works h4 { font-size: 13px; color: var(--text); margin: 0 0 8px; font-weight: 700; }
+.tcw-rule { font-size: 12px; color: var(--muted); padding: 3px 0; display: flex; align-items: center; gap: 8px; }
+.tcw-rule i { width: 16px; text-align: center; }
+
+.tcw-history-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+.tcw-history-title i { color: #ffd700; margin-right: 6px; }
+.tcw-history-list { max-height: 240px; overflow-y: auto; padding-right: 4px; }
+.tcw-tx-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.tcw-tx-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 14px; flex-shrink: 0; }
+.tcw-tx-detail { flex: 1; }
+.tcw-tx-desc { font-size: 12px; color: var(--text); font-weight: 600; }
+.tcw-tx-time { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.tcw-tx-amount { font-size: 16px; font-weight: 800; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; }
+
+/* T-Coins Earn Celebration Fullscreen Overlay */
+.tcoins-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  animation: tcoinsFadeIn 0.3s ease;
+}
+.tcoins-celebration-inner {
+  text-align: center;
+  background: linear-gradient(145deg, #111a14 0%, #0d1610 100%);
+  border: 2px solid #ffd700;
+  border-radius: 24px;
+  padding: 36px 44px;
+  box-shadow: 0 0 50px rgba(255,215,0,0.3);
+  animation: tcoinsScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tcoins-celebration-coins { font-size: 64px; color: #ffd700; margin-bottom: 10px; animation: tcoinsBounce 1s infinite alternate; }
+.tcoins-celebration-text { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: #ffd700; letter-spacing: 2px; line-height: 1; }
+.tcoins-celebration-sub { font-size: 14px; color: var(--muted); margin-top: 8px; font-weight: 600; }
+
+/* Animations */
+@keyframes tcoinsShimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+@keyframes tcoinPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.25); }
+}
+@keyframes tcoinsSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tcoinsFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tcoinsScaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes tcoinsBounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Venue Detail Page
+════════════════════════════════════ */
+[data-theme="light"] .breadcrumb {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .breadcrumb a {
+  color: #3b5e43;
+}
+[data-theme="light"] .breadcrumb a:hover {
+  color: #009624;
+}
+[data-theme="light"] .breadcrumb span {
+  color: #081d10;
+}
+[data-theme="light"] .venue-detail-card,
+[data-theme="light"] .booking-sidebar,
+[data-theme="light"] .facility-card,
+[data-theme="light"] .review-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 60, 20, 0.06);
+}
+[data-theme="light"] .venue-detail-header h1 {
+  color: #081d10;
+}
+[data-theme="light"] .venue-detail-header p {
+  color: #3b5e43;
+}
+[data-theme="light"] .slot-btn {
+  background: #f4fbf6;
+  border: 1.5px solid rgba(0, 200, 83, 0.22);
+  color: #0c2014;
+}
+[data-theme="light"] .slot-btn:hover {
+  border-color: var(--green);
+  background: #eaf4ed;
+}
+[data-theme="light"] .slot-btn.selected {
+  background: var(--green);
+  color: #04140a;
+  border-color: var(--green);
+}
+[data-theme="light"] .slot-btn.disabled {
+  background: #f0f0f0;
+  color: #a0a0a0;
+  border-color: #e0e0e0;
+}
+[data-theme="light"] .mobile-book-bar {
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 -4px 20px rgba(0, 60, 20, 0.08);
+}
+[data-theme="light"] .date-pill {
+  background: #f4fbf6;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  color: #3b5e43;
+}
+[data-theme="light"] .date-pill.active {
+  background: var(--green);
+  color: #04140a;
+  border-color: var(--green);
+}
+[data-theme="light"] .court-tab {
+  background: #f4fbf6;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  color: #3b5e43;
+}
+[data-theme="light"] .court-tab.active {
+  background: var(--green);
+  color: #04140a;
+  border-color: var(--green);
+}
+[data-theme="light"] .booking-summary {
+  background: #f8fcf9;
+  border: 1px solid rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .summary-row {
+  color: #3b5e43;
+}
+[data-theme="light"] .summary-row strong,
+[data-theme="light"] .summary-final {
+  color: #081d10;
 }

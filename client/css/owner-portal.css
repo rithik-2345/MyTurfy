@@ -373,3 +373,102 @@ textarea{resize:vertical}
   .form-row, .form-row-3{ grid-template-columns:1fr }
   .stat-grid-3{ grid-template-columns:1fr }
 }
+
+/* ════════════════════════════════════
+   MOBILE POLISH — Owner Portal
+════════════════════════════════════ */
+
+@media(max-width:539px){
+
+  /* Single-column stat grid on very small screens */
+  .stat-grid{grid-template-columns:1fr}
+
+  /* Stat cards — more compact */
+  .stat-card{padding:16px}
+  .stat-val{font-size:28px}
+
+  /* Action buttons — full width */
+  .form-actions,.panel-actions{
+    flex-direction:column;gap:8px;
+  }
+  .form-actions .btn-primary,
+  .form-actions .btn-secondary,
+  .panel-actions button{
+    width:100%;justify-content:center;
+  }
+
+  /* Horizontal scroll for data tables */
+  .bookings-table-wrap,
+  .data-table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  table{min-width:540px}
+
+  /* Topbar — tighten */
+  .topbar{padding:0 14px;gap:8px}
+  .topbar-title{font-size:18px}
+
+  /* Menu toggle bigger tap target */
+  .menu-toggle{width:40px;height:40px;font-size:16px}
+}
+
+/* Toast — bottom left on mobile */
+@media(max-width:767px){
+  .toast-host{
+    bottom:16px;right:16px;left:16px;
+  }
+  .toast{font-size:12px;padding:10px 14px}
+}
+
+/* ════════════════════════════════════
+   LIGHT THEME OVERRIDES — Owner Portal
+════════════════════════════════════ */
+[data-theme="light"] {
+  --dark:   #f5f9f6;
+  --dark2:  #ffffff;
+  --dark3:  #eaf4ed;
+  --card-bg:#ffffff;
+  --sidebar-bg:#f8fcf9;
+  --text:   #0c2014;
+  --muted:  #3b5e43;
+  --border: rgba(0,200,83,0.22);
+}
+[data-theme="light"] .topbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(0, 200, 83, 0.18);
+  box-shadow: 0 2px 12px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+  border-right: 1px solid rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] .sb-link {
+  color: #3b5e43;
+}
+[data-theme="light"] .sb-link:hover,
+[data-theme="light"] .sb-link.active {
+  background: #eaf4ed;
+  color: #009624;
+}
+[data-theme="light"] .panel,
+[data-theme="light"] .stat-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  box-shadow: 0 4px 18px rgba(0, 60, 20, 0.05);
+}
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: #f4fbf6;
+  border-color: rgba(0, 200, 83, 0.25);
+  color: #0c2014;
+}
+[data-theme="light"] table th {
+  color: #3b5e43;
+  border-bottom-color: rgba(0, 200, 83, 0.18);
+}
+[data-theme="light"] table td {
+  color: #081d10;
+  border-bottom-color: rgba(0, 200, 83, 0.1);
+}

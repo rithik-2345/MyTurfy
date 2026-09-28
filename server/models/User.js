@@ -13,31 +13,36 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: [true, 'Name is required'], trim: true },
     email: {
       type: String,
-      required: [true, 'Email is required'],
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
     },
-    // select:false means this field is left out of query results by
-    // default — you must explicitly .select('+password') to fetch it,
-    // e.g. during login.
     password: {
       type: String,
-      // Google-authenticated accounts never set a password — they log
-      // in via Google every time, so it's only required when there's
-      // no googleId on the account.
       required: [function () { return !this.googleId; }, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
       select: false,
     },
-    // Set when the account was created (or later linked) via "Sign in
-    // with Google" — null for accounts that only ever used email/password.
     googleId: { type: String, default: null, index: true, sparse: true },
-    picture: { type: String, default: null }, // profile photo URL from Google, if signed in that way
-    phone: { type: String, trim: true },
+    picture: { type: String, default: null },
+    phone: { type: String, trim: true, unique: true, sparse: true },
     role: { type: String, default: 'user' },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Venue' }],
+    // ── T-Coins Loyalty Wallet ──
+    tCoins: { type: Number, default: 0, min: 0 },           // Current available T-Coins (display value, 10 = ₹1)
+    tCoinsLifetime: { type: Number, default: 0, min: 0 },    // Total earned all-time (for tier calculation)
+    tCoinsTier: {
+      type: String,
+      enum: ['rookie', 'regular', 'champion', 'legend'],
+      default: 'rookie',
+    },
+    tCoinsStreak: { type: Number, default: 0 },               // Consecutive weeks with a completed booking
+    tCoinsLastBookingWeek: { type: String, default: null },   // ISO week string e.g. "2026-W33"
+
+    // ── Admin blocklist ──
+    isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

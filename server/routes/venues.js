@@ -36,19 +36,23 @@ const upload = multer({
 router.get('/', async (req, res, next) => {
   try {
     const {
-      sport, q, maxPrice, minRating, minArea, minHeight,
+      sport, q, city, maxPrice, minRating, minArea, minHeight,
       facilities, sort = 'relevance', page = 1, limit = 20,
     } = req.query;
 
     const match = { isActive: true };
 
     if (sport && sport.toLowerCase() !== 'all') {
-      match.sport = new RegExp(`^${sport}$`, 'i');
+      match.sport = new RegExp('^' + sport.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + '$', 'i');
+    }
+    if (city && city.toLowerCase() !== 'all') {
+      match.location = new RegExp(city.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&'), 'i');
     }
     if (q) {
       // Same "match name/location/sport/tags" behaviour your old
       // client-side searchVenueList() helper had — just server-side now.
-      const regex = new RegExp(q, 'i');
+      const escaped = q.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
       match.$or = [{ name: regex }, { location: regex }, { sport: regex }, { tags: regex }];
     }
     if (maxPrice) match.price = { $lte: Number(maxPrice) };
@@ -75,14 +79,14 @@ router.get('/', async (req, res, next) => {
     if (minArea) pipeline.push({ $match: { area: { $gte: Number(minArea) } } });
 
     const sortMap = {
-      relevance: { rating: -1, createdAt: -1 },
-      'price-low': { price: 1 },
-      'price-high': { price: -1 },
-      rating: { rating: -1 },
-      'area-large': { area: -1 },
-      'area-small': { area: 1 },
-      'height-tall': { 'specs.height': -1 },
-      'height-short': { 'specs.height': 1 },
+      relevance: { isSponsored: -1, rating: -1, createdAt: -1 },
+      'price-low': { isSponsored: -1, price: 1 },
+      'price-high': { isSponsored: -1, price: -1 },
+      rating: { isSponsored: -1, rating: -1 },
+      'area-large': { isSponsored: -1, area: -1 },
+      'area-small': { isSponsored: -1, area: 1 },
+      'height-tall': { isSponsored: -1, 'specs.height': -1 },
+      'height-short': { isSponsored: -1, 'specs.height': 1 },
     };
 
     const pageNum = Math.max(1, Number(page));
@@ -112,6 +116,49 @@ router.get('/', async (req, res, next) => {
       page: pageNum,
       pages: Math.ceil(total / limitNum) || 1,
       data: output.data,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ══════════════════════════════════════
+   PUBLIC — stats for the About page
+   GET /api/venues/public-stats
+   ══════════════════════════════════════ */
+router.get('/public-stats', async (req, res, next) => {
+  try {
+    const venuesCount = await Venue.countDocuments({ isActive: true });
+    
+    // Sum of specs.turfs
+    const turfResult = await Venue.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: null, totalTurfs: { $sum: "$specs.turfs" } } }
+    ]);
+    const turfsCount = turfResult[0]?.totalTurfs || 0;
+
+    const bookingsCount = await Booking.countDocuments({ status: { $nin: ['cancelled', 'hold'] } });
+
+    const distinctSports = await Venue.distinct('sport', { isActive: true });
+    const sportsCount = distinctSports.length;
+
+    const citiesList = ["Mumbai", "Delhi", "Bangalore", "Surat", "Ahmedabad", "Pune", "Hyderabad", "Chennai"];
+    let citiesCount = 0;
+    for (const city of citiesList) {
+      const count = await Venue.countDocuments({ isActive: true, location: new RegExp(city.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i') });
+      if (count > 0) citiesCount++;
+    }
+    if (citiesCount === 0) citiesCount = 1;
+
+    res.json({
+      success: true,
+      data: {
+        venues: venuesCount,
+        turfs: turfsCount,
+        bookings: bookingsCount,
+        cities: citiesCount,
+        sports: sportsCount
+      }
     });
   } catch (err) {
     next(err);
@@ -225,7 +272,7 @@ router.put('/:id', protect, isOwner, async (req, res, next) => {
       });
     }
 
-    const editable = ['name', 'sport', 'location', 'price', 'specs', 'tags', 'slots', 'images', 'isActive', 'description', 'lat', 'lng', 'openHour', 'closeHour', 'closedDates'];
+    const editable = ['name', 'sport', 'location', 'price', 'specs', 'tags', 'slots', 'images', 'isActive', 'description', 'lat', 'lng', 'openHour', 'closeHour', 'closedDates', 'blockedSlots'];
     editable.forEach((field) => {
       if (req.body[field] !== undefined) venue[field] = req.body[field];
     });
@@ -249,6 +296,19 @@ router.delete('/:id', protect, isOwner, async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'You do not own this venue' });
     }
 
+    // Prevent deletion if there are active/upcoming bookings
+    const activeBookings = await Booking.countDocuments({
+      venue: venue._id,
+      status: { $in: ['upcoming', 'hold'] },
+      date: { $gte: new Date().toISOString().split('T')[0] },
+    });
+    if (activeBookings > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete venue — ${activeBookings} active/upcoming booking(s) exist. Cancel them first.`,
+      });
+    }
+
     // Delete all associated images from Cloudinary cloud storage
     const images = venue.images || [];
     images.forEach(img => {
@@ -262,6 +322,35 @@ router.delete('/:id', protect, isOwner, async (req, res, next) => {
     ]);
 
     res.json({ success: true, message: 'Venue and its bookings/reviews removed' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ══════════════════════════════════════
+   OWNER — block/unblock specific hours on a date
+   PATCH /api/venues/:id/block-slots
+   Body: { date: 'YYYY-MM-DD', hours: [18, 19, 20] }  — replaces that date's blocked hours
+   ══════════════════════════════════════ */
+router.patch('/:id/block-slots', protect, isOwner, async (req, res, next) => {
+  try {
+    const venue = await Venue.findById(req.params.id);
+    if (!venue) return res.status(404).json({ success: false, message: 'Venue not found' });
+    if (venue.owner.toString() !== req.auth.id) {
+      return res.status(403).json({ success: false, message: 'You do not own this venue' });
+    }
+
+    const { date, hours } = req.body;
+    if (!date) return res.status(400).json({ success: false, message: 'date is required (YYYY-MM-DD)' });
+
+    // Remove existing entry for this date, then add the new one (or skip if hours is empty = unblock all)
+    venue.blockedSlots = (venue.blockedSlots || []).filter(s => s.date !== date);
+    if (hours && hours.length > 0) {
+      venue.blockedSlots.push({ date, hours: hours.map(Number) });
+    }
+    await venue.save();
+
+    res.json({ success: true, message: `Blocked hours updated for ${date}`, data: venue.blockedSlots });
   } catch (err) {
     next(err);
   }

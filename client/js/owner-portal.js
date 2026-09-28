@@ -370,8 +370,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const recent = [...bookings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
     $('#recentBookingsTable tbody').innerHTML = recent.length
       ? recent.map(b => `<tr>
-          <td>${b.customer?.name || 'Customer'}</td>
-          <td>${b.venue?.name || '—'}</td>
+          <td>${escapeHTML(b.customer?.name || 'Customer')}</td>
+          <td>${escapeHTML(b.venue?.name || '—')}</td>
           <td>${b.date || '—'}</td><td>${b.time || '—'}</td>
           <td>₹${(b.amount || 0).toLocaleString('en-IN')}</td>
           <td><span class="status-pill status-${b.status}">${b.status}</span></td>
@@ -399,8 +399,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="ov-sport-badge">${v.sport}</span>
         </div>
         <div class="ov-body">
-          <div class="ov-name">${v.name}</div>
-          <div class="ov-loc"><i class="fas fa-map-marker-alt"></i> ${v.location}</div>
+          <div class="ov-name">${escapeHTML(v.name)}</div>
+          <div class="ov-loc"><i class="fas fa-map-marker-alt"></i> ${escapeHTML(v.location)}</div>
           <div class="ov-loc" style="font-size:11px"><i class="fas fa-clock"></i> ${fmtH(openH)} – ${fmtH(closeH)}</div>
           <div class="ov-loc" style="font-size:11px;margin-top:-4px"><i class="fas fa-ruler-combined"></i> ${dims}</div>
           <div class="ov-meta-row">
@@ -764,8 +764,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
 
           return `<tr>
-            <td>${b.customer?.name || 'Customer'}</td><td>${b.venue?.name || '—'}</td>
-            <td>${b.date || '—'}</td><td>${b.time || '—'}</td>
+            <td>${escapeHTML(b.customer?.name || 'Customer')}</td><td>${escapeHTML(b.venue?.name || '—')}</td>
+            <td>${escapeHTML(b.date || '—')}</td><td>${escapeHTML(b.time || '—')}</td>
             <td>₹${(b.amount || 0).toLocaleString('en-IN')}</td>
             <td>${statusPill}</td>
             <td>${actions}</td>
@@ -786,13 +786,24 @@ document.addEventListener('DOMContentLoaded', async () => {
      EARNINGS
   ═══════════════════════════════════════════ */
   function renderEarnings() {
-    const commPct   = 0.10;
+    // Dynamic commission: use average across owner's venues (or fallback to 10%)
+    const avgCommPct = venues.length
+      ? venues.reduce((s, v) => s + (v.commissionPct || 10), 0) / venues.length / 100
+      : 0.10;
     const completed = bookings.filter(b => b.status !== 'cancelled');
     const total     = completed.reduce((s, b) => s + (b.amount || 0), 0);
-    const net       = Math.round(total * (1 - commPct));
-    const pending   = Math.round(bookings.filter(b => b.status === 'upcoming').reduce((s, b) => s + (b.amount || 0), 0) * (1 - commPct));
+    const net       = Math.round(total * (1 - avgCommPct));
+    const pending   = Math.round(bookings.filter(b => b.status === 'upcoming').reduce((s, b) => s + (b.amount || 0), 0) * (1 - avgCommPct));
     $('#earnTotal').textContent   = '₹' + net.toLocaleString('en-IN');
     $('#earnPending').textContent = '₹' + pending.toLocaleString('en-IN');
+
+    // Show commission info
+    const commInfo = document.getElementById('commissionInfo');
+    if (commInfo) {
+      commInfo.innerHTML = venues.map(v =>
+        `<span style="font-size:12px;color:var(--muted);margin-right:12px">${v.name}: <strong style="color:var(--green)">${v.commissionPct || 10}% platform fee</strong> (you receive ${100 - (v.commissionPct || 10)}%)</span>`
+      ).join('');
+    }
 
     const chart = $('#monthChart');
     if (!completed.length) {
@@ -833,7 +844,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return `
       <div class="review-card" data-id="${r._id}">
         <div class="review-top">
-          <div><div class="review-customer">${r.customer?.name || 'Customer'}</div><div class="review-venue">${r.venue?.name || '—'}</div></div>
+          <div><div class="review-customer">${escapeHTML(r.customer?.name || 'Customer')}</div><div class="review-venue">${escapeHTML(r.venue?.name || '—')}</div></div>
           <div class="review-stars">${stars} ${r.rating}</div>
         </div>
         <p class="review-text">${r.text || ''}</p>
@@ -1112,101 +1123,125 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  /* ═══════════════════════════════════════════
-     OFFLINE BOOKINGS & SLOT CONTROL
-  ═══════════════════════════════════════════ */
-  function populateOfflineBookingVenues() {
-    const obVenue = $('#obVenue');
-    const mcVenue = $('#mcVenue');
-    if (!obVenue || !mcVenue) return;
 
-    const currentObVal = obVenue.value;
-    const currentMcVal = mcVenue.value;
+  /* ═══════════════════════════════════════════
+     BLOCK HOURS & SLOT OVERVIEW
+  ═══════════════════════════════════════════ */
+  function populateBlockHoursVenues() {
+    const bhVenue = $('#bhVenue');
+    const mcVenue = $('#mcVenue');
+    if (!bhVenue && !mcVenue) return;
 
     const options = venues.map(v => `<option value="${v._id}">${v.name}</option>`).join('');
-    obVenue.innerHTML = options;
-    mcVenue.innerHTML = options;
-
-    if (currentObVal) obVenue.value = currentObVal;
-    if (currentMcVal) mcVenue.value = currentMcVal;
+    if (bhVenue) {
+      const cur = bhVenue.value;
+      bhVenue.innerHTML = options;
+      if (cur) bhVenue.value = cur;
+    }
+    if (mcVenue) {
+      const cur = mcVenue.value;
+      mcVenue.innerHTML = options;
+      if (cur) mcVenue.value = cur;
+    }
   }
 
   // Set default dates to today
   const todayISO = getLocalDateString(new Date());
-  if ($('#obDate') && !$('#obDate').value) $('#obDate').value = todayISO;
+  if ($('#bhDate') && !$('#bhDate').value) $('#bhDate').value = todayISO;
   if ($('#mcDate') && !$('#mcDate').value) $('#mcDate').value = todayISO;
 
-  let obSelectedHour = null;
+  let bhSelectedHours = new Set(); // hours toggled for blocking
 
-  function loadOfflineBookingSlots() {
-    const venueId = $('#obVenue')?.value;
-    const date = $('#obDate')?.value;
-    const container = $('#obSlotsContainer');
-    const msgEl = $('#obSlotsMessage');
-    if (!venueId || !date || !container) return;
+  async function loadBlockHoursGrid() {
+    const venueId = $('#bhVenue')?.value;
+    const date = $('#bhDate')?.value;
+    const grid = $('#bhHoursGrid');
+    const saveBtn = $('#bhSaveBtn');
+    if (!venueId || !date || !grid) return;
 
     const v = venues.find(x => x._id === venueId);
     if (!v) return;
 
+    // Fetch currently blocked hours for this venue+date
+    let currentlyBlocked = [];
+    try {
+      const venueData = await API.venues.get(venueId);
+      const blockedEntry = (venueData.data?.blockedSlots || []).find(s => s.date === date);
+      currentlyBlocked = blockedEntry?.hours || [];
+    } catch (_) {}
+
+    bhSelectedHours = new Set(currentlyBlocked);
+
     const openH = v.openHour ?? 6;
     const closeH = v.closeHour ?? 22;
 
-    // Filter non-cancelled bookings for this venue and date
-    const vBookings = bookings.filter(b => {
+    grid.innerHTML = '';
+
+    // Check which hours are already booked (can't block those)
+    const alreadyBooked = new Set();
+    bookings.filter(b => {
       const vId = b.venue?._id || b.venue;
       return vId === venueId && b.date === date && b.status !== 'cancelled';
-    });
-
-    const bookedHours = new Set();
-    vBookings.forEach(b => {
+    }).forEach(b => {
       const startH = parseInt(b.time.split(':')[0], 10);
-      for (let i = 0; i < (b.durationHours || 1); i++) {
-        bookedHours.add(startH + i);
-      }
+      for (let i = 0; i < (b.durationHours || 1); i++) alreadyBooked.add(startH + i);
     });
-
-    container.innerHTML = '';
-    obSelectedHour = null;
-    $('#obSubmitBtn').disabled = true;
-
-    const duration = +$('#obDuration').value || 1;
-    let slotCount = 0;
 
     for (let h = openH; h < closeH; h++) {
-      let isBlocked = false;
-      for (let i = 0; i < duration; i++) {
-        if (h + i >= closeH || bookedHours.has(h + i)) {
-          isBlocked = true;
-          break;
-        }
-      }
-
+      const isBooked = alreadyBooked.has(h);
+      const isBlocked = bhSelectedHours.has(h);
       const chip = document.createElement('button');
       chip.type = 'button';
-      chip.className = 'date-chip' + (isBlocked ? ' closed' : '');
-      chip.disabled = isBlocked;
-      chip.innerHTML = `<span>${hourLabel(h)}</span>`;
+      chip.className = 'date-chip' + (isBlocked ? ' selected' : '') + (isBooked ? ' closed' : '');
+      chip.disabled = isBooked;
+      chip.title = isBooked ? 'Already booked — cannot block' : isBlocked ? 'Blocked — click to unblock' : 'Click to block';
+      chip.innerHTML = `<span>${hourLabel(h)}</span>${isBlocked ? '<br><small style="font-size:9px;color:var(--red)">BLOCKED</small>' : ''}`;
 
-      if (!isBlocked) {
-        slotCount++;
+      if (!isBooked) {
         chip.addEventListener('click', () => {
-          $$('#obSlotsContainer button').forEach(c => {
-            if (!c.classList.contains('closed')) c.style.borderColor = 'var(--border)';
-          });
-          chip.style.borderColor = 'var(--green)';
-          obSelectedHour = h;
-          $('#obSubmitBtn').disabled = false;
+          if (bhSelectedHours.has(h)) {
+            bhSelectedHours.delete(h);
+            chip.classList.remove('selected');
+            chip.innerHTML = `<span>${hourLabel(h)}</span>`;
+          } else {
+            bhSelectedHours.add(h);
+            chip.classList.add('selected');
+            chip.innerHTML = `<span>${hourLabel(h)}</span><br><small style="font-size:9px;color:var(--red)">BLOCKED</small>`;
+          }
+          if (saveBtn) saveBtn.disabled = false;
         });
       }
-      container.appendChild(chip);
+      grid.appendChild(chip);
     }
 
-    if (msgEl) {
-      msgEl.textContent = slotCount > 0 
-        ? 'Select an available start time slot above.' 
-        : 'No available slots match the selected duration on this date.';
-    }
+    if (saveBtn) saveBtn.disabled = false;
   }
+
+  $('#bhVenue')?.addEventListener('change', loadBlockHoursGrid);
+  $('#bhDate')?.addEventListener('change', loadBlockHoursGrid);
+
+  $('#bhSaveBtn')?.addEventListener('click', async () => {
+    const venueId = $('#bhVenue')?.value;
+    const date = $('#bhDate')?.value;
+    const statusMsg = $('#bhStatusMsg');
+    if (!venueId || !date) return;
+
+    const btn = $('#bhSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+    try {
+      await API.venues.blockSlots(venueId, date, [...bhSelectedHours]);
+      if (statusMsg) statusMsg.textContent = `✅ Saved! ${bhSelectedHours.size} hour(s) blocked on ${date}.`;
+      toast('✅ Blocked hours updated!');
+    } catch (err) {
+      toast(`❌ ${err.message}`, true);
+      if (statusMsg) statusMsg.textContent = `❌ ${err.message}`;
+    } finally {
+      btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Blocked Hours';
+      btn.disabled = false;
+    }
+  });
 
   function loadSlotControlTable() {
     const venueId = $('#mcVenue')?.value;
@@ -1225,6 +1260,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       return vId === venueId && b.date === date;
     });
 
+    // Also check blocked hours for this venue+date
+    const blockedHours = new Set(
+      (v.blockedSlots || []).find(s => s.date === date)?.hours || []
+    );
+
     tbody.innerHTML = '';
 
     for (let h = openH; h < closeH; h++) {
@@ -1238,79 +1278,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       const timeString = hourLabel(h);
 
       if (activeBooking) {
-        const custName = activeBooking.customer?.name || 'Offline Customer';
-        const custPhone = activeBooking.customer?.phone || '—';
+        // Only show name (no phone/email per policy)
+        const custName = activeBooking.customer?.name || 'Customer';
         const status = activeBooking.status;
-
         row.innerHTML = `
           <td><strong>${timeString}</strong></td>
-          <td>${custName}</td>
-          <td>${custPhone}</td>
+          <td>${escapeHTML(custName)}</td>
           <td><span class="status-pill status-${status}">${status}</span></td>
-          <td>
-            ${status !== 'cancelled'
-              ? `<button class="row-action mc-cancel" data-id="${activeBooking._id}" style="color:var(--red)"><i class="fas fa-ban"></i> Cancel/Unblock</button>`
-              : '—'}
-          </td>
+        `;
+      } else if (blockedHours.has(h)) {
+        row.innerHTML = `
+          <td><strong>${timeString}</strong></td>
+          <td style="color:var(--muted);font-size:12px"><i class="fas fa-ban"></i> Blocked by you</td>
+          <td><span class="status-pill status-cancelled">blocked</span></td>
         `;
       } else {
         row.innerHTML = `
           <td><strong>${timeString}</strong></td>
-          <td colspan="3" style="color:var(--green);font-size:12px"><i class="fas fa-check-circle"></i> Available / Open</td>
-          <td>—</td>
+          <td colspan="2" style="color:var(--green);font-size:12px"><i class="fas fa-check-circle"></i> Available / Open</td>
         `;
       }
       tbody.appendChild(row);
     }
-
-    $$('.mc-cancel', tbody).forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Cancel and unblock this slot immediately?')) return;
-        try {
-          await API.bookings.cancel(btn.dataset.id);
-          toast('Slot unblocked/cancelled successfully!');
-          await refreshAll();
-        } catch (err) {
-          toast(`❌ ${err.message}`, true);
-        }
-      });
-    });
   }
-
-  // Handle Offline Booking Form submit
-  $('#offlineBookingForm')?.addEventListener('submit', async e => {
-    e.preventDefault();
-    if (obSelectedHour === null) return;
-
-    const venueId = $('#obVenue').value;
-    const date = $('#obDate').value;
-    const duration = +$('#obDuration').value || 1;
-    const customerName = $('#obCustName').value.trim();
-    const customerPhone = $('#obCustPhone').value.trim();
-    const submitBtn = $('#obSubmitBtn');
-
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking…';
-
-    try {
-      const timeString = `${String(obSelectedHour).padStart(2, '0')}:00`;
-      await API.bookings.createOffline(venueId, date, timeString, duration, customerName, customerPhone);
-      toast('🎉 Offline booking created!');
-      $('#obCustName').value = '';
-      $('#obCustPhone').value = '';
-      obSelectedHour = null;
-      await refreshAll();
-    } catch (err) {
-      toast(`❌ ${err.message}`, true);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-check"></i> Book Selected Slot';
-    }
-  });
-
-  // Attach event listeners for updates
-  $('#obVenue')?.addEventListener('change', loadOfflineBookingSlots);
-  $('#obDate')?.addEventListener('change', loadOfflineBookingSlots);
-  $('#obDuration')?.addEventListener('change', loadOfflineBookingSlots);
 
   $('#mcVenue')?.addEventListener('change', loadSlotControlTable);
   $('#mcDate')?.addEventListener('change', loadSlotControlTable);
@@ -1325,8 +1315,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderBookings(); 
     renderEarnings(); 
     renderReviews(); 
-    populateOfflineBookingVenues();
-    loadOfflineBookingSlots();
+    populateBlockHoursVenues();
+    loadBlockHoursGrid();
     loadSlotControlTable();
   }
 
@@ -1341,3 +1331,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   console.log('🏟️ MyTurfy Partner dashboard ready');
 });
+
